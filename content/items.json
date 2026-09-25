@@ -1,0 +1,102 @@
+[
+  {
+    "id": "training_blade",
+    "name": "Training Blade",
+    "slot": "weapon",
+    "rarity": "Common",
+    "stats": {"strike": 2},
+    "sell_value": 4,
+    "description": "A dependable blade for a new road.",
+    "identity": "steady strikes"
+  },
+  {
+    "id": "patched_coat",
+    "name": "Patched Trail Coat",
+    "slot": "armor",
+    "rarity": "Common",
+    "stats": {"guard": 2},
+    "sell_value": 4,
+    "description": "Worn, warm, and better than bare skin.",
+    "identity": "a little extra safety"
+  },
+  {
+    "id": "traveler_token",
+    "name": "Traveler's Token",
+    "slot": "trinket",
+    "rarity": "Common",
+    "stats": {"fortune": 1},
+    "sell_value": 4,
+    "description": "A small token said to point toward the interesting road.",
+    "identity": "a nose for discoveries"
+  },
+  {
+    "id": "thornbranch_spear",
+    "name": "Thornbranch Spear",
+    "slot": "weapon",
+    "rarity": "Common",
+    "stats": {"strike": 4},
+    "sell_value": 8,
+    "description": "Long reach for enemies that would rather stay close.",
+    "identity": "raw stopping power"
+  },
+  {
+    "id": "moonlit_dagger",
+    "name": "Moonlit Dagger",
+    "slot": "weapon",
+    "rarity": "Uncommon",
+    "stats": {"strike": 2, "fortune": 3},
+    "sell_value": 14,
+    "description": "Its edge is modest. Its owner tends to notice hidden things.",
+    "identity": "curious, opportunistic strikes"
+  },
+  {
+    "id": "brambleguard_jerkin",
+    "name": "Brambleguard Jerkin",
+    "slot": "armor",
+    "rarity": "Uncommon",
+    "stats": {"guard": 5},
+    "sell_value": 16,
+    "description": "Layered bark and leather that turns a bad hit into a close call.",
+    "identity": "survive the dangerous road"
+  },
+  {
+    "id": "wayfarer_cloak",
+    "name": "Wayfarer's Cloak",
+    "slot": "armor",
+    "rarity": "Uncommon",
+    "stats": {"guard": 2, "fortune": 3},
+    "sell_value": 15,
+    "description": "A light cloak with too many secret pockets.",
+    "identity": "safer travel and better finds"
+  },
+  {
+    "id": "luckstone",
+    "name": "Greenwake Luckstone",
+    "slot": "trinket",
+    "rarity": "Uncommon",
+    "stats": {"fortune": 5},
+    "sell_value": 16,
+    "description": "Warm to the touch whenever something valuable is nearby.",
+    "identity": "chase a better discovery"
+  },
+  {
+    "id": "embercleft_axe",
+    "name": "Embercleft Axe",
+    "slot": "weapon",
+    "rarity": "Rare",
+    "stats": {"strike": 6},
+    "sell_value": 28,
+    "description": "A heavy, chipped axe that ends arguments quickly.",
+    "identity": "overwhelm a hard fight"
+  },
+  {
+    "id": "watchtower_ward",
+    "name": "Watchtower Ward",
+    "slot": "trinket",
+    "rarity": "Rare",
+    "stats": {"guard": 3, "fortune": 2},
+    "sell_value": 30,
+    "description": "A carved eye from the old watchtower. It has seen adventurers return alive.",
+    "identity": "a balanced edge in dangerous places"
+  }
+]
