@@ -1,12 +1,27 @@
 # Smallest Playable Prototype
 
-**Status:** Proposed; requires approval before implementation  
-**Current phase:** Research/design only  
+**Status:** Approved; first implementation exists, runtime verification pending
+**Current phase:** Prototype implementation and validation
 **Primary question:**
 
 > Is it exciting to return after being away and discover what the adventurer did and found, then improve them and send them out again?
 
 This document deliberately describes a vertical slice, not the eventual game.
+
+## Implementation status
+
+The approved vertical slice is implemented in the following small layers:
+
+- `content/*.json` contains route, enemy, and item definitions.
+- `src/sim/` contains the seeded RNG, content loader, and engine-light staged expedition simulation.
+- `src/state/` contains the explicit game state owner and injectable clock.
+- `src/persistence/` contains versioned JSON persistence with temporary-file replacement.
+- `src/ui/` contains the placeholder Control-based UI for onboarding, camp, away status, return reports, and equipment actions.
+- `tests/` contains headless simulation test scripts; `scripts/run_tests.sh` runs them with a Godot executable.
+
+The simulation emits narrative events with evidence: route choice, travel, combat rolls, equipment stat contributions, close calls, discoveries, and retreat causes. The UI presents those events rather than constructing an independent story layer.
+
+The current sandbox has no `godot` or `godot4` executable, so GDScript formatting/parser checks and JSON validation have been performed, but the actual Godot test suite and exported/playable runtime still require execution in a Godot 4.x environment.
 
 ## 1. Recommendation in one paragraph
 

@@ -1,0 +1,34 @@
+[
+  {
+    "id": "mireling",
+    "name": "Mireling",
+    "threat": 2,
+    "xp": 18,
+    "gold": 6,
+    "description": "A mud-slick scavenger that prefers easy prey."
+  },
+  {
+    "id": "bristleback",
+    "name": "Bristleback",
+    "threat": 4,
+    "xp": 28,
+    "gold": 10,
+    "description": "A stubborn boar-beast with a temper and a plated shoulder."
+  },
+  {
+    "id": "cave_wisp",
+    "name": "Cave Wisp",
+    "threat": 5,
+    "xp": 36,
+    "gold": 12,
+    "description": "A cold light that lures travelers away from the path."
+  },
+  {
+    "id": "thornback",
+    "name": "Thornback",
+    "threat": 7,
+    "xp": 52,
+    "gold": 18,
+    "description": "An old forest predator whose hide is threaded with living thorns."
+  }
+]

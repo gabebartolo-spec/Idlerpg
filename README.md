@@ -8,14 +8,27 @@ The player sends the adventurer into a simulated expedition, returns later to di
 
 ## Current phase
 
-**Research and prototype design — implementation has not started.**
+**Approved prototype implementation — first playable vertical slice in progress; runtime validation pending.**
 
-This repository currently contains design documentation only. Do not add game code, engine setup, production assets, monetisation, networking, or long-term MMO systems until the prototype decisions in `docs/PROTOTYPE_SPEC.md` have been reviewed and approved.
+The approved prototype implementation is intentionally small and uses placeholder UI/assets. Godot 4.x project files, deterministic simulation, local persistence, automated test scripts, and the send/return/equipment loop are present. The local sandbox does not currently include a Godot executable, so engine execution still needs to be performed in a Godot 4.x environment before the prototype can be declared runtime-verified.
+
+Do not add production art, monetisation, networking, or long-term MMO systems until this prototype has been reviewed through human playtesting.
 
 ## Documents
 
 - [`docs/RESEARCH_AND_DESIGN.md`](docs/RESEARCH_AND_DESIGN.md) — research notes, evidence, opportunities, risks, and design principles.
 - [`docs/PROTOTYPE_SPEC.md`](docs/PROTOTYPE_SPEC.md) — proposed smallest playable prototype, simulation model, technical approach, scope boundaries, success criteria, and implementation sequence.
+
+## Running the prototype
+
+From a machine with Godot 4.x installed:
+
+```bash
+godot --path .
+./scripts/run_tests.sh
+```
+
+If the executable is not named `godot` or is not on `PATH`, use `GODOT_BIN=/path/to/godot ./scripts/run_tests.sh`.
 
 ## Primary question
 
