@@ -65,7 +65,12 @@ func _build_shell() -> void:
 	layout.add_theme_constant_override("separation", 12)
 	margin.add_child(layout)
 
-	var header := HBoxContainer.new()
+	var header: Container
+	if _is_compact_layout():
+		header = VBoxContainer.new()
+		header.add_theme_constant_override("separation", 6)
+	else:
+		header = HBoxContainer.new()
 	header.custom_minimum_size = Vector2(0, 64)
 	header.add_theme_constant_override("separation", 16)
 	layout.add_child(header)
@@ -81,7 +86,9 @@ func _build_shell() -> void:
 	header_status = _label("", 14, ACCENT)
 	header_status.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	header_status.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	header_status.custom_minimum_size = Vector2(190, 0)
+	header_status.custom_minimum_size = (
+		Vector2(0, 32) if _is_compact_layout() else Vector2(190, 0)
+	)
 	header.add_child(header_status)
 
 	var separator := HSeparator.new()
@@ -91,6 +98,8 @@ func _build_shell() -> void:
 	var scroll := ScrollContainer.new()
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	scroll.follow_focus = true
 	layout.add_child(scroll)
 
 	body = VBoxContainer.new()
@@ -113,8 +122,9 @@ func _build_shell() -> void:
 	developer_status.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	dev_header.add_child(developer_status)
 
-	var dev_buttons := HBoxContainer.new()
-	dev_buttons.add_theme_constant_override("separation", 6)
+	var dev_buttons := HFlowContainer.new()
+	dev_buttons.add_theme_constant_override("h_separation", 6)
+	dev_buttons.add_theme_constant_override("v_separation", 6)
 	dev_box.add_child(dev_buttons)
 	for button_data in [
 		{"text": "+1 minute", "seconds": 60},
@@ -123,9 +133,11 @@ func _build_shell() -> void:
 		{"text": "+1 day", "seconds": 86400}
 	]:
 		var advance_button := _button(str(button_data.text), false)
+		advance_button.custom_minimum_size = Vector2(104, 48)
 		advance_button.pressed.connect(_on_advance_time.bind(int(button_data.seconds)))
 		dev_buttons.add_child(advance_button)
 	var reset_button := _button("Reset prototype", true)
+	reset_button.custom_minimum_size = Vector2(104, 48)
 	reset_button.pressed.connect(_on_reset_prototype)
 	dev_buttons.add_child(reset_button)
 
@@ -232,7 +244,11 @@ func _render_camp() -> void:
 			MUTED
 		)
 	)
-	var stat_row := HBoxContainer.new()
+	var stat_row: Container
+	if _is_compact_layout():
+		stat_row = VBoxContainer.new()
+	else:
+		stat_row = HBoxContainer.new()
 	stat_row.add_theme_constant_override("separation", 8)
 	character_box.add_child(stat_row)
 	stat_row.add_child(
@@ -250,7 +266,11 @@ func _render_camp() -> void:
 	body.add_child(
 		_section_title("Equipped for the next story", "No single score decides what is best.")
 	)
-	var equipment_row := HBoxContainer.new()
+	var equipment_row: Container
+	if _is_compact_layout():
+		equipment_row = VBoxContainer.new()
+	else:
+		equipment_row = HBoxContainer.new()
 	equipment_row.add_theme_constant_override("separation", 8)
 	body.add_child(equipment_row)
 	for slot in ["weapon", "armor", "trinket"]:
@@ -291,8 +311,8 @@ func _render_camp() -> void:
 func _render_away() -> void:
 	var active: Dictionary = store.get_active_expedition()
 	var route: Dictionary = store.get_route(str(active.get("route_id", "")))
-	var elapsed := store.active_elapsed_seconds()
-	var remaining := store.active_remaining_seconds()
+	var elapsed: int = store.active_elapsed_seconds()
+	var remaining: int = store.active_remaining_seconds()
 	body.add_child(
 		_section_title(
 			"While you were away",
@@ -464,7 +484,11 @@ func _route_card(route: Dictionary) -> Control:
 	var box := VBoxContainer.new()
 	box.add_theme_constant_override("separation", 7)
 	card.add_child(box)
-	var header := HBoxContainer.new()
+	var header: Container
+	if _is_compact_layout():
+		header = VBoxContainer.new()
+	else:
+		header = HBoxContainer.new()
 	box.add_child(header)
 	var title := _label(str(route.get("name", "Route")), 20, TEXT)
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -502,7 +526,11 @@ func _route_card(route: Dictionary) -> Control:
 func _inventory_row(item_id: String) -> Control:
 	var item: Dictionary = store.get_item(item_id)
 	var panel := _panel()
-	var row := HBoxContainer.new()
+	var row: Container
+	if _is_compact_layout():
+		row = VBoxContainer.new()
+	else:
+		row = HBoxContainer.new()
 	row.add_theme_constant_override("separation", 10)
 	panel.add_child(row)
 	var info := VBoxContainer.new()
@@ -534,7 +562,11 @@ func _report_item_row(item_entry: Dictionary) -> Control:
 	var box := VBoxContainer.new()
 	box.add_theme_constant_override("separation", 7)
 	panel.add_child(box)
-	var header := HBoxContainer.new()
+	var header: Container
+	if _is_compact_layout():
+		header = VBoxContainer.new()
+	else:
+		header = HBoxContainer.new()
 	box.add_child(header)
 	var rarity := str(item.get("rarity", "Common"))
 	var title := _label(
@@ -675,7 +707,7 @@ func _label(text: String, size: int, color: Color) -> Label:
 func _button(text: String, subdued: bool) -> Button:
 	var button := Button.new()
 	button.text = text
-	button.custom_minimum_size = Vector2(0, 38)
+	button.custom_minimum_size = Vector2(0, 48)
 	button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	button.add_theme_font_size_override("font_size", 13)
 	var normal_color := SURFACE_ALT if subdued else Color(0.150, 0.300, 0.285, 1)
@@ -739,7 +771,7 @@ func _comparison_text(item_id: String) -> String:
 func _format_xp_to_next(adventurer: Dictionary) -> String:
 	var level := int(adventurer.get("level", 1))
 	var xp := int(adventurer.get("xp", 0))
-	var remaining := store.simulator.xp_to_next_level(xp, level)
+	var remaining: int = store.simulator.xp_to_next_level(xp, level)
 	return "max level" if remaining == 0 else "%d XP" % remaining
 
 
@@ -770,6 +802,10 @@ func _tone_color(tone: String) -> Color:
 		"good":
 			return ACCENT
 	return MUTED
+
+
+func _is_compact_layout() -> bool:
+	return get_viewport_rect().size.x < 600.0
 
 
 func _on_name_submitted(_text: String) -> void:

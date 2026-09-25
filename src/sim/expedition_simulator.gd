@@ -84,9 +84,9 @@ func resolve_expedition(active: Dictionary, now: int, content) -> Dictionary:
 		return {"ready": true, "report": _empty_report(active, "The route could not be found.")}
 
 	var started_at := int(active.get("started_at", now))
-	var elapsed := max(0, now - started_at)
+	var elapsed: int = maxi(0, now - started_at)
 	var route_duration := int(route.get("duration_seconds", 0))
-	var resolved_elapsed := min(elapsed, route_duration)
+	var resolved_elapsed: int = mini(elapsed, route_duration)
 	var snapshot: Dictionary = active.get("snapshot", {})
 	var adventurer_name := str(snapshot.get("name", "Adventurer"))
 	var rng := SeededRng.new(int(active.get("seed", 1)))
@@ -155,7 +155,7 @@ func resolve_expedition(active: Dictionary, now: int, content) -> Dictionary:
 
 	var expedition_complete := not failed and stage_cursor >= route_duration
 	if not expedition_complete and not failed:
-		var remaining := max(0, route_duration - resolved_elapsed)
+		var remaining: int = maxi(0, route_duration - resolved_elapsed)
 		return {
 			"ready": false,
 			"remaining_seconds": remaining,
@@ -292,19 +292,19 @@ func _resolve_combat(
 	var guard := int(stats.get("guard", 0))
 	var attack_chance := clampi(86 + (strike - threat) * 7 - danger * 2, 25, 97)
 	var survival_chance := clampi(90 + (guard - threat) * 7 - danger * 2, 20, 98)
-	var attack_roll := rng.next_percent()
-	var survival_roll := rng.next_percent()
-	var attack_ok := attack_roll < attack_chance
-	var survival_ok := survival_roll < survival_chance
+	var attack_roll: int = rng.next_percent()
+	var survival_roll: int = rng.next_percent()
+	var attack_ok: bool = attack_roll < attack_chance
+	var survival_ok: bool = survival_roll < survival_chance
 	var weapon: Dictionary = content.get_item(str(snapshot.get("equipment", {}).get("weapon", "")))
 	var armor: Dictionary = content.get_item(str(snapshot.get("equipment", {}).get("armor", "")))
 	var weapon_name := str(weapon.get("name", "weapon"))
 	var armor_name := str(armor.get("name", "armor"))
 	var level := int(snapshot.get("level", 1))
-	var base_strike := 2 + max(0, level - 1)
-	var base_guard := 2 + max(0, level - 1)
-	var gear_strike := strike - base_strike
-	var gear_guard := guard - base_guard
+	var base_strike: int = 2 + maxi(0, level - 1)
+	var base_guard: int = 2 + maxi(0, level - 1)
+	var gear_strike: int = strike - base_strike
+	var gear_guard: int = guard - base_guard
 	var xp := int(enemy.get("xp", 0))
 	var gold := int(enemy.get("gold", 0))
 
@@ -392,7 +392,7 @@ func _resolve_discovery(
 	var fortune := int(stats.get("fortune", 0))
 	var base_chance := int(stage.get("drop_chance", 0))
 	var chance := clampi(base_chance + fortune * 3, 0, 100)
-	var roll := rng.next_percent()
+	var roll: int = rng.next_percent()
 	var gold := int(stage.get("gold", 0))
 	var evidence := (
 		"Discovery chance %d%% (roll %d); Fortune contributed %d points."
@@ -459,7 +459,7 @@ func _choose_loot(table: Array, fortune: int, rng, content) -> String:
 		total_weight += max(0, weight)
 	if total_weight <= 0:
 		return ""
-	var roll := rng.next_int(total_weight)
+	var roll: int = rng.next_int(total_weight)
 	var cursor := 0
 	for entry in table:
 		var item: Dictionary = content.get_item(str(entry.get("item_id", "")))

@@ -144,8 +144,8 @@ func _test_fortune_can_change_discovery() -> void:
 		var lucky_result: Dictionary = simulator.resolve_expedition(lucky_active, 3560, content)
 		var ordinary_report: Dictionary = ordinary_result.get("report", {})
 		var lucky_report: Dictionary = lucky_result.get("report", {})
-		var ordinary_items := ordinary_report.get("items", [])
-		var lucky_items := lucky_report.get("items", [])
+		var ordinary_items: Array = ordinary_report.get("items", [])
+		var lucky_items: Array = lucky_report.get("items", [])
 		if ordinary_items != lucky_items:
 			found_difference = true
 			break
