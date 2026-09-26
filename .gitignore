@@ -1,6 +1,0 @@
-# Godot editor/import artifacts
-.godot/
-
-# Local temporary save writes and test leftovers
-*.tmp
-*.save
