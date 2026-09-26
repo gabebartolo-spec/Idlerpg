@@ -1,0 +1,30 @@
+; VESPERBELL — portrait-first Godot 4 project, mobile renderer.
+
+config_version=5
+
+[application]
+
+config/name="Vesperbell"
+config/description="Send them into the ash. Listen for the bell."
+run/main_scene="res://main.tscn"
+config/features=PackedStringArray("4.3")
+config/icon="res://icon.svg"
+
+[display]
+
+window/size/viewport_width=720
+window/size/viewport_height=1280
+window/size/window_width_override=405
+window/size/window_height_override=720
+window/stretch/mode="canvas_items"
+window/stretch/aspect="expand"
+window/handheld/orientation=1
+
+[input_devices]
+
+pointing/emulate_touch_from_mouse=true
+
+[rendering]
+
+renderer/rendering_method="mobile"
+environment/defaults/default_clear_color=Color(0.0902, 0.0784, 0.0706, 1)
