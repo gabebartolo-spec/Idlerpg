@@ -9,4 +9,7 @@ if ! command -v "$GODOT_BIN" >/dev/null 2>&1; then
   exit 2
 fi
 
+echo "Also validating content (no engine needed):"
+python3 "$ROOT_DIR/tools/validate_content.py"
+
 exec "$GODOT_BIN" --headless --path "$ROOT_DIR" --script res://tests/test_runner.gd

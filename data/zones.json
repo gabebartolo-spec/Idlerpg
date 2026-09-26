@@ -1,0 +1,33 @@
+{
+	"zones": [
+		{"id": "marrowfields", "name": "The Marrowfields",
+			"tagline": "Pale water, pale reeds, patient things.",
+			"entry": "The bell-yard road drowns softly into the reed-beds.",
+			"min_level": 1, "danger_base": 1, "toll_seconds": 120,
+			"loot_hint": "Worn and Tempered things",
+			"rarity_weights": {"0": 70, "1": 30},
+			"objective": {"xp": 30, "gold": 25, "text": "String bell-cords along the safe paths home."},
+			"enemies": ["reed_shambler", "mire_lark", "drowned_tollman"],
+			"elite": "", "elite_from_toll": 99, "boss": ""},
+
+		{"id": "chime_deep", "name": "The Chime Deep",
+			"tagline": "A drowned basilica. Ten thousand bells, all silent.",
+			"entry": "The water goes chest-high, then faithful. The bells hang all the way down.",
+			"min_level": 3, "danger_base": 2, "toll_seconds": 120,
+			"loot_hint": "Tempered and Bellforged things",
+			"rarity_weights": {"1": 70, "2": 30},
+			"objective": {"xp": 55, "gold": 45, "text": "Silence one of the great bells by hand, so it can never be rung against us."},
+			"enemies": ["echo_wisp", "sanctified_husk"],
+			"elite": "bell_warden", "elite_from_toll": 3, "boss": ""},
+
+		{"id": "requiem_scar", "name": "The Requiem Scar",
+			"tagline": "Where the great bell fell. The ground still hums.",
+			"entry": "Down the crater rim, where the bronze ran and cooled.",
+			"min_level": 5, "danger_base": 3, "toll_seconds": 120,
+			"loot_hint": "Bellforged things — and, rarely, a Requiem",
+			"rarity_weights": {"2": 80, "3": 20},
+			"objective": {"xp": 90, "gold": 80, "text": "Reach the crater floor and lay a hand on the fallen bell."},
+			"enemies": ["ash_revenant", "cinder_hound", "hollow_deacon"],
+			"elite": "", "elite_from_toll": 99, "boss": "gravecho"}
+	]
+}

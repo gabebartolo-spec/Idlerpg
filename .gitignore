@@ -1,6 +1,8 @@
-# Godot editor/import artifacts
+# Godot 4+ specific ignores
 .godot/
-
-# Local temporary save writes and test leftovers
+/android/
+*.translation
+imported/
+export.cfg
+export_credentials.cfg
 *.tmp
-*.save

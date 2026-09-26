@@ -1,0 +1,26 @@
+{
+	"enemies": [
+		{"id": "reed_shambler", "name": "reed-shambler", "zone": "marrowfields", "threat": 2, "xp": 10, "gold": 4,
+			"flavor": "A borrowed coat of reeds, still walking."},
+		{"id": "mire_lark", "name": "mire-lark", "zone": "marrowfields", "threat": 2, "xp": 11, "gold": 6,
+			"flavor": "Sings sweetly. Means nothing good by it."},
+		{"id": "drowned_tollman", "name": "drowned tollman", "zone": "marrowfields", "threat": 3, "xp": 14, "gold": 8,
+			"flavor": "Keeps counting a toll no one pays anymore."},
+
+		{"id": "echo_wisp", "name": "echo-wisp", "zone": "chime_deep", "threat": 4, "xp": 18, "gold": 8,
+			"flavor": "The last word of a prayer nobody finished."},
+		{"id": "sanctified_husk", "name": "sanctified husk", "zone": "chime_deep", "threat": 5, "xp": 22, "gold": 11,
+			"flavor": "Knelt so long the kneeling became bone."},
+		{"id": "bell_warden", "name": "Bell-Warden", "zone": "chime_deep", "threat": 6, "xp": 30, "gold": 20, "elite": true,
+			"flavor": "Still guarding a door that rotted before the flood."},
+
+		{"id": "ash_revenant", "name": "ash-revenant", "zone": "requiem_scar", "threat": 6, "xp": 28, "gold": 14,
+			"flavor": "The ash, in the shape of someone missed."},
+		{"id": "cinder_hound", "name": "cinder-hound", "zone": "requiem_scar", "threat": 7, "xp": 32, "gold": 16,
+			"flavor": "It tracks warmth. Yours will do."},
+		{"id": "hollow_deacon", "name": "hollow deacon", "zone": "requiem_scar", "threat": 8, "xp": 38, "gold": 22,
+			"flavor": "Leads a congregation of one: itself."},
+		{"id": "gravecho", "name": "THE GRAVECHO", "zone": "requiem_scar", "threat": 10, "xp": 120, "gold": 60, "boss": true,
+			"flavor": "The great bell's dead twin. It remembers being sung to."}
+	]
+}
