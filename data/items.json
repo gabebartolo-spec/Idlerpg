@@ -80,8 +80,91 @@
 
 		{"id": "gravechos_tongue", "name": "The Gravecho's Tongue", "slot": "weapon", "rarity": 3,
 			"might": 4, "ward": 0, "luck": 0, "value": 140, "shards": 8, "zones": [],
-			"special": "first_strike",
+			"boss_only": true, "special": "first_strike",
 			"special_text": "The first enemy of every toll is already struck down.",
-			"flavor": "Cut from the dead bell's voice. It still wants to speak."}
+			"flavor": "Cut from the dead bell's voice. It still wants to speak."},
+
+		{
+			"id": "lamplighters_glaive",
+			"name": "Lamplighter's Glaive",
+			"slot": "weapon",
+			"rarity": 2,
+			"might": 3,
+			"ward": 1,
+			"luck": 1,
+			"value": 74,
+			"shards": 3,
+			"flavor": "First a tool for tending lamps. Now it tends the dark.",
+			"zones": [
+				"lantern_wastes"
+			]
+		},
+
+		{
+			"id": "cinderweave",
+			"name": "Cinderweave",
+			"slot": "armor",
+			"rarity": 2,
+			"might": 0,
+			"ward": 4,
+			"luck": 0,
+			"value": 76,
+			"shards": 3,
+			"flavor": "Woven around a fire that went out a century ago.",
+			"zones": [
+				"lantern_wastes"
+			]
+		},
+
+		{
+			"id": "ashglass_signet",
+			"name": "Ashglass Signet",
+			"slot": "charm",
+			"rarity": 2,
+			"might": 1,
+			"ward": 0,
+			"luck": 2,
+			"value": 70,
+			"shards": 3,
+			"flavor": "The name inside the ring changes when nobody looks.",
+			"zones": [
+				"lantern_wastes"
+			]
+		},
+
+		{
+			"id": "glassfire_rosary",
+			"name": "Glassfire Rosary",
+			"slot": "charm",
+			"rarity": 3,
+			"might": 1,
+			"ward": 0,
+			"luck": 3,
+			"value": 130,
+			"shards": 6,
+			"special": "deep_luck",
+			"special_text": "+1 Luck for every toll completed on the road.",
+			"flavor": "A flame sealed in each bead. None casts the same shadow.",
+			"zones": [
+				"lantern_wastes"
+			]
+		},
+
+		{
+			"id": "last_lantern",
+			"name": "The Last Lantern",
+			"slot": "charm",
+			"rarity": 3,
+			"might": 0,
+			"ward": 2,
+			"luck": 2,
+			"value": 160,
+			"shards": 6,
+			"boss_only": true,
+			"special": "ember_guard",
+			"special_text": "The first wound of each expedition is absorbed. Grit and Echo are kept.",
+			"flavor": "Pulled from the Lantern-Eater's ribs. It burns for you now.",
+			"zones": []
+		}
 	]
 }

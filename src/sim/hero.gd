@@ -120,7 +120,7 @@ static func make_snapshot(state: Dictionary, item_defs: Dictionary, content) -> 
 
 
 ## Merge equipped item uids with their definitions.
-static func _resolve_equipment(hero: Dictionary, item_defs: Dictionary) -> Dictionary:
+static func resolve_equipment(hero: Dictionary, item_defs: Dictionary) -> Dictionary:
 	var out := {}
 	var equipped: Dictionary = hero.get("equipment", {})
 	for slot in equipped.keys():
@@ -130,5 +130,6 @@ static func _resolve_equipment(hero: Dictionary, item_defs: Dictionary) -> Dicti
 			if not def.is_empty():
 				var merged := def.duplicate(true)
 				merged["uid"] = inst.get("uid", "")
+				merged["temper"] = int(inst.get("temper", 0))
 				out[slot] = merged
 	return out

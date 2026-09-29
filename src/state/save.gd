@@ -26,7 +26,10 @@ static func load_state() -> Dictionary:
 	var file := FileAccess.open(SAVE_PATH, FileAccess.READ)
 	if file == null:
 		return {}
-	var parsed = JSON.parse_string(file.get_as_text())
+	var json := JSON.new()
+	if json.parse(file.get_as_text()) != OK:
+		return {}
+	var parsed = json.data
 	if not parsed is Dictionary:
 		return {}
 	var state: Dictionary = parsed

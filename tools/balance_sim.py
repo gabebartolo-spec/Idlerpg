@@ -23,16 +23,26 @@ LUCK_DROP_PERCENT = 3
 ELITE_BONUS_PERCENT = 15  # flat luck added for elites in expedition.gd
 TOLL_SECONDS = 120
 
+# Read content directly so new roads, enemies and rewards cannot silently drift.
+import json
+from pathlib import Path
+DATA = Path(__file__).resolve().parent.parent / "data"
+_ENEMIES = {e["id"]: e for e in json.loads((DATA / "enemies.json").read_text())["enemies"]}
+_ZONE_DEFS = json.loads((DATA / "zones.json").read_text())["zones"]
+
+
+def enemy_tuple(enemy_id):
+    e = _ENEMIES[enemy_id]
+    return e["name"], e["threat"], e["xp"], e["gold"]
+
+
 ZONES = {
-    "marrowfields": {"danger_base": 1, "enemies": [("reed_shambler", 2, 8, 4), ("mire_lark", 2, 9, 6), ("drowned_tollman", 3, 12, 8)],
-                     "weights": {0: 70, 1: 30}, "boss": False},
-    "chime_deep": {"danger_base": 2, "enemies": [("echo_wisp", 4, 16, 8), ("sanctified_husk", 5, 20, 11)],
-                   "weights": {1: 70, 2: 30}, "boss": False},
-    "requiem_scar": {"danger_base": 3, "enemies": [("ash_revenant", 6, 26, 14), ("cinder_hound", 7, 30, 16), ("hollow_deacon", 8, 36, 22)],
-                     "weights": {2: 80, 3: 20}, "boss": True},
+    z["id"]: dict(z, enemies=[enemy_tuple(e) for e in z["enemies"]],
+                  boss=enemy_tuple(z["boss"]) if z["boss"] else None,
+                  elite=enemy_tuple(z["elite"]) if z["elite"] else None)
+    for z in _ZONE_DEFS
 }
-OBJ = {"marrowfields": (30, 25), "chime_deep": (55, 45), "requiem_scar": (90, 80)}
-BOSS = ("gravecho", 10, 120, 60)
+OBJ = {z["id"]: (z["objective"]["xp"], z["objective"]["gold"]) for z in _ZONE_DEFS}
 
 # Gear bonus assumption by hero level (what a player typically wears):
 # (might, ward, luck) on top of base stats.
@@ -57,73 +67,95 @@ def danger_at(zone, toll_index):
     return zone["danger_base"] + max(0, toll_index - 2)
 
 
-def run_once(rng, zone_id, depth, level, luck_boost=0):
-    """Mirror of VbExpedition.resolve. Returns (status, xp, gold, loot_count, wounds)."""
+def run_once(rng, zone_id, depth, level, luck_boost=0, belfry=(0, 0, 0), specials=frozenset()):
+    """Statistical rules mirror, not seed-identical to Godot's narrative RNG stream.
+
+    Assumes Wrath from L3 and Pilgrim from L6, plus typical level-appropriate gear.
+    Explicit specials and Belfry bonuses can be used to compare late-game builds.
+    Returns (status, xp, gold, loot_count, wounds).
+    """
     zone = ZONES[zone_id]
     gear = gear_for(level)
-    stats = {k: base_stats(level)[k] + gear[i] for i, k in enumerate(("might", "ward", "luck"))}
+    stats = {k: base_stats(level)[k] + gear[i] + belfry[i]
+             for i, k in enumerate(("might", "ward", "luck"))}
     grit = grit_max(stats["ward"])
     echo = 0
-    kills = xp = gold = loot = wounds = 0
-    combats = 0
-    boss_slain = False
+    xp = gold = loot = wounds = combats = 0
+    ward_spent = False
+    fights = zone.get("combats_per_toll", 1)
     for i in range(depth):
-        danger = danger_at(zone, i)
+        danger_base = danger_at(zone, i) + (1 if "light_foot" in specials else 0)
         is_final = i == depth - 1
-        # exactly one fight per toll in the mirror (planning mirrors this well enough)
-        if is_final and zone["boss"]:
-            name, threat, exp_, gol = BOSS
-            boss = True
-            danger += 4
-        else:
-            name, threat, exp_, gol = zone["enemies"][rng.randrange(len(zone["enemies"]))]
-            boss = False
-        combats += 1
-        might = stats["might"] + echo
-        if (combats - 1) % 3 == 2:
-            might += WRATH_BONUS
-        win_chance = max(15, min(95, 50 + (might - threat) * 8 - danger * 4))
-        win = rng.randrange(100) < win_chance
-        wound_chance = max(5, min(85, 30 + danger * 12 - stats["ward"] * 2 - (5 if win else 0)))
-        wounded = rng.randrange(100) < wound_chance
-        if win:
-            kills += 1
-            xp += exp_
-            gold += gol
-            echo = min(ECHO_CAP, echo + 1)
-            if boss:
-                boss_slain = True
-                loot += 1
-            luck_eff = stats["luck"] + luck_boost
-            if rng.randrange(100) < min(95, BASE_DROP_PERCENT + luck_eff * LUCK_DROP_PERCENT + (30 if boss else 0)):
-                loot += 1
-        else:
-            echo = 0
-        if wounded:
-            wounds += 1
-            echo = 0
-            if grit > 0:
-                grit -= 1
+        luck = stats["luck"] + luck_boost
+        if "no_retreat" in specials:
+            luck *= 2
+        if "deep_luck" in specials:
+            luck += i
+        if level >= 6 and i >= 2:
+            luck += 2
+        for fight in range(fights):
+            boss = bool(is_final and fight == fights - 1 and zone["boss"])
+            elite = bool(not boss and zone["elite"] and i >= zone.get("elite_from_toll", 99) and rng.random() < 0.2)
+            enemy = zone["boss"] if boss else (zone["elite"] if elite else rng.choice(zone["enemies"]))
+            _, threat, exp_, gol = enemy
+            danger = danger_base + (zone.get("boss_danger_bonus", 4) if boss else 0)
+            combats += 1
+            might = stats["might"] + echo * (2 if "echo_loud" in specials else 1)
+            if level >= 3 and (combats - 1) % 3 == 2:
+                might += WRATH_BONUS
+            auto_win = "first_strike" in specials and fight == 0
+            win_chance = max(15, min(95, 50 + (might - threat) * 8 - danger * 4))
+            win = auto_win or rng.randrange(100) < win_chance
+            wound_chance = max(5, min(85, 30 + danger * 12 - stats["ward"] * 2 - (5 if win else 0)))
+            wounded = not auto_win and rng.randrange(100) < wound_chance
+            if win:
+                xp += exp_
+                gold += gol
+                echo = min(ECHO_CAP, echo + 1)
+                if boss:
+                    loot += 1
+                effective_luck = luck + (ELITE_BONUS_PERCENT if elite else 0)
+                if elite or rng.randrange(100) < BASE_DROP_PERCENT + effective_luck * LUCK_DROP_PERCENT:
+                    loot += 1
             else:
-                save = max(5, min(90, DEATH_SAVE_BASE + (stats["ward"] - danger) * 6))
-                if rng.randrange(100) < save:
-                    return "broken", xp, gold, loot, wounds
-                return "died", xp, gold, loot, wounds
-        # objective at the final toll of a real run
+                echo = 0
+            if wounded and "ember_guard" in specials and not ward_spent:
+                ward_spent = True
+                wounded = False
+            if wounded:
+                wounds += 1
+                echo = (echo + 1) // 2 if "echo_hold" in specials else 0
+                if grit > 0:
+                    grit -= 1
+                else:
+                    save = max(5, min(90, DEATH_SAVE_BASE + (stats["ward"] - danger) * 6))
+                    if rng.randrange(100) < save:
+                        return "broken", xp, gold, loot, wounds
+                    kept = (loot + 1) // 2 if "death_writ" in specials else 0
+                    return "died", xp, gold, kept, wounds
         if is_final and depth >= 3:
             oxp, ogold = OBJ[zone_id]
             xp += oxp
             gold += ogold
-            loot += 1  # forced roll
+            loot += 1 + (rng.randrange(100) < BASE_DROP_PERCENT + luck * LUCK_DROP_PERCENT)
+        else:
+            roll = rng.random()
+            if roll < 0.35:
+                if rng.random() < 0.3:
+                    loot += rng.randrange(100) < BASE_DROP_PERCENT + luck * LUCK_DROP_PERCENT
+                else:
+                    gold += 5 + rng.randrange(11)
+            elif roll < 0.55:
+                grit = min(grit + 1, grit_max(stats["ward"]))
     return "returned", xp, gold, loot, wounds
 
 
-def cell(rng, zone_id, depth, level, n):
+def cell(rng, zone_id, depth, level, n, **build):
     from collections import Counter
     outcomes = Counter()
     xp = gold = loot = wounds = 0
     for _ in range(n):
-        status, x, g, l, w = run_once(rng, zone_id, depth, level)
+        status, x, g, l, w = run_once(rng, zone_id, depth, level, **build)
         outcomes[status] += 1
         xp += x
         gold += g
@@ -152,6 +184,13 @@ def main():
     cell(rng, "requiem_scar", 3, 5, n)
     cell(rng, "requiem_scar", 4, 6, n)
     cell(rng, "requiem_scar", 6, 7, n)
+
+    print("\nLANTERN WASTES (two fights per toll)")
+    cell(rng, "lantern_wastes", 2, 7, n)
+    cell(rng, "lantern_wastes", 4, 8, n)
+    print("  With a restored Belfry and both boss relic effects (typical gear stats):")
+    cell(rng, "lantern_wastes", 4, 8, n, belfry=(3, 3, 2), specials={"first_strike", "ember_guard"})
+    cell(rng, "lantern_wastes", 6, 8, n, belfry=(3, 3, 2), specials={"first_strike", "ember_guard"})
 
     print("\nPACING: runs of typical depth needed per level (expected xp per run shown above)")
     level = 1

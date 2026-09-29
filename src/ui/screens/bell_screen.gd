@@ -22,6 +22,8 @@ var _note_label: Label
 var _xp_bar: ProgressBar
 var _header_label: Label
 var _purse_label: Label
+var _belfry_hint: Button
+var _listen_button: Button
 
 
 func _init(game_ref, main_ref) -> void:
@@ -48,6 +50,7 @@ func _ready() -> void:
 	_header_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	header.add_child(_header_label)
 	_purse_label = Ui.label("", 15, Ui.ThemeLib.DIM)
+	_purse_label.autowrap_mode = TextServer.AUTOWRAP_OFF
 	_purse_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	header.add_child(_purse_label)
 
@@ -55,7 +58,7 @@ func _ready() -> void:
 	_xp_bar.custom_minimum_size = Vector2(0, 5)
 	_xp_bar.show_percentage = false
 	var bg_sb := Ui.ThemeLib.flat(Color(0, 0, 0, 0.35), 3, 0)
-	var fill_sb := Ui.ThemeLib.flat(ThemeLib.BRONZE_DEEP, 3, 0)
+	var fill_sb := Ui.ThemeLib.flat(Ui.ThemeLib.BRONZE_DEEP, 3, 0)
 	_xp_bar.add_theme_stylebox_override("background", bg_sb)
 	_xp_bar.add_theme_stylebox_override("fill", fill_sb)
 	box.add_child(_xp_bar)
@@ -76,6 +79,11 @@ func _ready() -> void:
 	bottom_flex.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	box.add_child(bottom_flex)
 
+	_belfry_hint = Ui.button("", "ghost", 16)
+	_belfry_hint.custom_minimum_size.y = 52
+	_belfry_hint.pressed.connect(func(): main.open_belfry("milestones"))
+	box.add_child(_belfry_hint)
+
 	_note_label = Ui.label("", 14, Ui.ThemeLib.FAINT, true)
 	box.add_child(_note_label)
 
@@ -90,7 +98,7 @@ func _progress_level_info() -> Array:
 
 
 func _refresh_header() -> void:
-	var hero := game.hero()
+	var hero: Dictionary = game.hero()
 	_header_label.text = "%s · LEVEL %d" % [str(hero["name"]).to_upper(), int(hero["level"])]
 	_purse_label.text = "gold %d   ·   shards %d" % [int(hero["gold"]), int(hero["shards"])]
 	var info := _progress_level_info()
@@ -100,6 +108,7 @@ func _refresh_header() -> void:
 func tick(_now: int) -> void:
 	game.update()
 	_refresh_header()
+	_refresh_belfry_hint()
 	var key := _current_state_key()
 	if key != _state_key:
 		var was_out := _state_key == "out"
@@ -110,6 +119,8 @@ func tick(_now: int) -> void:
 		elif was_out and key == "ready":
 			_canvas.ring(1.0)
 			main.play_sfx("toll")
+	if is_instance_valid(_listen_button):
+		_listen_button.visible = game.has_expedition()
 	if key == "out" and _countdown_label != null:
 		var info: Dictionary = game.expedition_info()
 		_countdown_label.text = Ui.clock_str(int(info["planned"]) - int(info["elapsed"]))
@@ -137,6 +148,7 @@ func _rebuild_status() -> void:
 	for child in _status_box.get_children():
 		_status_box.remove_child(child)
 		child.queue_free()
+	_listen_button = null
 	_countdown_label = null
 	_toll_label = null
 	_dots_label = null
@@ -177,6 +189,10 @@ func _rebuild_status() -> void:
 			_action_button = Ui.button("SEND THEM OUT", "primary", 26)
 			_action_button.pressed.connect(func(): main.push_screen("zone"))
 			_status_box.add_child(_action_button)
+	if game.has_expedition():
+		_listen_button = Ui.button("LISTEN TO THE ROAD", "primary", 18)
+		_listen_button.pressed.connect(func(): main.push_screen("journey"))
+		_status_box.add_child(_listen_button)
 	_refresh_note()
 
 
@@ -219,3 +235,15 @@ func _dots_text(filled: int, total: int) -> String:
 	for i in total:
 		s += "◆ " if i < filled else "◇ "
 	return s.strip_edges()
+
+
+func _refresh_belfry_hint() -> void:
+	var ready: int = game.milestones_ready()
+	if ready > 0:
+		_belfry_hint.text = "BELFRY  ·  %d REWARD%s WAITING" % [ready, "S" if ready > 1 else ""]
+		return
+	for row in game.milestone_rows():
+		if not row["claimed"]:
+			_belfry_hint.text = "%s  ·  %d / %d" % [str(row["name"]).to_upper(), row["progress"], row["target"]]
+			return
+	_belfry_hint.text = "THE BELFRY  ·  EVERY PROMISE KEPT"

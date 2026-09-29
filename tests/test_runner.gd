@@ -6,7 +6,9 @@ extends SceneTree
 
 const SUITES := [
 	"res://tests/test_sim.gd",
-	"res://tests/test_state.gd"
+	"res://tests/test_state.gd",
+	"res://tests/test_progression.gd",
+	"res://tests/test_wastes.gd"
 ]
 
 
@@ -15,6 +17,10 @@ func _init() -> void:
 	var total_checks := 0
 	for suite_path in SUITES:
 		var suite_script = load(suite_path)
+		if suite_script == null or not suite_script.can_instantiate():
+			print("FAIL [%s] suite could not be loaded" % suite_path)
+			total_failures += 1
+			continue
 		var suite = suite_script.new()
 		for method in suite.get_method_list():
 			var method_name: String = str(method["name"])

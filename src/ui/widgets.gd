@@ -114,6 +114,7 @@ static func row(main_text: String, note: String, dot_color: Color, font_size: in
 	box.add_child(name_label)
 	if note != "":
 		var note_label := label(note, ThemeLib.FONT_SMALL, ThemeLib.DIM)
+		note_label.autowrap_mode = TextServer.AUTOWRAP_OFF
 		note_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		box.add_child(note_label)
 	return b

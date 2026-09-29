@@ -8,6 +8,7 @@ const Hero = preload("res://src/sim/hero.gd")
 const Loot = preload("res://src/sim/loot.gd")
 const Expedition = preload("res://src/sim/expedition.gd")
 const SaveRepo = preload("res://src/state/save.gd")
+const Progression = preload("res://src/state/progression.gd")
 
 const DEPTH_MIN := 2
 const DEPTH_MAX := 6
@@ -20,9 +21,13 @@ var content
 var state: Dictionary
 var clock_override := -1  # tests pin time; -1 = wall clock
 var debug_offset_seconds := 0
+var _view_key := ""
+var _view_cache: Dictionary = {}
 
 
-func _init(content_repository) -> void:
+# Pin test clocks before loading, so the rollback guard uses the same clock.
+func _init(content_repository, initial_clock: int = -1) -> void:
+	clock_override = initial_clock
 	content = content_repository
 	state = _default_state()
 	var loaded := SaveRepo.load_state()
@@ -49,6 +54,7 @@ func _default_state() -> Dictionary:
 			"equipment": {"weapon": {}, "armor": {}, "charm": {}},
 			"inventory": []
 		},
+		"belfry": Progression.fresh(),
 		"next_uid": 1,
 		"next_seed": 1,
 		"expedition": null,
@@ -77,6 +83,14 @@ func _normalize() -> void:
 		hero["inventory"] = []
 	if not hero.get("equipment", {}) is Dictionary:
 		hero["equipment"] = fresh["adventurer"]["equipment"]
+	state["belfry"] = Progression.normalize(state.get("belfry", {}), content_items())
+	# Older saves know only what is still in the bag or worn; preserve those finds.
+	for inst in hero["inventory"]:
+		if inst is Dictionary:
+			_record_find(inst)
+	for inst in hero["equipment"].values():
+		if inst is Dictionary:
+			_record_find(inst)
 	state["debug_offset_seconds"] = 0
 
 
@@ -122,13 +136,15 @@ func hero() -> Dictionary:
 
 ## A snapshot of the current build, for previews (time estimates, stat lines).
 func snapshot_now() -> Dictionary:
-	return Hero.make_snapshot(state, content_items(), content)
+	var snap := Progression.apply_bonuses(Hero.make_snapshot(state, content_items(), content), state["belfry"])
+	snap["grit_max"] = Hero.grit_max(int(snap["ward"]))
+	return snap
 
 
 func stats() -> Dictionary:
-	return Hero.total_stats(
+	return Progression.apply_bonuses(Hero.total_stats(
 		int(hero()["level"]), Hero.resolve_equipment(hero(), content_items())
-	)
+	), state["belfry"])
 
 
 func grit_max() -> int:
@@ -175,15 +191,25 @@ func choose_vow(vow_id: String) -> bool:
 # ------------------------------------------------------------------ zones
 
 func zone_locked(zone: Dictionary) -> bool:
-	return int(hero()["level"]) < int(zone.get("min_level", 1))
+	return zone_lock_reason(zone) != ""
+
+
+func zone_lock_reason(zone: Dictionary) -> String:
+	if int(hero()["level"]) < int(zone.get("min_level", 1)):
+		return "The road is sealed until level %d." % int(zone.get("min_level", 1))
+	var boss := str(zone.get("requires_boss", ""))
+	if boss != "" and int(state["belfry"]["boss_victories"].get(boss, 0)) == 0:
+		return "Defeat %s and return safely to open this road." % str(content.get_enemy(boss).get("name", boss)).capitalize()
+	return ""
 
 
 func zone_ok(zone_id: String, depth: int) -> String:
-	var zone := content.get_zone(zone_id)
+	var zone: Dictionary = content.get_zone(zone_id)
 	if zone.is_empty():
 		return "No such road."
-	if zone_locked(zone):
-		return "The road is sealed until level %d." % int(zone.get("min_level", 1))
+	var locked := zone_lock_reason(zone)
+	if locked != "":
+		return locked
 	if depth < DEPTH_MIN or depth > DEPTH_MAX:
 		return "Choose between %d and %d tolls." % [DEPTH_MIN, DEPTH_MAX]
 	return ""
@@ -197,7 +223,7 @@ func send_out(zone_id: String, depth: int) -> String:
 		return err
 	if has_expedition():
 		return "They are already out there."
-	var snap := Hero.make_snapshot(state, content_items(), content)
+	var snap := snapshot_now()
 	state["expedition"] = {
 		"zone_id": zone_id,
 		"depth": depth,
@@ -220,12 +246,13 @@ func expedition_info() -> Dictionary:
 	if not has_expedition():
 		return {}
 	var exp: Dictionary = state["expedition"]
-	var zone := content.get_zone(str(exp["zone_id"]))
+	var zone: Dictionary = content.get_zone(str(exp["zone_id"]))
 	var snap: Dictionary = exp.get("snapshot", {})
 	var elapsed := _now() - int(exp["started_at"])
 	var toll_len := Expedition.toll_seconds(zone, snap)
 	return {
 		"zone_name": str(zone.get("name", "")),
+		"zone_id": str(exp["zone_id"]),
 		"depth": int(exp["depth"]),
 		"elapsed": elapsed,
 		"planned": int(Expedition.toll_seconds(zone, snap) * float(int(exp["depth"]))),
@@ -243,18 +270,20 @@ func can_recall() -> bool:
 	var snap: Dictionary = exp.get("snapshot", {})
 	if snap.get("specials", {}).get("no_retreat", false):
 		return false
-	var zone := content.get_zone(str(exp["zone_id"]))
+	var zone: Dictionary = content.get_zone(str(exp["zone_id"]))
 	var elapsed := _now() - int(exp["started_at"])
-	return elapsed < int(Expedition.toll_seconds(zone, snap) * float(int(exp["depth"])))
+	return elapsed < int(Expedition.toll_seconds(zone, snap) * float(int(exp["depth"]))) and str(_expedition_preview()["status"]) == "out"
 
 
 func recall() -> String:
+	# A terminal fight cannot be undone by ringing just before the next UI tick.
+	update()
 	if not has_expedition():
 		return "Nobody is out there."
 	if not can_recall():
 		return "The bell cannot reach them now."
 	var exp: Dictionary = state["expedition"]
-	var zone := content.get_zone(str(exp["zone_id"]))
+	var zone: Dictionary = content.get_zone(str(exp["zone_id"]))
 	var run := Expedition.resolve(
 		zone, int(exp["depth"]), int(exp["seed"]), exp["snapshot"], _now() - int(exp["started_at"]), content
 	)
@@ -262,7 +291,7 @@ func recall() -> String:
 	run["events"].append({
 		"kind": "recall", "tone": "neutral",
 		"text": "The recall rings out, and %s turns for home without complaint." % str(exp["snapshot"].get("name", "the Bellbound")),
-		"importance": "major"
+		"importance": "major", "at_seconds": int(run["elapsed_seconds"])
 	})
 	run["summary"] = "recalled home with the find intact"
 	state["expedition"] = null
@@ -284,12 +313,33 @@ func standing() -> Dictionary:
 func update() -> void:
 	if has_expedition():
 		var exp: Dictionary = state["expedition"]
-		if _now() >= int(exp["started_at"]) + _planned_seconds(exp):
+		if _now() >= int(exp["started_at"]) + _planned_seconds(exp) or str(_expedition_preview()["status"]) != "out":
 			_resolve_chain()
 
 
+## Read-only timeline through the current second. Never awards loot or reveals
+## future beats. Cache replays so UI frames do not repeatedly simulate a run.
+func expedition_view() -> Dictionary:
+	return _expedition_preview().duplicate(true)
+
+
+func _expedition_preview() -> Dictionary:
+	if not has_expedition():
+		_view_key = ""
+		_view_cache = {}
+		return {}
+	var exp: Dictionary = state["expedition"]
+	var elapsed := maxi(0, _now() - int(exp["started_at"]))
+	var key := JSON.stringify(exp) + ":" + str(elapsed)
+	if key != _view_key:
+		var zone: Dictionary = content.get_zone(str(exp["zone_id"]))
+		_view_cache = Expedition.resolve(zone, int(exp["depth"]), int(exp["seed"]), exp["snapshot"], elapsed, content)
+		_view_key = key
+	return _view_cache
+
+
 func _planned_seconds(exp: Dictionary) -> int:
-	var zone := content.get_zone(str(exp["zone_id"]))
+	var zone: Dictionary = content.get_zone(str(exp["zone_id"]))
 	var toll_len := Expedition.toll_seconds(zone, exp.get("snapshot", {}))
 	return int(toll_len * float(int(exp["depth"])))
 
@@ -300,7 +350,7 @@ func _resolve_chain() -> void:
 	var exp: Dictionary = state["expedition"]
 	while guard < CHAIN_CAP:
 		guard += 1
-		var zone := content.get_zone(str(exp["zone_id"]))
+		var zone: Dictionary = content.get_zone(str(exp["zone_id"]))
 		var elapsed := _now() - int(exp["started_at"])
 		var run := Expedition.resolve(
 			zone, int(exp["depth"]), int(exp["seed"]), exp["snapshot"], elapsed, content
@@ -359,9 +409,10 @@ func _commit_runs(runs: Array) -> void:
 		report["totals"]["gold"] = int(report["totals"]["gold"]) + int(run["gold"])
 		report["totals"]["shards"] = int(report["totals"]["shards"]) + int(run["shards"])
 		for inst in run["loot"]:
-			var stamped := inst.duplicate(true)
+			var stamped: Dictionary = inst.duplicate(true)
 			stamped["uid"] = int(state["next_uid"])
 			state["next_uid"] = int(state["next_uid"]) + 1
+			_record_find(stamped)
 			report["loot"].append(stamped)
 			adventurer["inventory"].push_front(stamped)
 		adventurer["gold"] = int(adventurer["gold"]) + int(run["gold"])
@@ -372,6 +423,16 @@ func _commit_runs(runs: Array) -> void:
 		if str(run["status"]) == "died":
 			any_death = true
 			state["lifetime"]["deaths"] = int(state["lifetime"]["deaths"]) + 1
+		if str(run["status"]) == "returned":
+			var zone_id := str(run.get("zone_id", ""))
+			var depths: Dictionary = state["belfry"]["cleared_depths"]
+			depths[zone_id] = maxi(int(depths.get(zone_id, 0)), int(run["depth"]))
+			if bool(run.get("boss_slain", false)):
+				var boss := str(run.get("boss_id", content.get_zone(zone_id).get("boss", "")))
+				var victories: Dictionary = state["belfry"]["boss_victories"]
+				victories[boss] = int(victories.get(boss, 0)) + 1
+				if boss == "gravecho":
+					state["belfry"]["bosses"] = int(state["belfry"]["bosses"]) + 1
 		report["runs"].append({
 			"zone_name": str(run["zone_name"]), "status": str(run["status"]),
 			"summary": str(run["summary"]), "kills": int(run["kills"]),
@@ -394,7 +455,7 @@ func _commit_runs(runs: Array) -> void:
 	if not report["standout"].is_empty():
 		best_rarity = int(report["standout"].get("rarity", 0))
 	for inst in report["loot"]:
-		var def := content.get_item(str(inst["id"]))
+		var def: Dictionary = content.get_item(str(inst["id"]))
 		if int(def.get("rarity", 0)) > best_rarity:
 			best_rarity = int(def.get("rarity", 0))
 			report["standout"] = def
@@ -449,7 +510,7 @@ func has_report() -> bool:
 
 
 func pending_report() -> Dictionary:
-	return state.get("pending_report", {})
+	return state["pending_report"] if has_report() else {}
 
 
 func clear_report() -> void:
@@ -482,7 +543,7 @@ func equip(uid: int) -> bool:
 	var inst := find_instance(uid)
 	if inst.is_empty():
 		return false
-	var def := content.get_item(str(inst["id"]))
+	var def: Dictionary = content.get_item(str(inst["id"]))
 	var slot := str(def.get("slot", ""))
 	if slot == "":
 		return false
@@ -500,7 +561,7 @@ func sell(uid: int) -> int:
 	var inst := find_instance(uid)
 	if inst.is_empty():
 		return 0
-	var def := content.get_item(str(inst["id"]))
+	var def: Dictionary = content.get_item(str(inst["id"]))
 	if not hero()["inventory"].has(inst):
 		return 0  # must unequip before selling
 	var gold := int(def.get("value", 0)) + int(inst.get("temper", 0)) * TEMPER_SELL_BONUS
@@ -514,7 +575,7 @@ func salvage(uid: int) -> int:
 	var inst := find_instance(uid)
 	if inst.is_empty():
 		return 0
-	var def := content.get_item(str(inst["id"]))
+	var def: Dictionary = content.get_item(str(inst["id"]))
 	if not hero()["inventory"].has(inst):
 		return 0
 	var shards := Loot.salvage_shards(int(def.get("rarity", 0)), int(inst.get("temper", 0)))
@@ -547,6 +608,95 @@ func temper(slot: String) -> String:
 	inst["temper"] = int(inst.get("temper", 0)) + 1
 	_save()
 	return ""
+
+
+# ------------------------------------------------------------------ belfry
+
+func belfry_bonuses() -> Dictionary:
+	return Progression.bonuses(state["belfry"])
+
+
+func upgrade_rows() -> Array:
+	var rows: Array = []
+	for def in Progression.UPGRADES:
+		var row: Dictionary = def.duplicate(true)
+		var rank := int(state["belfry"]["upgrades"].get(def["id"], 0))
+		row["rank"] = rank
+		row["maxed"] = rank >= def["costs"].size()
+		row["cost"] = {} if row["maxed"] else def["costs"][rank]
+		row["affordable"] = not row["maxed"] and _can_afford(row["cost"])
+		rows.append(row)
+	return rows
+
+
+func _can_afford(cost: Dictionary) -> bool:
+	return int(hero()["gold"]) >= int(cost.get("gold", 0)) and int(hero()["shards"]) >= int(cost.get("shards", 0))
+
+
+func buy_upgrade(id: String) -> String:
+	var def := Progression.upgrade(id)
+	if def.is_empty() or is_new_game():
+		return "That work is not available."
+	var rank := int(state["belfry"]["upgrades"].get(id, 0))
+	if rank >= def["costs"].size():
+		return "This part of the belfry is fully restored."
+	var cost: Dictionary = def["costs"][rank]
+	if not _can_afford(cost):
+		return "Not enough gold or Ashen Shards."
+	hero()["gold"] = int(hero()["gold"]) - int(cost["gold"])
+	hero()["shards"] = int(hero()["shards"]) - int(cost["shards"])
+	state["belfry"]["upgrades"][id] = rank + 1
+	_save()
+	return ""
+
+
+func milestone_rows() -> Array:
+	var rows: Array = []
+	for def in Progression.MILESTONES:
+		var row: Dictionary = def.duplicate(true)
+		row["progress"] = mini(int(def["target"]), Progression.progress(def, state["belfry"], lifetime()))
+		row["claimed"] = def["id"] in state["belfry"]["claimed"]
+		row["ready"] = not row["claimed"] and int(row["progress"]) >= int(def["target"])
+		rows.append(row)
+	return rows
+
+
+func milestones_ready() -> int:
+	var count := 0
+	for def in Progression.MILESTONES:
+		if not def["id"] in state["belfry"]["claimed"] and Progression.progress(def, state["belfry"], lifetime()) >= int(def["target"]):
+			count += 1
+	return count
+
+
+func claim_milestone(id: String) -> String:
+	var def := Progression.milestone(id)
+	if def.is_empty() or is_new_game():
+		return "No such promise is written here."
+	if id in state["belfry"]["claimed"]:
+		return "This reward has already been collected."
+	if Progression.progress(def, state["belfry"], lifetime()) < int(def["target"]):
+		return "The road has not earned this reward yet."
+	state["belfry"]["claimed"].append(id)
+	hero()["gold"] = int(hero()["gold"]) + int(def["gold"])
+	hero()["shards"] = int(hero()["shards"]) + int(def["shards"])
+	_save()
+	return ""
+
+
+func _record_find(inst: Dictionary) -> void:
+	var id := str(inst.get("id", ""))
+	if id != "" and not content.get_item(id).is_empty() and not id in state["belfry"]["discoveries"]:
+		state["belfry"]["discoveries"].append(id)
+
+
+func collection_rows() -> Array:
+	var rows: Array = []
+	for def in content.all_items():
+		var row: Dictionary = def.duplicate(true)
+		row["discovered"] = def["id"] in state["belfry"]["discoveries"]
+		rows.append(row)
+	return rows
 
 
 # ------------------------------------------------------------------ persistence
