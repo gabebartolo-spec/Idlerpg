@@ -11,6 +11,7 @@ fi
 
 echo "Also validating content (no engine needed):"
 python3 "$ROOT_DIR/tools/validate_content.py"
+python3 -m unittest discover -s "$ROOT_DIR/tests" -p test_content.py
 
 # Tests create/delete saves. Keep their user:// separate from the player's data.
 TEST_DIR="$(mktemp -d)"

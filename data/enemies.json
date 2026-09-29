@@ -21,6 +21,48 @@
 		{"id": "hollow_deacon", "name": "hollow deacon", "zone": "requiem_scar", "threat": 8, "xp": 38, "gold": 22,
 			"flavor": "Leads a congregation of one: itself."},
 		{"id": "gravecho", "name": "THE GRAVECHO", "zone": "requiem_scar", "threat": 10, "xp": 120, "gold": 60, "boss": true,
-			"flavor": "The great bell's dead twin. It remembers being sung to."}
+			"flavor": "The great bell's dead twin. It remembers being sung to."},
+
+		{
+			"id": "glass_stalker",
+			"name": "glass-stalker",
+			"zone": "lantern_wastes",
+			"threat": 8,
+			"xp": 38,
+			"gold": 24,
+			"flavor": "Its feet make no sound. The glass does not dare."
+		},
+
+		{
+			"id": "wick_wraith",
+			"name": "wick-wraith",
+			"zone": "lantern_wastes",
+			"threat": 9,
+			"xp": 42,
+			"gold": 26,
+			"flavor": "A pilgrim who followed the wrong light."
+		},
+
+		{
+			"id": "lantern_knight",
+			"name": "Lantern Knight",
+			"zone": "lantern_wastes",
+			"threat": 10,
+			"xp": 58,
+			"gold": 38,
+			"elite": true,
+			"flavor": "The armor is empty. The lantern is not."
+		},
+
+		{
+			"id": "lantern_eater",
+			"name": "THE LANTERN-EATER",
+			"zone": "lantern_wastes",
+			"threat": 12,
+			"xp": 180,
+			"gold": 120,
+			"boss": true,
+			"flavor": "Every light it swallowed still burns between its ribs."
+		}
 	]
 }

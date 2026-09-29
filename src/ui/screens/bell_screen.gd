@@ -23,6 +23,7 @@ var _xp_bar: ProgressBar
 var _header_label: Label
 var _purse_label: Label
 var _belfry_hint: Button
+var _listen_button: Button
 
 
 func _init(game_ref, main_ref) -> void:
@@ -118,6 +119,8 @@ func tick(_now: int) -> void:
 		elif was_out and key == "ready":
 			_canvas.ring(1.0)
 			main.play_sfx("toll")
+	if is_instance_valid(_listen_button):
+		_listen_button.visible = game.has_expedition()
 	if key == "out" and _countdown_label != null:
 		var info: Dictionary = game.expedition_info()
 		_countdown_label.text = Ui.clock_str(int(info["planned"]) - int(info["elapsed"]))
@@ -145,6 +148,7 @@ func _rebuild_status() -> void:
 	for child in _status_box.get_children():
 		_status_box.remove_child(child)
 		child.queue_free()
+	_listen_button = null
 	_countdown_label = null
 	_toll_label = null
 	_dots_label = null
@@ -185,6 +189,10 @@ func _rebuild_status() -> void:
 			_action_button = Ui.button("SEND THEM OUT", "primary", 26)
 			_action_button.pressed.connect(func(): main.push_screen("zone"))
 			_status_box.add_child(_action_button)
+	if game.has_expedition():
+		_listen_button = Ui.button("LISTEN TO THE ROAD", "primary", 18)
+		_listen_button.pressed.connect(func(): main.push_screen("journey"))
+		_status_box.add_child(_listen_button)
 	_refresh_note()
 
 

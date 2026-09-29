@@ -6,3 +6,7 @@ imported/
 export.cfg
 export_credentials.cfg
 *.tmp
+
+# Python validation tools
+__pycache__/
+*.pyc

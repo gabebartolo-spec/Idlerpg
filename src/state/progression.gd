@@ -27,12 +27,16 @@ const MILESTONES := [
 	{"id": "deep_path", "name": "The Drowned Choir", "text": "Return safely from 4 tolls in the Chime Deep.",
 		"metric": "clear", "zone": "chime_deep", "target": 4, "gold": 140, "shards": 4},
 	{"id": "gravecho", "name": "The Last Word", "text": "Slay the Gravecho and return safely.",
-		"metric": "bosses", "target": 1, "gold": 240, "shards": 6}
+		"metric": "bosses", "target": 1, "gold": 240, "shards": 6},
+	{"id": "wastes_path", "name": "Lights Along the Edge", "text": "Return safely from 4 tolls in the Lantern Wastes.",
+		"metric": "clear", "zone": "lantern_wastes", "target": 4, "gold": 200, "shards": 5},
+	{"id": "last_light", "name": "A Light of Your Own", "text": "Slay the Lantern-Eater and return safely.",
+		"metric": "boss_victory", "boss": "lantern_eater", "target": 1, "gold": 320, "shards": 8}
 ]
 
 
 static func fresh() -> Dictionary:
-	return {"upgrades": {}, "claimed": [], "discoveries": [], "cleared_depths": {}, "bosses": 0}
+	return {"upgrades": {}, "claimed": [], "discoveries": [], "cleared_depths": {}, "bosses": 0, "boss_victories": {}}
 
 
 static func upgrade(id: String) -> Dictionary:
@@ -73,9 +77,15 @@ static func normalize(saved, item_defs: Dictionary) -> Dictionary:
 				out["discoveries"].append(id)
 	var depths = saved.get("cleared_depths", {})
 	if depths is Dictionary:
-		for id in ["marrowfields", "chime_deep", "requiem_scar"]:
+		for id in ["marrowfields", "chime_deep", "requiem_scar", "lantern_wastes"]:
 			out["cleared_depths"][id] = mini(6, _number(depths.get(id, 0)))
 	out["bosses"] = _number(saved.get("bosses", 0))
+	var victories = saved.get("boss_victories", {})
+	if victories is Dictionary:
+		for id in ["gravecho", "lantern_eater"]:
+			out["boss_victories"][id] = _number(victories.get(id, 0))
+	# Before the Wastes, all safe boss victories were against the Gravecho.
+	out["boss_victories"]["gravecho"] = maxi(out["bosses"], int(out["boss_victories"].get("gravecho", 0)))
 	return out
 
 
@@ -102,6 +112,8 @@ static func progress(def: Dictionary, belfry: Dictionary, lifetime: Dictionary) 
 			return int(belfry["cleared_depths"].get(def["zone"], 0))
 		"discoveries":
 			return belfry["discoveries"].size()
+		"boss_victory":
+			return int(belfry["boss_victories"].get(def["boss"], 0))
 		"bosses":
 			return int(belfry["bosses"])
 	return 0

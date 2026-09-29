@@ -215,7 +215,14 @@ func _build_ledger() -> void:
 			var places: Array = []
 			for zone_id in row.get("zones", []):
 				places.append(str(game.content.get_zone(str(zone_id)).get("name", "the ash")))
-			card.add_child(Ui.label("Seek it in " + ", ".join(places) if not places.is_empty() else "The Gravecho guards this story.", 14, Ui.ThemeLib.FAINT))
+			card.add_child(Ui.label("Seek it in " + ", ".join(places) if not places.is_empty() else _boss_hint(str(row["id"])), 14, Ui.ThemeLib.FAINT))
+
+
+func _boss_hint(item_id: String) -> String:
+	for zone in game.content.all_zones():
+		if str(zone.get("boss_drop", "")) == item_id:
+			return str(game.content.get_enemy(str(zone["boss"])).get("name", "The dark")).capitalize() + " guards this story."
+	return "The road has not told this story yet."
 
 
 func _price(cost: Dictionary) -> String:

@@ -21,6 +21,8 @@ var content
 var state: Dictionary
 var clock_override := -1  # tests pin time; -1 = wall clock
 var debug_offset_seconds := 0
+var _view_key := ""
+var _view_cache: Dictionary = {}
 
 
 # Pin test clocks before loading, so the rollback guard uses the same clock.
@@ -189,15 +191,25 @@ func choose_vow(vow_id: String) -> bool:
 # ------------------------------------------------------------------ zones
 
 func zone_locked(zone: Dictionary) -> bool:
-	return int(hero()["level"]) < int(zone.get("min_level", 1))
+	return zone_lock_reason(zone) != ""
+
+
+func zone_lock_reason(zone: Dictionary) -> String:
+	if int(hero()["level"]) < int(zone.get("min_level", 1)):
+		return "The road is sealed until level %d." % int(zone.get("min_level", 1))
+	var boss := str(zone.get("requires_boss", ""))
+	if boss != "" and int(state["belfry"]["boss_victories"].get(boss, 0)) == 0:
+		return "Defeat %s and return safely to open this road." % str(content.get_enemy(boss).get("name", boss)).capitalize()
+	return ""
 
 
 func zone_ok(zone_id: String, depth: int) -> String:
 	var zone: Dictionary = content.get_zone(zone_id)
 	if zone.is_empty():
 		return "No such road."
-	if zone_locked(zone):
-		return "The road is sealed until level %d." % int(zone.get("min_level", 1))
+	var locked := zone_lock_reason(zone)
+	if locked != "":
+		return locked
 	if depth < DEPTH_MIN or depth > DEPTH_MAX:
 		return "Choose between %d and %d tolls." % [DEPTH_MIN, DEPTH_MAX]
 	return ""
@@ -240,6 +252,7 @@ func expedition_info() -> Dictionary:
 	var toll_len := Expedition.toll_seconds(zone, snap)
 	return {
 		"zone_name": str(zone.get("name", "")),
+		"zone_id": str(exp["zone_id"]),
 		"depth": int(exp["depth"]),
 		"elapsed": elapsed,
 		"planned": int(Expedition.toll_seconds(zone, snap) * float(int(exp["depth"]))),
@@ -259,10 +272,12 @@ func can_recall() -> bool:
 		return false
 	var zone: Dictionary = content.get_zone(str(exp["zone_id"]))
 	var elapsed := _now() - int(exp["started_at"])
-	return elapsed < int(Expedition.toll_seconds(zone, snap) * float(int(exp["depth"])))
+	return elapsed < int(Expedition.toll_seconds(zone, snap) * float(int(exp["depth"]))) and str(_expedition_preview()["status"]) == "out"
 
 
 func recall() -> String:
+	# A terminal fight cannot be undone by ringing just before the next UI tick.
+	update()
 	if not has_expedition():
 		return "Nobody is out there."
 	if not can_recall():
@@ -276,7 +291,7 @@ func recall() -> String:
 	run["events"].append({
 		"kind": "recall", "tone": "neutral",
 		"text": "The recall rings out, and %s turns for home without complaint." % str(exp["snapshot"].get("name", "the Bellbound")),
-		"importance": "major"
+		"importance": "major", "at_seconds": int(run["elapsed_seconds"])
 	})
 	run["summary"] = "recalled home with the find intact"
 	state["expedition"] = null
@@ -298,8 +313,29 @@ func standing() -> Dictionary:
 func update() -> void:
 	if has_expedition():
 		var exp: Dictionary = state["expedition"]
-		if _now() >= int(exp["started_at"]) + _planned_seconds(exp):
+		if _now() >= int(exp["started_at"]) + _planned_seconds(exp) or str(_expedition_preview()["status"]) != "out":
 			_resolve_chain()
+
+
+## Read-only timeline through the current second. Never awards loot or reveals
+## future beats. Cache replays so UI frames do not repeatedly simulate a run.
+func expedition_view() -> Dictionary:
+	return _expedition_preview().duplicate(true)
+
+
+func _expedition_preview() -> Dictionary:
+	if not has_expedition():
+		_view_key = ""
+		_view_cache = {}
+		return {}
+	var exp: Dictionary = state["expedition"]
+	var elapsed := maxi(0, _now() - int(exp["started_at"]))
+	var key := JSON.stringify(exp) + ":" + str(elapsed)
+	if key != _view_key:
+		var zone: Dictionary = content.get_zone(str(exp["zone_id"]))
+		_view_cache = Expedition.resolve(zone, int(exp["depth"]), int(exp["seed"]), exp["snapshot"], elapsed, content)
+		_view_key = key
+	return _view_cache
 
 
 func _planned_seconds(exp: Dictionary) -> int:
@@ -392,7 +428,11 @@ func _commit_runs(runs: Array) -> void:
 			var depths: Dictionary = state["belfry"]["cleared_depths"]
 			depths[zone_id] = maxi(int(depths.get(zone_id, 0)), int(run["depth"]))
 			if bool(run.get("boss_slain", false)):
-				state["belfry"]["bosses"] = int(state["belfry"]["bosses"]) + 1
+				var boss := str(run.get("boss_id", content.get_zone(zone_id).get("boss", "")))
+				var victories: Dictionary = state["belfry"]["boss_victories"]
+				victories[boss] = int(victories.get(boss, 0)) + 1
+				if boss == "gravecho":
+					state["belfry"]["bosses"] = int(state["belfry"]["bosses"]) + 1
 		report["runs"].append({
 			"zone_name": str(run["zone_name"]), "status": str(run["status"]),
 			"summary": str(run["summary"]), "kills": int(run["kills"]),

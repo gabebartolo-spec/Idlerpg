@@ -78,15 +78,17 @@ static func _plan_with(zone: Dictionary, depth: int, snap: Dictionary, rng) -> D
 		beats.append({"t": base + 0.01, "kind": "toll", "toll": i})
 		if i > 0:
 			beats.append({"t": base + toll_len * 0.12, "kind": "travel", "toll": i})
-		var fight_t := base + toll_len * 0.5
 		var boss_id := str(zone.get("boss", ""))
 		var is_final := i == depth - 1
-		if is_final and boss_id != "":
-			beats.append({"t": fight_t, "kind": "combat", "toll": i, "enemy": boss_id, "boss": true, "elite": false})
-		elif int(zone.get("elite_from_toll", 99)) <= i and rng.next_unit() < 0.2:
-			beats.append({"t": fight_t, "kind": "combat", "toll": i, "enemy": str(zone.get("elite")), "boss": false, "elite": true})
-		else:
-			beats.append({"t": fight_t, "kind": "combat", "toll": i, "enemy": str(rng.pick(enemies)), "boss": false, "elite": false})
+		var fights := clampi(int(zone.get("combats_per_toll", 1)), 1, 2)
+		for fight in fights:
+			var fight_t := base + toll_len * (0.5 if fight == 0 else 0.72)
+			if is_final and fight == fights - 1 and boss_id != "":
+				beats.append({"t": fight_t, "kind": "combat", "toll": i, "enemy": boss_id, "boss": true, "elite": false})
+			elif int(zone.get("elite_from_toll", 99)) <= i and rng.next_unit() < 0.2:
+				beats.append({"t": fight_t, "kind": "combat", "toll": i, "enemy": str(zone.get("elite")), "boss": false, "elite": true})
+			else:
+				beats.append({"t": fight_t, "kind": "combat", "toll": i, "enemy": str(rng.pick(enemies)), "boss": false, "elite": false})
 		if is_final and depth >= 3:
 			beats.append({"t": total - 1.0, "kind": "objective", "toll": i})
 		else:
@@ -118,6 +120,9 @@ static func resolve(
 		"wounds": 0,
 		"deepest_toll": 0,
 		"boss_slain": false,
+		"boss_id": str(zone.get("boss", "")),
+		"ward_spent": false,
+		"_event_time": 0.0,
 		"zone_id": str(zone.get("id", "")),
 		"zone_name": str(zone.get("name", "")),
 		"depth": depth,
@@ -138,6 +143,7 @@ static func resolve(
 		_process_beat(beat, zone, snap, specials, rng, run, content)
 	if str(run["status"]) == "in_progress" and elapsed >= int(plan_data["total_seconds"]):
 		run["status"] = "returned"
+		run["_event_time"] = float(plan_data["total_seconds"])
 		_event(run, "return", "good",
 			"The bell hears them at the edge of the dark, and %s comes home." % str(snap.get("name", "the Bellbound")),
 			true)
@@ -149,6 +155,7 @@ static func resolve(
 
 
 static func _process_beat(beat: Dictionary, zone: Dictionary, snap: Dictionary, specials: Dictionary, rng, run: Dictionary, content) -> void:
+	run["_event_time"] = maxf(0.0, float(beat.get("t", 0.0)))
 	var adventurer := str(snap.get("name", "The Bellbound"))
 	var toll := int(beat.get("toll", 0))
 	run["deepest_toll"] = maxi(int(run["deepest_toll"]), toll + 1)
@@ -165,7 +172,7 @@ static func _process_beat(beat: Dictionary, zone: Dictionary, snap: Dictionary, 
 				_event(run, "toll", "neutral",
 					"The %s toll fades over the %s." % [_ordinal(toll), str(zone.get("name", "valley"))], false)
 		"travel":
-			var travel_line := str(rng.pick(TRAVEL_LINES))
+			var travel_line := str(rng.pick(zone.get("travel_lines", TRAVEL_LINES)))
 			if "%s" in travel_line:
 				travel_line = travel_line % adventurer
 			_event(run, "travel", "neutral", travel_line, false)
@@ -181,7 +188,7 @@ static func _process_beat(beat: Dictionary, zone: Dictionary, snap: Dictionary, 
 			else:
 				var gold: int = 5 + rng.next_int(11)
 				run["gold"] = int(run["gold"]) + gold
-				_event(run, "gold", "good", str(rng.pick(DISCOVERY_LINES)), false)
+				_event(run, "gold", "good", str(rng.pick(zone.get("discovery_lines", DISCOVERY_LINES))), false)
 		"objective":
 			var obj: Dictionary = zone.get("objective", {})
 			run["xp"] = int(run["xp"]) + int(obj.get("xp", 0))
@@ -210,7 +217,7 @@ static func _combat(beat: Dictionary, zone: Dictionary, snap: Dictionary, specia
 	var danger := danger_at(zone, toll, snap)
 	var is_boss := bool(beat.get("boss", false))
 	if is_boss:
-		danger += 4  # the Gravecho does not fight fair
+		danger += int(zone.get("boss_danger_bonus", 4))
 	var is_elite := bool(beat.get("elite", false))
 
 	var per_toll := int(run["combats_this_toll"].get(toll, 0))
@@ -238,7 +245,7 @@ static func _combat(beat: Dictionary, zone: Dictionary, snap: Dictionary, specia
 		run["echo"] = mini(int(run["echo"]) + 1, ECHO_CAP)
 		if is_boss:
 			run["boss_slain"] = true
-			var spoils := Loot.fixed_drop(content, "gravechos_tongue")
+			var spoils := Loot.fixed_drop(content, str(zone.get("boss_drop", "")))
 			if not spoils.is_empty():
 				run["loot"].append(spoils)
 			_event(run, "boss", "good",
@@ -260,6 +267,11 @@ static func _combat(beat: Dictionary, zone: Dictionary, snap: Dictionary, specia
 		run["echo"] = 0
 		_event(run, "combat", "danger",
 			"The %s will not die cleanly. %s gives ground, spending the toll on survival." % [enemy_name, adventurer], false)
+
+	if wounded and specials.get("ember_guard", false) and not run.get("ward_spent", false):
+		run["ward_spent"] = true
+		wounded = false
+		_event(run, "ward", "good", "The Last Lantern flares. One wound vanishes in the light; Grit and Echo hold.", true)
 
 	if wounded:
 		run["wounds"] = int(run["wounds"]) + 1
@@ -326,7 +338,8 @@ static func _item_name(inst: Dictionary, content) -> String:
 static func _event(run: Dictionary, kind: String, tone: String, text: String, major: bool) -> void:
 	run["events"].append({
 		"kind": kind, "tone": tone, "text": text,
-		"importance": "major" if major else "minor"
+		"importance": "major" if major else "minor",
+		"at_seconds": int(run.get("_event_time", 0))
 	})
 
 

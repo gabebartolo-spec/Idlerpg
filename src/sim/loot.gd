@@ -21,7 +21,7 @@ static func zone_pool(content, zone_id: String) -> Dictionary:
 	for rarity in 4:
 		pool[rarity] = []
 	for item in content.all_items():
-		if str(item.get("special", "")) == "first_strike":
+		if bool(item.get("boss_only", false)) or str(item.get("special", "")) == "first_strike":
 			continue  # boss-only spoils
 		if zone_id in item.get("zones", []):
 			pool[int(item.get("rarity", 0))].append(item)

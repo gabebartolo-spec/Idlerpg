@@ -1,9 +1,10 @@
 extends Control
 
-# ZONE CHOICE — the risk/reward decision. Three roads, one depth, no advice.
+# ZONE CHOICE — the risk/reward decision. Four roads, one depth, no advice.
 # The game shows what is true; it does not tell the player what to do.
 
 const Ui = preload("res://src/ui/widgets.gd")
+const ZoneArt = preload("res://src/ui/zone_art.gd")
 const ExpeditionLib = preload("res://src/sim/expedition.gd")
 
 var game
@@ -15,6 +16,7 @@ var _selected_depth := 3
 var _depth_buttons := {}
 var _send_button: Button
 var _seal_note: Label
+var _zone_scroll: ScrollContainer
 
 
 func _init(game_ref, main_ref) -> void:
@@ -44,9 +46,16 @@ func _ready() -> void:
 	box.add_child(Ui.label("WHERE DOES THE ROAD GO?", 24, Ui.ThemeLib.BRONZE))
 	box.add_child(Ui.spacer(4))
 
+	_zone_scroll = ScrollContainer.new()
+	_zone_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_zone_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	box.add_child(_zone_scroll)
+	var roads := VBoxContainer.new()
+	roads.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	roads.add_theme_constant_override("separation", 12)
+	_zone_scroll.add_child(roads)
 	for zone in game.content.all_zones():
-		box.add_child(_build_zone_row(zone))
-		box.add_child(Ui.spacer(2))
+		roads.add_child(_build_zone_row(zone))
 
 	box.add_child(Ui.spacer(8))
 	box.add_child(Ui.label("HOW DEEP BEFORE THEY TURN BACK?", 16, Ui.ThemeLib.DIM))
@@ -76,10 +85,6 @@ func _ready() -> void:
 	_sync_standing_text()
 	box.add_child(standing_btn)
 
-	var flex := Ui.spacer(4)
-	flex.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	box.add_child(flex)
-
 	_seal_note = Ui.label("", 15, Ui.ThemeLib.DANGER, true)
 	box.add_child(_seal_note)
 
@@ -99,7 +104,7 @@ var _standing_button: Button
 
 func _build_zone_row(zone: Dictionary) -> Button:
 	var b := Button.new()
-	b.custom_minimum_size = Vector2(0, 96)
+	b.custom_minimum_size = Vector2(0, 246)
 	Ui.style_button(b, "flat")
 	var inner := VBoxContainer.new()
 	inner.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -107,9 +112,10 @@ func _build_zone_row(zone: Dictionary) -> Button:
 	inner.offset_right = -16
 	inner.offset_top = 10
 	inner.offset_bottom = -10
-	inner.add_theme_constant_override("separation", 2)
+	inner.add_theme_constant_override("separation", 4)
 	inner.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	b.add_child(inner)
+	inner.add_child(ZoneArt.new(str(zone.get("art", "")), 120))
 
 	var top := HBoxContainer.new()
 	inner.add_child(top)

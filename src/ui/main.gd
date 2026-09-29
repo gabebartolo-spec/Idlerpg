@@ -9,6 +9,7 @@ const ThemeLib = preload("res://src/ui/theme.gd")
 const SfxLib = preload("res://src/ui/sfx.gd")
 const CreateScreen = preload("res://src/ui/screens/create_screen.gd")
 const BellScreen = preload("res://src/ui/screens/bell_screen.gd")
+const JourneyScreen = preload("res://src/ui/screens/journey_screen.gd")
 const ZoneScreen = preload("res://src/ui/screens/zone_screen.gd")
 const ReportScreen = preload("res://src/ui/screens/report_screen.gd")
 const SatchelScreen = preload("res://src/ui/screens/satchel_screen.gd")
@@ -121,6 +122,8 @@ func _make(id: String) -> Control:
 			return CreateScreen.new(game, self)
 		"bell":
 			return BellScreen.new(game, self)
+		"journey":
+			return JourneyScreen.new(game, self)
 		"zone":
 			return ZoneScreen.new(game, self)
 		"report":

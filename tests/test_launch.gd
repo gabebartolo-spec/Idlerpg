@@ -56,12 +56,35 @@ func _run() -> void:
 	var zone = app._stack[-1]["node"]
 	_check(not home.visible and zone.visible, "pushed screens hide the underlying home")
 	_check(not zone._send_button.disabled, "starting road is selectable")
+	_check(zone._rows.size() == 4, "all four roads are selectable cards")
+	_check(zone._zone_scroll.size.y > 0, "illustrated road cards have a scrollable viewport")
+	for entry in zone._rows.values():
+		var art = entry["button"].get_child(0).get_child(0)
+		_check(art.texture != null and art.texture.get_width() == 1280, "road artwork loads at its intended size")
+	zone._on_zone("lantern_wastes")
+	_check(zone._send_button.disabled and zone._seal_note.text.contains("level 7"), "locked Wastes explain the level requirement")
+	zone._on_zone("marrowfields")
 	zone._on_send()
 	await process_frame
 	await process_frame
 	_check(app.current_id() == "bell" and app.game.has_expedition(), "sending out returns to the bell")
 	_check(home.visible, "popping a screen restores the home")
 	_check(app._stack[-1]["node"]._state_key == "out", "countdown screen initializes")
+
+	app._stack[-1]["node"]._listen_button.pressed.emit()
+	await process_frame
+	await process_frame
+	var journey = app._stack[-1]["node"]
+	_check(app.current_id() == "journey", "home opens the live journal")
+	_check(journey._art.texture != null, "journal displays the current road's artwork")
+	_check(journey._event_count == 1, "fresh journal reveals only departure")
+	app.game.debug_advance(61)
+	journey.tick(app.game.now())
+	_check(journey._event_count > 1, "elapsed combat appears in the journal")
+	_check(journey._scroll.size.y > 0, "live journal has room for its event feed")
+	_check(not app.game.has_report() and app.game.hero()["gold"] == 0, "watching events does not bank rewards")
+	app.pop_screen()
+	await process_frame
 
 	app.open_overlay(app.DeskSheet.new(app.game, app))
 	await process_frame
@@ -140,6 +163,30 @@ func _run() -> void:
 	app._overlay._choose("wrath")
 	await process_frame
 	_check("wrath" in app.game.vows(), "vow choice is saved")
+	app.game.hero()["level"] = 7
+	app.game.state["belfry"]["boss_victories"]["gravecho"] = 1
+	app.push_screen("zone")
+	await process_frame
+	zone = app._stack[-1]["node"]
+	zone._on_zone("lantern_wastes")
+	zone._on_depth(2)
+	_check(not zone._send_button.disabled, "unlocked Wastes can be launched through the picker")
+	zone._on_send()
+	await process_frame
+	await process_frame
+	app._stack[-1]["node"]._listen_button.pressed.emit()
+	await process_frame
+	await process_frame
+	journey = app._stack[-1]["node"]
+	_check(journey._title.text.contains("LANTERN WASTES"), "journal switches to the new road")
+	_check(journey._status.text.contains("2 FIGHT"), "journal explains two fights per toll")
+	journey._on_recall()
+	await process_frame
+	_check(not journey._recall.visible and journey._report.visible, "recall transitions the journal to its return state")
+	journey._on_report()
+	await process_frame
+	_check(app.current_id() == "report", "journal opens the return report")
+	app._stack[-1]["node"]._on_continue()
 	app.queue_free()
 	await process_frame
 	await process_frame

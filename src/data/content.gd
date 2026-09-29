@@ -88,6 +88,8 @@ func validate() -> Array:
 		for z in zones:
 			if not _zones.has(str(z)):
 				problems.append("%s: unknown zone %s" % [id, str(z)])
+		if item.get("boss_only", false) and not zones.is_empty():
+			problems.append("%s: boss spoils in zone pool" % id)
 		if int(item.get("value", -1)) < 0:
 			problems.append("%s: bad value" % id)
 		if _items_list.filter(func(x): return str(x.get("id", "")) == id).size() > 1:
@@ -101,11 +103,23 @@ func validate() -> Array:
 		for e in zone.get("enemies", []):
 			if not _enemies.has(str(e)):
 				problems.append("%s: unknown enemy %s" % [zid, str(e)])
-		for rarity in int(zone.get("rarity_weights", {}).keys().size()):
-			pass
+		if not int(zone.get("combats_per_toll", 1)) in [1, 2]:
+			problems.append("%s: invalid combats_per_toll" % zid)
+		var boss_drop := str(zone.get("boss_drop", ""))
+		if str(zone.get("boss", "")) != "":
+			if get_item(boss_drop).is_empty() or not get_item(boss_drop).get("boss_only", false):
+				problems.append("%s: invalid boss drop" % zid)
+		elif boss_drop != "":
+			problems.append("%s: boss drop without a boss" % zid)
+		var required := str(zone.get("requires_boss", ""))
+		if required != "" and (not get_enemy(required).get("boss", false) or str(get_enemy(required).get("zone", "")) == zid):
+			problems.append("%s: invalid required boss" % zid)
+		var art := str(zone.get("art", ""))
+		if art == "" or not (ResourceLoader.exists(art, "Texture2D") or FileAccess.file_exists(art)):
+			problems.append("%s: missing artwork" % zid)
 		var pool := {}
 		for item in _items_list:
-			if zid in item.get("zones", []) and str(item.get("special", "")) != "first_strike":
+			if zid in item.get("zones", []) and not item.get("boss_only", false) and str(item.get("special", "")) != "first_strike":
 				pool[int(item.get("rarity", 0))] = true
 		for key in zone.get("rarity_weights", {}).keys():
 			if not pool.has(int(key)):
