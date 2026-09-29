@@ -65,7 +65,7 @@ static func _roll_rarity(zone: Dictionary, luck_eff: int, rng) -> int:
 	var total := 0
 	for key in weights.keys():
 		total += int(weights[key])
-	var roll_value := rng.next_int(maxi(1, total))
+	var roll_value: int = rng.next_int(maxi(1, total))
 	var rarity := 0
 	var cursor := 0
 	var keys := weights.keys()

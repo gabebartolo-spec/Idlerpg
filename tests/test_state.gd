@@ -10,13 +10,11 @@ const Expedition = preload("res://src/sim/expedition.gd")
 const Hero = preload("res://src/sim/hero.gd")
 
 
-func fresh_game(clock: int):
-	var g = GameLib.new(ContentLib.new())
-	g.clock_override = clock
-	return g
+func fresh_game(clock: int) -> GameLib:
+	return GameLib.new(ContentLib.new(), clock)
 
 
-func make_game(clock: int, adventurer_name: String):
+func make_game(clock: int, adventurer_name: String) -> GameLib:
 	wipe_save()
 	var g = fresh_game(clock)
 	check(g.create_adventurer(adventurer_name), "adventurer created")
@@ -34,7 +32,7 @@ func minimal_run(xp: int) -> Dictionary:
 
 
 func test_save_roundtrip_and_resume() -> void:
-	var g = make_game(1000, "Tollborn Test")
+	var g := make_game(1000, "Tollborn Test")
 	check(g.send_out("marrowfields", 3) == "", "sent out")
 	var loaded := SaveRepo.load_state()
 	check(not loaded.is_empty(), "save exists on disk")
@@ -64,7 +62,7 @@ func test_wrong_schema_starts_fresh() -> void:
 
 
 func test_clock_rollback_is_clamped() -> void:
-	var g = make_game(5000, "Clockwatcher")  # saved at t=5000
+	var g := make_game(5000, "Clockwatcher")  # saved at t=5000
 	var g2 = fresh_game(4000)  # device clock rolled back 1000s
 	check(g2.now() == 5000, "now() is clamped to the last save time")
 	var g3 = fresh_game(9000)
@@ -72,7 +70,7 @@ func test_clock_rollback_is_clamped() -> void:
 
 
 func test_offline_time_resolves_the_run() -> void:
-	var g = make_game(10000, "Wanderer")
+	var g := make_game(10000, "Wanderer")
 	check(g.send_out("marrowfields", 3) == "", "sent for three tolls")
 	g.clock_override = 10000 + 360 + 1
 	g.update()
@@ -86,7 +84,7 @@ func test_offline_time_resolves_the_run() -> void:
 
 
 func test_standing_orders_chain_overnight() -> void:
-	var g = make_game(10000, "Marathon")
+	var g := make_game(10000, "Marathon")
 	g.set_standing(true)
 	check(g.send_out("marrowfields", 2) == "", "sent with standing orders")
 	g.clock_override = 10000 + 240 * 3
@@ -100,7 +98,7 @@ func test_standing_orders_chain_overnight() -> void:
 
 
 func test_chain_cap_holds_for_pathological_absence() -> void:
-	var g = make_game(10000, "Rip")
+	var g := make_game(10000, "Rip")
 	g.set_standing(true)
 	g.send_out("marrowfields", 2)
 	g.clock_override = 10000 + 240 * 40
@@ -110,7 +108,7 @@ func test_chain_cap_holds_for_pathological_absence() -> void:
 
 
 func test_recall_brings_them_home_early() -> void:
-	var g = make_game(10000, "Homesick")
+	var g := make_game(10000, "Homesick")
 	g.send_out("marrowfields", 6)
 	g.clock_override = 10000 + 130
 	check(g.can_recall(), "recall reaches them mid-run")
@@ -122,7 +120,7 @@ func test_recall_brings_them_home_early() -> void:
 
 
 func test_death_loses_the_find_but_keeps_progress() -> void:
-	var content = ContentLib.new()
+	var content := ContentLib.new()
 	var weak := {
 		"name": "Test", "level": 1, "vows": [], "specials": {},
 		"might": 4, "ward": 4, "luck": 1, "grit_max": 2,
@@ -154,7 +152,7 @@ func test_death_loses_the_find_but_keeps_progress() -> void:
 
 
 func test_equip_sell_salvage_verbs() -> void:
-	var g = make_game(0, "Quartermaster")
+	var g := make_game(0, "Quartermaster")
 	g.hero()["inventory"].append({"uid": 500, "id": "marsh_reaver", "temper": 0})
 	g.hero()["inventory"].append({"uid": 501, "id": "chipped_bell_hammer", "temper": 0})
 	g.hero()["inventory"].append({"uid": 502, "id": "verdigris_hauberk", "temper": 0})
@@ -174,7 +172,7 @@ func test_equip_sell_salvage_verbs() -> void:
 
 
 func test_tempering_costs_and_caps() -> void:
-	var g = make_game(0, "Smith")
+	var g := make_game(0, "Smith")
 	g.hero()["inventory"].append({"uid": 600, "id": "marsh_reaver", "temper": 0})
 	g.equip(600)
 	g.hero()["shards"] = 20
@@ -201,7 +199,7 @@ func test_tempering_costs_and_caps() -> void:
 
 
 func test_vow_choices_are_gated_by_level() -> void:
-	var g = make_game(0, "Sworn")
+	var g := make_game(0, "Sworn")
 	check(not g.choose_vow("wrath"), "no vow while none pending")
 	g.state["pending_vows"] = [3]
 	check(not g.choose_vow("silence"), "silence is not offered at level 3")
@@ -211,7 +209,7 @@ func test_vow_choices_are_gated_by_level() -> void:
 
 
 func test_levelups_and_vow_queueing() -> void:
-	var g = make_game(0, "Learner")
+	var g := make_game(0, "Learner")
 	g.hero()["xp"] = 40
 	g._commit_runs([minimal_run(50)])
 	check(int(g.hero()["level"]) == 2, "50 xp crosses into level 2")
@@ -223,10 +221,18 @@ func test_levelups_and_vow_queueing() -> void:
 
 
 func test_snapshot_carries_gear_specials() -> void:
-	var g = make_game(0, "Echo")
+	var g := make_game(0, "Echo")
 	g.hero()["inventory"].append({"uid": 700, "id": "sextons_crook", "temper": 0})
 	g.equip(700)
 	var snap: Dictionary = g.snapshot_now()
 	check(bool(snap["specials"].get("echo_hold", false)), "Sexton's Crook changes the run rules")
 	var no_mantle := Expedition.toll_seconds(g.content.get_zone("marrowfields"), snap)
 	check(absf(no_mantle - 120.0) < 0.001, "crook does not touch toll length")
+
+
+func test_empty_report_is_safe() -> void:
+	var g := make_game(0, "Listener")
+	check(g.pending_report().is_empty(), "new hero has an empty report")
+	g._commit_runs([minimal_run(0)])
+	g.clear_report()
+	check(g.pending_report().is_empty(), "cleared report returns an empty dictionary")

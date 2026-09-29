@@ -12,6 +12,12 @@ var game
 var main
 
 var _list_box: VBoxContainer
+var _worn_box: HBoxContainer
+var _stats_label: Label
+var _purse_label: Label
+var _departure_note: Label
+var _last_signature := ""
+var _last_tick := -1
 
 
 func _init(game_ref, main_ref) -> void:
@@ -40,8 +46,11 @@ func _ready() -> void:
 	stats_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	stats_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	top.add_child(stats_label)
-	var stats := game.stats()
-	stats_label.text = "%s · GRIT %d" % [Ui.stat_word_line(stats), HeroLib.grit_max(int(stats["ward"]))]
+	_stats_label = stats_label
+	_purse_label = Ui.label("", 15, Ui.ThemeLib.BRONZE)
+	box.add_child(_purse_label)
+	_departure_note = Ui.label("Build changes apply when you send out again, not to the road already underway.", 14, Ui.ThemeLib.DANGER)
+	box.add_child(_departure_note)
 
 	var vows: Array = game.vows()
 	if vows.is_empty():
@@ -56,8 +65,7 @@ func _ready() -> void:
 	var worn := HBoxContainer.new()
 	worn.add_theme_constant_override("separation", 10)
 	box.add_child(worn)
-	for slot in ["weapon", "armor", "charm"]:
-		worn.add_child(_slot_card(slot))
+	_worn_box = worn
 
 	box.add_child(Ui.label("CARRIED", 14, Ui.ThemeLib.FAINT))
 
@@ -78,7 +86,7 @@ func _slot_card(slot: String) -> Button:
 	b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	Ui.style_button(b, "flat")
 	var inst: Dictionary = game.equipped().get(slot, {})
-	var def := game.content.get_item(str(inst.get("id", ""))) if not inst.is_empty() else {}
+	var def: Dictionary = game.content.get_item(str(inst.get("id", ""))) if not inst.is_empty() else {}
 	var inner := VBoxContainer.new()
 	inner.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	inner.offset_left = 12
@@ -102,6 +110,8 @@ func _slot_card(slot: String) -> Button:
 
 
 func _rebuild_list() -> void:
+	_refresh_gear()
+	_last_signature = _inventory_signature()
 	for child in _list_box.get_children():
 		_list_box.remove_child(child)
 		child.queue_free()
@@ -110,7 +120,7 @@ func _rebuild_list() -> void:
 		_list_box.add_child(Ui.label("Nothing but lint and road-dust.", 15, Ui.ThemeLib.FAINT, true))
 		return
 	for inst in inv:
-		var def := game.content.get_item(str(inst["id"]))
+		var def: Dictionary = game.content.get_item(str(inst["id"]))
 		var temper_note := ""
 		if int(inst.get("temper", 0)) > 0:
 			temper_note = "  ·  tempered +%d" % int(inst["temper"])
@@ -121,6 +131,30 @@ func _rebuild_list() -> void:
 		)
 		row.pressed.connect(_open_item.bind(inst, str(def.get("slot", "")), false))
 		_list_box.add_child(row)
+
+
+func _inventory_signature() -> String:
+	return JSON.stringify([game.hero(), game.belfry_bonuses(), game.has_expedition()])
+
+
+func tick(now: int) -> void:
+	if now == _last_tick:
+		return
+	_last_tick = now
+	if _inventory_signature() != _last_signature and not main.has_overlay():
+		_rebuild_list()
+
+
+func _refresh_gear() -> void:
+	var stats: Dictionary = game.stats()
+	_stats_label.text = "%s · GRIT %d" % [Ui.stat_word_line(stats), HeroLib.grit_max(int(stats["ward"]))]
+	_departure_note.visible = game.has_expedition()
+	_purse_label.text = "%d GOLD  ·  %d SHARDS  ·  %d CARRIED" % [game.hero()["gold"], game.hero()["shards"], game.inventory().size()]
+	for child in _worn_box.get_children():
+		_worn_box.remove_child(child)
+		child.queue_free()
+	for slot in ["weapon", "armor", "charm"]:
+		_worn_box.add_child(_slot_card(slot))
 
 
 func _open_item(inst: Dictionary, slot: String, is_equipped: bool) -> void:
@@ -136,6 +170,7 @@ class ItemSheet:
 	extends Control
 
 	const Ui = preload("res://src/ui/widgets.gd")
+	const Hero = preload("res://src/sim/hero.gd")
 
 	var game
 	var main
@@ -173,15 +208,15 @@ class ItemSheet:
 		box.add_theme_constant_override("separation", 9)
 		panel.add_child(box)
 
-		var def := game.content.get_item(str(inst.get("id", "")))
+		var def: Dictionary = game.content.get_item(str(inst.get("id", "")))
 		var color: Color = Ui.rarity_color(def)
 		box.add_child(Ui.label(str(def.get("name", "?")), 26, color))
-		var sell_gold := int(def.get("value", 0)) + int(inst.get("temper", 0)) * game.TEMPER_SELL_BONUS
+		var sell_gold: int = int(def.get("value", 0)) + int(inst.get("temper", 0)) * game.TEMPER_SELL_BONUS
 		var salvage_shards: int = game.content_salvage(def, int(inst.get("temper", 0)))
 		box.add_child(Ui.label("%s · %s · sells %d gold · yields %d shards" % [
 			Ui.rarity_name(def), str(def.get("slot", "")), sell_gold, salvage_shards
 		], 13, Ui.ThemeLib.DIM))
-		box.add_child(Ui.label(Ui.item_stat_line(def), 19, Ui.ThemeLib.TEXT))
+		box.add_child(Ui.label(Ui.item_stat_line(_tempered_stats(def, inst)), 19, Ui.ThemeLib.TEXT))
 
 		var special: String = str(def.get("special_text", ""))
 		if special != "":
@@ -194,10 +229,10 @@ class ItemSheet:
 		if not is_equipped:
 			var current: Dictionary = game.equipped().get(str(def.get("slot", "")), {})
 			if not current.is_empty():
-				var current_def := game.content.get_item(str(current.get("id", "")))
+				var current_def: Dictionary = game.content.get_item(str(current.get("id", "")))
 				box.add_child(Ui.hline())
 				box.add_child(Ui.label("INSTEAD OF %s:" % str(current_def.get("name", "")).to_upper(), 13, Ui.ThemeLib.FAINT))
-				box.add_child(Ui.label(_delta_line(def, current_def), 16, Ui.ThemeLib.TEXT))
+				box.add_child(Ui.label(_delta_line(_tempered_stats(def, inst), _tempered_stats(current_def, current)), 16, Ui.ThemeLib.TEXT))
 
 		_note = Ui.label("", 14, Ui.ThemeLib.DANGER)
 		box.add_child(_note)
@@ -219,7 +254,7 @@ class ItemSheet:
 			salvage_btn.pressed.connect(_on_salvage)
 			trade.add_child(salvage_btn)
 		else:
-			var cost := game.temper_cost(slot)
+			var cost: int = game.temper_cost(slot)
 			var temper_btn: Button
 			if cost > 0:
 				temper_btn = Ui.button("TEMPER +1  ·  %d SHARDS" % cost, "ghost")
@@ -232,6 +267,13 @@ class ItemSheet:
 		var close_btn := Ui.button("CLOSE", "flat")
 		close_btn.pressed.connect(_close)
 		box.add_child(close_btn)
+
+
+	func _tempered_stats(def: Dictionary, item: Dictionary) -> Dictionary:
+		var result := def.duplicate(true)
+		var stat := Hero.temper_stat(def)
+		result[stat] = int(result.get(stat, 0)) + int(item.get("temper", 0))
+		return result
 
 
 	func _delta_line(candidate: Dictionary, current: Dictionary) -> String:
@@ -253,15 +295,15 @@ class ItemSheet:
 
 
 	func _on_sell() -> void:
-		var gold := game.sell(int(inst["uid"]))
+		var gold: int = game.sell(int(inst["uid"]))
 		if gold > 0:
 			main.play_sfx("thock")
 			_close()
 
 
 	func _on_salvage() -> void:
-		var shards := game.salvage(int(inst["uid"]))
-		if shards > 0:
+		var shards: int = game.salvage(int(inst["uid"]))
+		if shards >= 0 and game.find_instance(int(inst["uid"])).is_empty():
 			main.play_sfx("thock")
 			_close()
 

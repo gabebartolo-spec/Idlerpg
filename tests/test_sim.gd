@@ -9,7 +9,7 @@ const Loot = preload("res://src/sim/loot.gd")
 const Expedition = preload("res://src/sim/expedition.gd")
 const Content = preload("res://src/data/content.gd")
 
-var content = Content.new()
+var content := Content.new()
 
 
 func weak_snap() -> Dictionary:
@@ -32,14 +32,11 @@ func strong_snap() -> Dictionary:
 func test_rng_deterministic_and_bounded() -> void:
 	var a := Rng.new(42)
 	var b := Rng.new(42)
-	var c := Rng.new(43)
 	var same := true
 	var differs := false
 	for i in 50:
 		if a.next_percent() != b.next_percent():
 			same = false
-		if a.next_percent() == c.next_percent():
-			pass
 	var a2 := Rng.new(42)
 	var c2 := Rng.new(43)
 	for i in 20:
@@ -116,6 +113,7 @@ func test_death_writ_keeps_something() -> void:
 	var zone := content.get_zone("requiem_scar")
 	var snap := strong_snap()
 	snap["specials"] = {"death_writ": true}
+	snap["vows"] = []  # Shelter heals every toll; remove it so death is reachable.
 	snap["ward"] = 4
 	snap["grit_max"] = 2
 	var kept_any := false
@@ -197,3 +195,35 @@ func test_light_foot_shortens_time() -> void:
 	var fast := Expedition.toll_seconds(zone, with_mantle)
 	check(absf(fast - plain * 0.75) < 0.001, "Ashveil Mantle shortens tolls by a quarter")
 	check(Expedition.danger_at(zone, 0, with_mantle) == Expedition.danger_at(zone, 0, weak_snap()) + 1, "Ashveil Mantle thickens the ash")
+
+
+class TravelRng:
+	extends RefCounted
+	var index := 0
+
+	func pick(items: Array):
+		return items[index]
+
+
+func test_all_travel_lines_format_safely() -> void:
+	var rng := TravelRng.new()
+	for i in Expedition.TRAVEL_LINES.size():
+		rng.index = i
+		var run := {"events": [], "deepest_toll": 0}
+		Expedition._process_beat({"kind": "travel", "toll": 1}, {}, weak_snap(), {}, rng, run, content)
+		check(run["events"].size() == 1, "travel line %d emits one event" % i)
+		if run["events"].is_empty():
+			continue
+		var text := str(run["events"][0]["text"])
+		check(not text.is_empty() and not "%s" in text, "travel line %d is fully formatted" % i)
+		if i == 0:
+			check("Test" in text, "named travel line includes the adventurer")
+
+
+func test_equipment_merge_preserves_temper_without_mutating_content() -> void:
+	var def := content.get_item("marsh_reaver")
+	var hero := {"equipment": {"weapon": {"id": "marsh_reaver", "uid": 42, "temper": 2}}}
+	var equipment := Hero.resolve_equipment(hero, {"marsh_reaver": def})
+	check(int(equipment["weapon"]["temper"]) == 2, "equipment carries its temper level")
+	check(int(equipment["weapon"]["uid"]) == 42, "equipment carries its instance uid")
+	check(not def.has("temper") and not def.has("uid"), "item definitions remain unchanged")

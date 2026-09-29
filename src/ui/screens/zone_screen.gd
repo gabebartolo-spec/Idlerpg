@@ -66,7 +66,7 @@ func _ready() -> void:
 	depth_row.add_child(est)
 	_est_label = est
 
-	var standing := game.standing()
+	var standing: Dictionary = game.standing()
 	var standing_btn := Ui.button("", "ghost")
 	standing_btn.toggle_mode = true
 	standing_btn.button_pressed = bool(standing.get("enabled", false))
@@ -118,9 +118,12 @@ func _build_zone_row(zone: Dictionary) -> Button:
 	top.add_child(name_label)
 	var danger := int(zone["danger_base"])
 	var danger_label := Ui.label("danger  ", 14, Ui.ThemeLib.DIM)
+	danger_label.autowrap_mode = TextServer.AUTOWRAP_OFF
 	danger_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	top.add_child(danger_label)
-	top.add_child(Ui.label(_danger_pips(danger), 15, Ui.ThemeLib.DANGER))
+	var pips := Ui.label(_danger_pips(danger), 15, Ui.ThemeLib.DANGER)
+	pips.autowrap_mode = TextServer.AUTOWRAP_OFF
+	top.add_child(pips)
 
 	inner.add_child(Ui.label(str(zone["tagline"]), 15, Ui.ThemeLib.DIM))
 	var meta := Ui.label(
@@ -168,9 +171,9 @@ func _sync_selection() -> void:
 		var locked: bool = game.zone_locked(zone)
 		var selected: bool = zone_id == _selected_zone
 		if selected:
-			b.add_theme_stylebox_override("normal", Ui.ThemeLib.outlined(ThemeLib.PANEL_LIGHT, Ui.ThemeLib.BRONZE, 14, 14))
+			b.add_theme_stylebox_override("normal", Ui.ThemeLib.outlined(Ui.ThemeLib.PANEL_LIGHT, Ui.ThemeLib.BRONZE, 14, 14))
 		else:
-			b.add_theme_stylebox_override("normal", Ui.ThemeLib.flat(ThemeLib.PANEL, 14, 14))
+			b.add_theme_stylebox_override("normal", Ui.ThemeLib.flat(Ui.ThemeLib.PANEL, 14, 14))
 		b.add_theme_stylebox_override("hover", b.get_theme_stylebox("normal"))
 		b.modulate = Color(1, 1, 1, 0.55 if locked else 1.0)
 	for depth in _depth_buttons:
@@ -182,7 +185,7 @@ func _sync_selection() -> void:
 			b.add_theme_stylebox_override("normal", Ui.ThemeLib.outlined(Color(0, 0, 0, 0), Ui.ThemeLib.BRONZE_DEEP, 12, 14))
 			b.add_theme_color_override("font_color", Ui.ThemeLib.BRONZE)
 	# time estimate with current gear
-	var zone := game.content.get_zone(_selected_zone)
+	var zone: Dictionary = game.content.get_zone(_selected_zone)
 	if not zone.is_empty():
 		var toll_len := ExpeditionLib.toll_seconds(zone, game.snapshot_now())
 		var minutes := int(round(toll_len * float(_selected_depth) / 60.0))

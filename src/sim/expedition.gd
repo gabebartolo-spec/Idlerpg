@@ -90,7 +90,7 @@ static func _plan_with(zone: Dictionary, depth: int, snap: Dictionary, rng) -> D
 		if is_final and depth >= 3:
 			beats.append({"t": total - 1.0, "kind": "objective", "toll": i})
 		else:
-			var roll := rng.next_unit()
+			var roll: float = rng.next_unit()
 			if roll < 0.35:
 				beats.append({"t": base + toll_len * 0.8, "kind": "discovery", "toll": i})
 			elif roll < 0.55:
@@ -165,7 +165,10 @@ static func _process_beat(beat: Dictionary, zone: Dictionary, snap: Dictionary, 
 				_event(run, "toll", "neutral",
 					"The %s toll fades over the %s." % [_ordinal(toll), str(zone.get("name", "valley"))], false)
 		"travel":
-			_event(run, "travel", "neutral", str(rng.pick(TRAVEL_LINES)) % adventurer, false)
+			var travel_line := str(rng.pick(TRAVEL_LINES))
+			if "%s" in travel_line:
+				travel_line = travel_line % adventurer
+			_event(run, "travel", "neutral", travel_line, false)
 		"rest":
 			run["grit"] = mini(int(run["grit"]) + 1, int(snap.get("grit_max", 3)))
 			_event(run, "rest", "good", str(rng.pick(REST_LINES)), false)
@@ -176,7 +179,7 @@ static func _process_beat(beat: Dictionary, zone: Dictionary, snap: Dictionary, 
 					run["loot"].append(found)
 					_event(run, "find", "good", "Buried off the path: %s." % _item_name(found, content), false)
 			else:
-				var gold := 5 + rng.next_int(11)
+				var gold: int = 5 + rng.next_int(11)
 				run["gold"] = int(run["gold"]) + gold
 				_event(run, "gold", "good", str(rng.pick(DISCOVERY_LINES)), false)
 		"objective":
@@ -221,10 +224,10 @@ static func _combat(beat: Dictionary, zone: Dictionary, snap: Dictionary, specia
 		might += WRATH_BONUS
 
 	var win_chance := clampi(50 + (might - threat) * 8 - danger * 4, 15, 95)
-	var win := auto_win or rng.roll(win_chance)
+	var win: bool = auto_win or rng.roll(win_chance)
 
 	var wound_chance := clampi(30 + danger * 12 - int(snap.get("ward", 0)) * 2 - (5 if win else 0), 5, 85)
-	var wounded := (not auto_win) and rng.roll(wound_chance)
+	var wounded: bool = (not auto_win) and rng.roll(wound_chance)
 
 	if win:
 		run["kills"] = int(run["kills"]) + 1

@@ -86,6 +86,9 @@ func _ready() -> void:
 		if loot.size() > 5:
 			story.add_child(Ui.label("…and %d more things besides." % (loot.size() - 5), 14, Ui.ThemeLib.FAINT, true))
 
+	var rewards: int = game.milestones_ready()
+	if rewards > 0:
+		story.add_child(Ui.label("%d milestone reward(s) await in the Belfry." % rewards, 16, Ui.ThemeLib.BRONZE, true))
 	story.add_child(Ui.spacer(8))
 	var totals: Dictionary = payload.get("totals", {})
 	var parts: Array = []
@@ -139,7 +142,7 @@ func _standout_card(def: Dictionary) -> Control:
 	var rarity := int(def.get("rarity", 0))
 	var color: Color = Ui.ThemeLib.RARITY[clampi(rarity, 0, 3)]
 	var card := PanelContainer.new()
-	var sb := Ui.ThemeLib.outlined(ThemeLib.PANEL_LIGHT, color, 14, 16)
+	var sb := Ui.ThemeLib.outlined(Ui.ThemeLib.PANEL_LIGHT, color, 14, 16)
 	card.add_theme_stylebox_override("panel", sb)
 	var inner := VBoxContainer.new()
 	inner.add_theme_constant_override("separation", 3)

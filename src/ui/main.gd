@@ -1,6 +1,6 @@
 extends Control
 
-# VESPERBELL app shell: owns the game, the two tabs, the pushed screens,
+# VESPERBELL app shell: owns the game, the three tabs, the pushed screens,
 # overlays, the Android Back button, and the falling ash.
 
 const VbContent = preload("res://src/data/content.gd")
@@ -12,6 +12,7 @@ const BellScreen = preload("res://src/ui/screens/bell_screen.gd")
 const ZoneScreen = preload("res://src/ui/screens/zone_screen.gd")
 const ReportScreen = preload("res://src/ui/screens/report_screen.gd")
 const SatchelScreen = preload("res://src/ui/screens/satchel_screen.gd")
+const BelfryScreen = preload("res://src/ui/screens/belfry_screen.gd")
 const VowModal = preload("res://src/ui/screens/vow_modal.gd")
 const DeskSheet = preload("res://src/ui/screens/desk_sheet.gd")
 
@@ -21,6 +22,10 @@ var sfx
 var _stack: Array = []
 var _holder: Control
 var _nav: Control
+var _bell_tab: Button
+var _satchel_tab: Button
+var _belfry_tab: Button
+var _reward_badge := -1
 var _overlay: Control = null
 var _overlay_close_cb := Callable()
 
@@ -64,16 +69,16 @@ func _build_shell() -> void:
 
 	_holder = Control.new()
 	_holder.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	_holder.offset_bottom = -78
+	_holder.offset_bottom = -92
 	_holder.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_holder)
 
 	_nav = PanelContainer.new()
 	_nav.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
-	_nav.offset_top = -78
+	_nav.offset_top = -92
 	var nav_style := ThemeLib.flat(ThemeLib.PANEL, 0, 8)
 	nav_style.content_margin_top = 10
-	nav_style.content_margin_bottom = 22
+	nav_style.content_margin_bottom = 14
 	_nav.add_theme_stylebox_override("panel", nav_style)
 	add_child(_nav)
 
@@ -91,6 +96,12 @@ func _build_shell() -> void:
 	nav_box.add_child(satchel_tab)
 	_bell_tab = bell_tab
 	_satchel_tab = satchel_tab
+	_belfry_tab = Ui.button("BELFRY", "ghost", 17)
+	_belfry_tab.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_belfry_tab.pressed.connect(func(): switch_tab("belfry"))
+	nav_box.add_child(_belfry_tab)
+	for tab in [bell_tab, satchel_tab, _belfry_tab]:
+		tab.custom_minimum_size.y = 54
 
 	if OS.is_debug_build():
 		var desk := Ui.small_button("desk", "flat")
@@ -116,6 +127,8 @@ func _make(id: String) -> Control:
 			return ReportScreen.new(game, self)
 		"satchel":
 			return SatchelScreen.new(game, self)
+		"belfry":
+			return BelfryScreen.new(game, self)
 	return Control.new()
 
 
@@ -130,23 +143,28 @@ func pop_screen() -> void:
 	if _stack.size() <= 1:
 		return
 	var entry: Dictionary = _stack.pop_back()
-	entry["node"].queue_free()
+	_discard_screen(entry["node"])
 	_sync_nav()
 
 
 func switch_tab(id: String) -> void:
 	while _stack.size() > 1:
 		var entry: Dictionary = _stack.pop_back()
-		entry["node"].queue_free()
+		_discard_screen(entry["node"])
 	if not _stack.is_empty():
 		if str(_stack[0]["id"]) == id:
 			_sync_nav()
 			return
-		_stack[0]["node"].queue_free()
+		_discard_screen(_stack[0]["node"])
 		var node := _make(id)
 		_holder.add_child(node)
 		_stack[0] = {"id": id, "node": node}
 	_sync_nav()
+
+
+func _discard_screen(node: Control) -> void:
+	node.hide()
+	node.queue_free()
 
 
 func current_id() -> String:
@@ -158,16 +176,23 @@ func current_id() -> String:
 func _sync_nav() -> void:
 	var top := current_id()
 	_nav.visible = top != "create"
+	_holder.offset_bottom = 0 if top == "create" else -92
+	for entry in _stack:
+		var node: Control = entry["node"]
+		node.visible = node == _stack[-1]["node"]
+		node.process_mode = Node.PROCESS_MODE_INHERIT if node.visible else Node.PROCESS_MODE_DISABLED
 	if _overlay != null:
 		_overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_bell_tab.modulate = Color(1, 1, 1, 1.0) if top == "bell" else Color(1, 1, 1, 0.45)
 	_satchel_tab.modulate = Color(1, 1, 1, 1.0) if top == "satchel" else Color(1, 1, 1, 0.45)
+	_belfry_tab.modulate = Color(1, 1, 1, 1.0) if top == "belfry" else Color(1, 1, 1, 0.65)
 
 
 # ------------------------------------------------------------------ overlays
 
 func open_overlay(node: Control, on_close: Callable = Callable()) -> void:
 	if _overlay != null:
+		node.queue_free()
 		return
 	_overlay = node
 	_overlay_close_cb = on_close
@@ -182,6 +207,7 @@ func close_overlay() -> void:
 	_overlay = null
 	var cb := _overlay_close_cb
 	_overlay_close_cb = Callable()
+	node.hide()
 	node.queue_free()
 	if cb.is_valid():
 		cb.call()
@@ -192,6 +218,11 @@ func has_overlay() -> bool:
 
 
 # ------------------------------------------------------------------ flow
+
+func open_belfry(page: String = "workshop") -> void:
+	switch_tab("belfry")
+	_stack[-1]["node"]._select_page(page)
+
 
 func enter_game() -> void:
 	switch_tab("bell")
@@ -216,6 +247,10 @@ func play_sfx(sound_name: String) -> void:
 
 func _process(_delta: float) -> void:
 	game.update()
+	var ready: int = game.milestones_ready()
+	if ready != _reward_badge:
+		_reward_badge = ready
+		_belfry_tab.text = "BELFRY •" if ready > 0 else "BELFRY"
 	if not _stack.is_empty():
 		var top: Control = _stack[-1]["node"]
 		if is_instance_valid(top) and top.has_method("tick"):
