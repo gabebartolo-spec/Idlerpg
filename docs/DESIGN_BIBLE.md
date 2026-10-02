@@ -1125,6 +1125,7 @@ Acceptance:
 
 ## IRPG-P2 — Offline parity
 
+**Status:** `VERIFY` — implemented in PR #4; save/restore, same-simulation offline catch-up, duplicate-reward protection and return-report tests are green. Real Android suspend/resume still requires phone validation.  
 **Priority:** CRITICAL  
 **Goal:** prove that the game exists while closed.
 
@@ -1143,12 +1144,15 @@ Acceptance:
 - no duplicate rewards;
 - equivalent watched/unwatched runs produce equivalent authoritative results.
 
+**Implementation (PR #4):** the app checkpoints authoritative adventurer + gacha state, advances the saved adventurer through the same simulation on return, immediately checkpoints the advanced state to prevent replayed rewards, and shows a concise return report covering quests, kills, levels, deaths, gold, materials and gear. Debug builds can simulate ten minutes away instantly. A temporary 7-day technical catch-up cap prevents pathological prototype stalls; it is not a monetisation/retention rule and should be revisited when the offline simulator is optimised.
+
 **Hard gate:** do not expand content until offline progression is trustworthy.
 
 ---
 
 ## IRPG-P3 — Equipment and inventory loop
 
+**Status:** `IN PROGRESS` — PR #4 contains the first equipment slice: owned gear, equip effects, guaranteed first-quest gear, Gear-banner integration, persistence and visible weapon variants. Comparison UX, sell/salvage, broader armour visuals and final slot decisions remain.  
 **Goal:** create the first meaningful management game.
 
 Build:
@@ -1343,16 +1347,15 @@ Do not confuse content volume with finished quality.
 
 Do these in order:
 
-1. **Runtime-verify PR #4 in Godot 4.7.2.**
-2. **Install the primitive build on Android.**
-3. Fix runtime/mobile blockers only.
-4. Merge the clean reset once it actually runs.
-5. Begin **IRPG-P1**, not more gacha breadth.
-6. Build one tiny world where the adventurer visibly travels, fights, loots and completes one quest.
-7. Phone-test the “little guy doing his thing” feeling.
-8. Only if that works, build offline parity.
+1. Keep PR #4 green in Godot 4.7.2 CI.
+2. Install the current reset build on Android portrait.
+3. Phone-test three things together: **watchability**, real suspend/resume offline catch-up, and the Gear drawer/equip flow.
+4. Fix runtime/mobile blockers and awkward core-loop UX only.
+5. Merge the clean reset once that phone gate passes.
+6. Finish **IRPG-P3** narrowly: item comparison, sell/salvage, remaining core slots and useful armour visuals.
+7. Then begin **IRPG-P4** talents/build identity.
 
-This ordering matters. The gacha scaffolding already exists. The next risk to retire is whether the **WoW Tamagotchi** itself is compelling.
+Do not respond to a mediocre phone test by piling on more zones, classes, currencies or content. Fix the little-adventurer loop first.
 
 ---
 
