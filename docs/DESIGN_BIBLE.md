@@ -1058,7 +1058,7 @@ The roadmap is intentionally gated. **Do not begin later phases just because the
 
 ## IRPG-P0 — Clean foundation
 
-**Status:** IN PROGRESS — PR #4  
+**Status:** `VERIFY` — implemented in PR #4; focused Godot 4.7.2 CI is green, Android phone validation still required.  
 **Goal:** replace the Arena/Vesperbell prototype with a minimal Godot 4.7 mobile foundation.
 
 Scope:
@@ -1082,6 +1082,7 @@ Do not add content breadth inside this phase.
 
 ## IRPG-P1 — The living adventurer vertical slice
 
+**Status:** `VERIFY` — implemented in PR #4; headless launch/simulation tests are green, phone watchability check still gates P2.  
 **Priority:** CRITICAL  
 **Goal:** prove the actual game.
 
@@ -1118,7 +1119,7 @@ Acceptance:
 - player can watch the whole thing without touching combat controls;
 - no manual combat exists.
 
-**Hard gate:** if watching this is not at least mildly charming, do not build the MMO feature stack. Fix this first.
+**Implementation (PR #4):** Mossgate, Goblin Camp and Wolf Den are present in the primitive 3D world. The adventurer autonomously travels, fights three goblins and two wolves, loots, gains XP/levels, returns for the quest reward, rests and repeats. Death returns the persistent character to Mossgate for recovery. The 3D layer reads simulation state rather than resolving combat itself. A focused launch smoke test instantiates the real main scene in Godot 4.7.2 CI.\n\n**Hard gate:** if watching this is not at least mildly charming on the phone, do not build the MMO feature stack. Fix this first.
 
 ---
 
