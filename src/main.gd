@@ -2,6 +2,7 @@ extends Node
 
 const GameStateScript = preload("res://src/game.gd")
 const AdventurerSimScript = preload("res://src/sim/adventurer_sim.gd")
+const PersistenceScript = preload("res://src/state/persistence.gd")
 
 var game: Node
 var sim: Node
@@ -23,6 +24,10 @@ var banner_label: Label
 var results_label: RichTextLabel
 var gacha_panel: VBoxContainer
 var dev_panel: VBoxContainer
+var return_panel: PanelContainer
+var return_label: Label
+var pending_return_report: Dictionary = {}
+var autosave_clock: float = 0.0
 
 func _ready() -> void:
 	game = GameStateScript.new()
@@ -30,18 +35,32 @@ func _ready() -> void:
 	game.wallet_changed.connect(_refresh_wallet)
 
 	sim = AdventurerSimScript.new()
-	sim.event_emitted.connect(_on_sim_event)
 	add_child(sim)
+	pending_return_report = PersistenceScript.load_and_advance(sim, game)
+	sim.event_emitted.connect(_on_sim_event)
 
 	_build_world()
 	_build_ui()
 	_refresh_wallet(game.gacha_tokens)
 	_refresh_sim_ui()
+	if bool(pending_return_report.get("loaded", false)) and int(pending_return_report.get("elapsed_actual", 0)) >= 5:
+		_show_return_report(pending_return_report)
 
 func _process(delta: float) -> void:
 	sim.advance(delta)
 	_sync_world(delta)
 	_refresh_sim_ui()
+
+	autosave_clock += delta
+	if autosave_clock >= 15.0:
+		autosave_clock = 0.0
+		_save_now()
+
+func _notification(what: int) -> void:
+	if sim == null or game == null:
+		return
+	if what == NOTIFICATION_APPLICATION_PAUSED or what == NOTIFICATION_WM_CLOSE_REQUEST:
+		_save_now()
 
 func _build_world() -> void:
 	world = Node3D.new()
@@ -302,6 +321,28 @@ func _build_ui() -> void:
 	bottom_column.add_theme_constant_override("separation", 8)
 	bottom.add_child(bottom_column)
 
+	return_panel = PanelContainer.new()
+	return_panel.visible = false
+	bottom_column.add_child(return_panel)
+
+	var return_column := VBoxContainer.new()
+	return_column.add_theme_constant_override("separation", 6)
+	return_panel.add_child(return_column)
+
+	var return_title := Label.new()
+	return_title.text = "While you were away"
+	return_title.add_theme_font_size_override("font_size", 20)
+	return_column.add_child(return_title)
+
+	return_label = Label.new()
+	return_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	return_column.add_child(return_label)
+
+	var return_close := Button.new()
+	return_close.text = "Back to the adventure"
+	return_close.pressed.connect(_close_return_report)
+	return_column.add_child(return_close)
+
 	var actions := HBoxContainer.new()
 	actions.add_theme_constant_override("separation", 8)
 	bottom_column.add_child(actions)
@@ -399,6 +440,11 @@ func _build_dev_tools(parent: VBoxContainer) -> void:
 	reset.pressed.connect(_reset_pity)
 	parent.add_child(reset)
 
+	var away := Button.new()
+	away.text = "Simulate 10 min away"
+	away.pressed.connect(_dev_simulate_away)
+	parent.add_child(away)
+
 func _toggle_gacha() -> void:
 	gacha_panel.visible = not gacha_panel.visible
 	if dev_panel != null:
@@ -423,6 +469,78 @@ func _dev_stress_pull() -> void:
 func _reset_pity() -> void:
 	game.dev_reset_pity()
 	event_label.text = "Dev: pity counters reset."
+
+func _save_now(now_unix: int = -1) -> void:
+	if sim == null or game == null:
+		return
+	PersistenceScript.save(sim, game, now_unix)
+
+func _dev_simulate_away() -> void:
+	var now_unix := int(Time.get_unix_time_from_system())
+	PersistenceScript.save(sim, game, now_unix - 600)
+	var report: Dictionary = PersistenceScript.load_and_advance(sim, game, now_unix)
+	_show_return_report(report)
+	if dev_panel != null:
+		dev_panel.visible = false
+
+func _show_return_report(report: Dictionary) -> void:
+	if return_panel == null or return_label == null:
+		return
+	return_label.text = _format_return_report(report)
+	return_panel.visible = true
+	gacha_panel.visible = false
+	if dev_panel != null:
+		dev_panel.visible = false
+
+func _close_return_report() -> void:
+	if return_panel != null:
+		return_panel.visible = false
+
+func _format_return_report(report: Dictionary) -> String:
+	var lines: Array[String] = []
+	lines.append("Away for %s." % _format_duration(int(report.get("elapsed_actual", 0))))
+
+	var quests := int(report.get("quests", 0))
+	var kills := int(report.get("kills", 0))
+	var gold_gained := int(report.get("gold", 0))
+	var levels := int(report.get("levels", 0))
+	var deaths_while_away := int(report.get("deaths", 0))
+
+	if quests > 0:
+		lines.append("%d quest%s completed." % [quests, "" if quests == 1 else "s"])
+	if kills > 0:
+		lines.append("%d enemies defeated." % kills)
+	if gold_gained > 0:
+		lines.append("+%d gold." % gold_gained)
+	if levels > 0:
+		lines.append("Gained %d level%s." % [levels, "" if levels == 1 else "s"])
+	if deaths_while_away > 0:
+		lines.append("Defeated %d time%s, but recovered." % [deaths_while_away, "" if deaths_while_away == 1 else "s"])
+
+	var loot: Dictionary = report.get("loot", {})
+	var loot_parts: Array[String] = []
+	for item_name in loot.keys():
+		loot_parts.append("%s ×%d" % [item_name, int(loot[item_name])])
+	if not loot_parts.is_empty():
+		lines.append("Loot: %s." % ", ".join(loot_parts.slice(0, 4)))
+
+	if bool(report.get("capped", false)):
+		lines.append("Prototype catch-up is currently capped at 7 days per return.")
+
+	if lines.size() == 1:
+		lines.append("No major events. Your adventurer kept moving.")
+
+	return "\n".join(lines)
+
+func _format_duration(seconds: int) -> String:
+	if seconds >= 86400:
+		var days := seconds / 86400
+		return "%dd %dh" % [days, (seconds % 86400) / 3600]
+	if seconds >= 3600:
+		return "%dh %dm" % [seconds / 3600, (seconds % 3600) / 60]
+	if seconds >= 60:
+		return "%dm" % (seconds / 60)
+	return "%ds" % seconds
 
 func _refresh_sim_ui() -> void:
 	hero_label.text = "Adventurer · Lv %d · HP %d/%d · %d gold" % [
@@ -467,6 +585,7 @@ func _summon(count: int) -> void:
 	if not highlights.is_empty():
 		summary += "\n" + "\n".join(highlights.slice(0, 4))
 	results_label.text = summary
+	_save_now()
 
 func _refresh_wallet(tokens: int) -> void:
 	if token_label == null:
