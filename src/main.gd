@@ -454,10 +454,10 @@ func _rebuild_equipment_panel() -> void:
 	if equipment_slots_label == null or gear_list == null:
 		return
 
-	var weapon := sim.equipped_item("weapon")
-	var head := sim.equipped_item("head")
-	var chest := sim.equipped_item("chest")
-	var offhand := sim.equipped_item("offhand")
+	var weapon: String = str(sim.equipped_item("weapon"))
+	var head: String = str(sim.equipped_item("head"))
+	var chest: String = str(sim.equipped_item("chest"))
+	var offhand: String = str(sim.equipped_item("offhand"))
 	equipment_slots_label.text = "ATK %d · HP %d\nWeapon: %s · Head: %s\nChest: %s · Off-hand: %s" % [
 		sim.effective_attack(),
 		sim.effective_max_hp(),
