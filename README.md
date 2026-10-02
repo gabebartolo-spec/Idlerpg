@@ -21,6 +21,23 @@ The authoritative simulation owns what happens. The 3D world visualises it. Ther
 
 The first quest is intentionally tiny: leave Mossgate, defeat three goblins, travel to the wolves, defeat two, return to town, collect the reward, rest, then head out again.
 
+### Offline continuity
+- authoritative save/restore;
+- same-simulation offline catch-up;
+- duplicate-reward protection;
+- concise "While you were away" report;
+- debug 10-minute-away simulation;
+- temporary 7-day technical catch-up cap while the prototype simulator is still brute-force.
+
+### Equipment slice
+- owned gear inventory;
+- weapon/head/chest/off-hand slots;
+- equipped items change combat stats;
+- guaranteed Goblin Cleaver + Wolfskin Hood during the first quest;
+- Gear-banner pulls enter the same owned-gear pool;
+- equipped weapons visibly change on the 3D adventurer;
+- persistence across saves/offline progress.
+
 ### Gacha foundation
 - Gear Cache;
 - Companion Pact;
@@ -51,10 +68,11 @@ Watched and offline play must eventually consume the same authoritative state/ev
 
 Do **not** broaden the content yet.
 
-1. Open in Godot 4.7.2 and clear any runtime/script blockers.
-2. Run on Android portrait.
+1. Keep the current PR green in Godot 4.7.2 CI.
+2. Run it on Android portrait.
 3. Judge whether watching the adventurer run, fight, loot and complete the tiny quest is actually charming.
-4. If yes, build offline parity and the return report next.
+4. Verify real suspend/resume catch-up and the Gear/equip drawer on the phone.
+5. Fix core-loop/mobile blockers before adding more zones/classes/content.
 
 The old Vesperbell implementation remains recoverable from Git history. It should not be copied forward wholesale.
 
@@ -73,6 +91,11 @@ Current targeted tests cover:
 - autonomous quest completion;
 - travel/combat/quest events;
 - loot, XP and level-up;
-- death and recovery.
+- death and recovery;
+- save/offline parity and duplicate-reward protection;
+- gear ownership/equip stat changes and persistence;
+- first-quest guaranteed gear;
+- Gear gacha → owned equipment integration;
+- real main-scene launch smoke coverage.
 
 This branch still needs actual Godot 4.7.2 runtime validation. Static repository inspection is not a passing build.
