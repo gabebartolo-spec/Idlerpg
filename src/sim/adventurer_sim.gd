@@ -3,6 +3,8 @@ extends Node
 
 signal event_emitted(event: Dictionary)
 
+const GearCatalogScript = preload("res://src/data/gear_catalog.gd")
+
 const TOWN_POSITION := Vector3(-5.0, 0.0, 3.0)
 const GOBLIN_CAMP_POSITION := Vector3(1.5, 0.0, -1.5)
 const WOLF_DEN_POSITION := Vector3(5.0, 0.0, -4.0)
@@ -42,6 +44,13 @@ var deaths: int = 0
 
 var last_loot: String = ""
 var inventory: Dictionary = {}
+var gear_inventory: Dictionary = {}
+var equipped: Dictionary = {
+	"weapon": "",
+	"head": "",
+	"chest": "",
+	"offhand": ""
+}
 var recent_events: Array[String] = []
 
 func _ready() -> void:
@@ -103,7 +112,9 @@ func to_save_dict() -> Dictionary:
 		"total_kills": total_kills,
 		"deaths": deaths,
 		"last_loot": last_loot,
-		"inventory": inventory.duplicate(true)
+		"inventory": inventory.duplicate(true),
+		"gear_inventory": gear_inventory.duplicate(true),
+		"equipped": equipped.duplicate(true)
 	}
 
 func load_save_dict(data: Dictionary) -> void:
@@ -111,7 +122,7 @@ func load_save_dict(data: Dictionary) -> void:
 	hero_level = max(1, int(data.get("hero_level", 1)))
 	hero_xp = max(0, int(data.get("hero_xp", 0)))
 	hero_max_hp = max(1, int(data.get("hero_max_hp", 36)))
-	hero_hp = clampi(int(data.get("hero_hp", hero_max_hp)), 0, hero_max_hp)
+	var saved_hp: int = max(0, int(data.get("hero_hp", hero_max_hp)))
 	hero_attack = max(1, int(data.get("hero_attack", 6)))
 	gold = max(0, int(data.get("gold", 0)))
 	activity = str(data.get("activity", ""))
@@ -132,6 +143,16 @@ func load_save_dict(data: Dictionary) -> void:
 	deaths = max(0, int(data.get("deaths", 0)))
 	last_loot = str(data.get("last_loot", ""))
 	inventory = (data.get("inventory", {}) as Dictionary).duplicate(true)
+	gear_inventory = (data.get("gear_inventory", {}) as Dictionary).duplicate(true)
+
+	equipped = {"weapon": "", "head": "", "chest": "", "offhand": ""}
+	var saved_equipped: Dictionary = data.get("equipped", {})
+	for slot_name in equipped.keys():
+		var item_name := str(saved_equipped.get(slot_name, ""))
+		if not item_name.is_empty() and GearCatalogScript.has_item(item_name) and GearCatalogScript.slot(item_name) == slot_name and int(gear_inventory.get(item_name, 0)) > 0:
+			equipped[slot_name] = item_name
+
+	hero_hp = clampi(saved_hp, 0, effective_max_hp())
 	recent_events.clear()
 
 func report_counters() -> Dictionary:
@@ -141,13 +162,59 @@ func report_counters() -> Dictionary:
 		"total_kills": total_kills,
 		"quests": quest_cycles_completed,
 		"deaths": deaths,
-		"inventory": inventory.duplicate(true)
+		"inventory": inventory.duplicate(true),
+		"gear_inventory": gear_inventory.duplicate(true)
 	}
 
 func _vec3_from_save(value: Variant, fallback: Vector3) -> Vector3:
 	if value is Array and value.size() >= 3:
 		return Vector3(float(value[0]), float(value[1]), float(value[2]))
 	return fallback
+
+func add_gear(item_name: String) -> bool:
+	if not GearCatalogScript.has_item(item_name):
+		return false
+	gear_inventory[item_name] = int(gear_inventory.get(item_name, 0)) + 1
+	_emit_event("gear_obtained", "Found %s." % item_name, {"gear": item_name})
+	return true
+
+func equip_gear(item_name: String) -> bool:
+	if not GearCatalogScript.has_item(item_name):
+		return false
+	if int(gear_inventory.get(item_name, 0)) <= 0:
+		return false
+	var slot_name: String = GearCatalogScript.slot(item_name)
+	if slot_name.is_empty() or not equipped.has(slot_name):
+		return false
+	equipped[slot_name] = item_name
+	hero_hp = min(hero_hp, effective_max_hp())
+	_emit_event("gear_equipped", "Equipped %s." % item_name, {"gear": item_name, "slot": slot_name})
+	return true
+
+func equipped_item(slot_name: String) -> String:
+	return str(equipped.get(slot_name, ""))
+
+func owned_gear_names() -> Array[String]:
+	var names: Array[String] = []
+	for item_name in gear_inventory.keys():
+		if int(gear_inventory.get(item_name, 0)) > 0:
+			names.append(str(item_name))
+	names.sort()
+	return names
+
+func effective_attack() -> int:
+	var total := hero_attack
+	for item_name in equipped.values():
+		if not str(item_name).is_empty():
+			total += GearCatalogScript.attack_bonus(str(item_name))
+	return total
+
+func effective_max_hp() -> int:
+	var total := hero_max_hp
+	for item_name in equipped.values():
+		if not str(item_name).is_empty():
+			total += GearCatalogScript.hp_bonus(str(item_name))
+	return total
 
 func take_damage(amount: int) -> void:
 	if amount <= 0 or activity == "recovering":
@@ -192,8 +259,8 @@ func get_snapshot() -> Dictionary:
 		"xp": hero_xp,
 		"xp_to_next": xp_to_next_level(),
 		"hp": hero_hp,
-		"max_hp": hero_max_hp,
-		"attack": hero_attack,
+		"max_hp": effective_max_hp(),
+		"attack": effective_attack(),
 		"gold": gold,
 		"activity": activity,
 		"activity_text": current_activity_text(),
@@ -209,7 +276,7 @@ func _begin_quest_cycle() -> void:
 	goblins_killed = 0
 	wolves_killed = 0
 	quest_stage = 0
-	hero_hp = hero_max_hp
+	hero_hp = effective_max_hp()
 	_emit_event("quest_started", "Ranger's Errand started.")
 	_travel_to("goblin_camp", "Goblin Camp", GOBLIN_CAMP_POSITION, false)
 
@@ -268,7 +335,7 @@ func _advance_combat(delta: float) -> void:
 
 	while hero_attack_clock >= HERO_ATTACK_INTERVAL and activity == "fighting":
 		hero_attack_clock -= HERO_ATTACK_INTERVAL
-		enemy_hp = max(0, enemy_hp - hero_attack)
+		enemy_hp = max(0, enemy_hp - effective_attack())
 		if enemy_hp <= 0:
 			_defeat_enemy()
 			return
@@ -301,6 +368,13 @@ func _defeat_enemy() -> void:
 		{"enemy": defeated_kind, "loot": last_loot}
 	)
 
+	# The first quest guarantees one weapon and one armour choice so the
+	# equipment loop can be tested without depending on gacha luck.
+	if quest_cycles_completed == 0 and defeated_kind == "goblin" and goblins_killed == 3 and int(gear_inventory.get("Goblin Cleaver", 0)) == 0:
+		add_gear("Goblin Cleaver")
+	elif quest_cycles_completed == 0 and defeated_kind == "wolf" and wolves_killed == 2 and int(gear_inventory.get("Wolfskin Hood", 0)) == 0:
+		add_gear("Wolfskin Hood")
+
 	activity = "looting"
 	activity_timer = LOOT_TIME
 	enemy_hp = 0
@@ -327,7 +401,7 @@ func _complete_quest() -> void:
 	quest_cycles_completed += 1
 	gold += 20
 	_grant_xp(20)
-	hero_hp = hero_max_hp
+	hero_hp = effective_max_hp()
 	quest_stage = 5
 	activity = "resting"
 	activity_timer = REST_TIME
@@ -347,7 +421,7 @@ func _die() -> void:
 	_emit_event("death", "Your adventurer was defeated and returned to Mossgate.")
 
 func _finish_recovery() -> void:
-	hero_hp = hero_max_hp
+	hero_hp = effective_max_hp()
 	_emit_event("recovered", "Recovered. Back to the errand.")
 
 	if goblins_killed < 3:
@@ -367,7 +441,7 @@ func _grant_xp(amount: int) -> void:
 		hero_level += 1
 		hero_max_hp += 5
 		hero_attack += 1
-		hero_hp = hero_max_hp
+		hero_hp = effective_max_hp()
 		_emit_event("level_up", "Reached level %d." % hero_level, {"level": hero_level})
 
 func _enemy_display_name(kind: String) -> String:
