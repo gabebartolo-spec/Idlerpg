@@ -1,49 +1,60 @@
 # Idle RPG — fresh start
 
-This branch intentionally replaces the previous **Vesperbell** prototype with a much smaller foundation.
+A mobile-first **WoW Tamagotchi**: raise, equip and shape a persistent adventurer who lives in a simplified low-poly 3D MMO-like world whether or not you are watching.
 
-## Direction
-
-- **Godot 4.7.2**
-- **Android / portrait first**
-- **Low-poly 3D**, inspired by the readable simplicity of early 3D MMOs rather than copied assets or environments.
-- Core fantasy: make an adventurer, send them out, come back to progress, loot and stories, improve the build, repeat.
-- **Gacha is a major progression pillar.** The foundation starts with reusable Gear, Companion and Relic banners rather than hard-wiring one loot box.
-- Keep the first playable loop tiny. Do not rebuild a giant content architecture before the runtime and phone experience are proven.
+The authoritative simulation owns what happens. The 3D world visualises it. There is no manual combat.
 
 ## Current prototype
 
-The main scene creates a tiny primitive 3D test world and a portrait summon interface.
+### Living adventurer slice
+- one low-poly test zone;
+- Mossgate town, Goblin Camp and Wolf Den;
+- autonomous travel;
+- two mob types;
+- automatic combat;
+- loot and XP;
+- level-up;
+- one repeating quest chain;
+- death and recovery;
+- compact current-activity / quest UI;
+- following watch camera.
 
-Gacha currently has:
-- Gear Cache
-- Companion Pact
-- Relic Vault
-- 1x and 10x pulls
-- 1% legendary base rate
-- hard legendary pity on pull 90
-- a shared token wallet
+The first quest is intentionally tiny: leave Mossgate, defeat three goblins, travel to the wolves, defeat two, return to town, collect the reward, rest, then head out again.
 
-These numbers are prototype values, not monetisation decisions.
+### Gacha foundation
+- Gear Cache;
+- Companion Pact;
+- Relic Vault;
+- 1x and 10x pulls;
+- simple Legendary pity;
+- one token wallet.
 
-## Debug tools
-
-Debug/editor builds expose a **Dev tools** panel with:
-
-- **Infinite gacha tokens** — pulls cost nothing while enabled.
+Debug/editor builds expose:
+- **Infinite gacha tokens**
 - **+10,000 tokens**
 - **100-pull stress test**
 - **Reset pity counters**
 
-These tools are gated behind Godot debug/editor state and are not intended for release builds.
+These are development tools, not economy design.
 
-## Next build order
+## Design source of truth
 
-1. Prove the primitive 3D scene and touch UI on Android.
-2. Add the actual idle expedition timer + offline resolution.
-3. Turn gacha results into usable gear/companions/relics.
-4. Add inventory/equip decisions.
-5. Only then expand zones, classes, combat depth and content.
+Read `docs/DESIGN_BIBLE.md`.
+
+The central rule is:
+
+> The simulation is the game; 3D is its window.
+
+Watched and offline play must eventually consume the same authoritative state/events rather than running separate combat logic.
+
+## Next gate
+
+Do **not** broaden the content yet.
+
+1. Open in Godot 4.7.2 and clear any runtime/script blockers.
+2. Run on Android portrait.
+3. Judge whether watching the adventurer run, fight, loot and complete the tiny quest is actually charming.
+4. If yes, build offline parity and the return report next.
 
 The old Vesperbell implementation remains recoverable from Git history. It should not be copied forward wholesale.
 
@@ -53,4 +64,15 @@ The old Vesperbell implementation remains recoverable from Git history. It shoul
 scripts/run_tests.sh
 ```
 
-The current test covers normal token spending, insufficient funds, debug infinite-token pulls, 100-pull stress usage and hard pity.
+Current targeted tests cover:
+- normal gacha token spending;
+- insufficient funds;
+- debug infinite-token pulls;
+- 100-pull stress usage;
+- hard pity;
+- autonomous quest completion;
+- travel/combat/quest events;
+- loot, XP and level-up;
+- death and recovery.
+
+This branch still needs actual Godot 4.7.2 runtime validation. Static repository inspection is not a passing build.
