@@ -79,6 +79,20 @@ func dev_reset_pity() -> void:
 	for banner_id in BANNERS.keys():
 		pity[banner_id] = 0
 
+func to_save_dict() -> Dictionary:
+	return {
+		"gacha_tokens": gacha_tokens,
+		"pity": pity.duplicate(true)
+	}
+
+func load_save_dict(data: Dictionary) -> void:
+	gacha_tokens = max(0, int(data.get("gacha_tokens", STARTING_TOKENS)))
+	var saved_pity: Dictionary = data.get("pity", {})
+	for banner_id in BANNERS.keys():
+		pity[banner_id] = max(0, int(saved_pity.get(banner_id, 0)))
+	dev_infinite_tokens = false
+	wallet_changed.emit(gacha_tokens)
+
 func pull(banner_id: String, count: int = 1) -> Dictionary:
 	if not BANNERS.has(banner_id):
 		return {"ok": false, "error": "Unknown banner", "results": []}
