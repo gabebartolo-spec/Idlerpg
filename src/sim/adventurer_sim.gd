@@ -70,6 +70,85 @@ func advance(delta: float) -> void:
 			if activity_timer <= 0.0:
 				_begin_quest_cycle()
 
+func simulate_elapsed(seconds: float) -> void:
+	var remaining: float = max(0.0, seconds)
+	while remaining > 0.0001:
+		var step: float = min(0.1, remaining)
+		advance(step)
+		remaining -= step
+
+func to_save_dict() -> Dictionary:
+	return {
+		"hero_position": [hero_position.x, hero_position.y, hero_position.z],
+		"hero_level": hero_level,
+		"hero_xp": hero_xp,
+		"hero_max_hp": hero_max_hp,
+		"hero_hp": hero_hp,
+		"hero_attack": hero_attack,
+		"gold": gold,
+		"activity": activity,
+		"activity_timer": activity_timer,
+		"destination_id": destination_id,
+		"destination_name": destination_name,
+		"destination": [destination.x, destination.y, destination.z],
+		"enemy_kind": enemy_kind,
+		"enemy_hp": enemy_hp,
+		"enemy_max_hp": enemy_max_hp,
+		"enemy_attack_clock": enemy_attack_clock,
+		"hero_attack_clock": hero_attack_clock,
+		"quest_stage": quest_stage,
+		"quest_cycles_completed": quest_cycles_completed,
+		"goblins_killed": goblins_killed,
+		"wolves_killed": wolves_killed,
+		"total_kills": total_kills,
+		"deaths": deaths,
+		"last_loot": last_loot,
+		"inventory": inventory.duplicate(true)
+	}
+
+func load_save_dict(data: Dictionary) -> void:
+	hero_position = _vec3_from_save(data.get("hero_position", []), TOWN_POSITION)
+	hero_level = max(1, int(data.get("hero_level", 1)))
+	hero_xp = max(0, int(data.get("hero_xp", 0)))
+	hero_max_hp = max(1, int(data.get("hero_max_hp", 36)))
+	hero_hp = clampi(int(data.get("hero_hp", hero_max_hp)), 0, hero_max_hp)
+	hero_attack = max(1, int(data.get("hero_attack", 6)))
+	gold = max(0, int(data.get("gold", 0)))
+	activity = str(data.get("activity", ""))
+	activity_timer = max(0.0, float(data.get("activity_timer", 0.0)))
+	destination_id = str(data.get("destination_id", ""))
+	destination_name = str(data.get("destination_name", ""))
+	destination = _vec3_from_save(data.get("destination", []), TOWN_POSITION)
+	enemy_kind = str(data.get("enemy_kind", ""))
+	enemy_hp = max(0, int(data.get("enemy_hp", 0)))
+	enemy_max_hp = max(0, int(data.get("enemy_max_hp", 0)))
+	enemy_attack_clock = max(0.0, float(data.get("enemy_attack_clock", 0.0)))
+	hero_attack_clock = max(0.0, float(data.get("hero_attack_clock", 0.0)))
+	quest_stage = clampi(int(data.get("quest_stage", 0)), 0, 5)
+	quest_cycles_completed = max(0, int(data.get("quest_cycles_completed", 0)))
+	goblins_killed = max(0, int(data.get("goblins_killed", 0)))
+	wolves_killed = max(0, int(data.get("wolves_killed", 0)))
+	total_kills = max(0, int(data.get("total_kills", 0)))
+	deaths = max(0, int(data.get("deaths", 0)))
+	last_loot = str(data.get("last_loot", ""))
+	inventory = (data.get("inventory", {}) as Dictionary).duplicate(true)
+	recent_events.clear()
+
+func report_counters() -> Dictionary:
+	return {
+		"level": hero_level,
+		"gold": gold,
+		"total_kills": total_kills,
+		"quests": quest_cycles_completed,
+		"deaths": deaths,
+		"inventory": inventory.duplicate(true)
+	}
+
+func _vec3_from_save(value: Variant, fallback: Vector3) -> Vector3:
+	if value is Array and value.size() >= 3:
+		return Vector3(float(value[0]), float(value[1]), float(value[2]))
+	return fallback
+
 func take_damage(amount: int) -> void:
 	if amount <= 0 or activity == "recovering":
 		return
