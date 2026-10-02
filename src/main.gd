@@ -3,6 +3,7 @@ extends Node
 const GameStateScript = preload("res://src/game.gd")
 const AdventurerSimScript = preload("res://src/sim/adventurer_sim.gd")
 const PersistenceScript = preload("res://src/state/persistence.gd")
+const GearCatalogScript = preload("res://src/data/gear_catalog.gd")
 
 var game: Node
 var sim: Node
@@ -11,7 +12,9 @@ var world: Node3D
 var hero_visual: Node3D
 var enemy_visual: Node3D
 var camera: Camera3D
+var weapon_visual: MeshInstance3D
 var rendered_enemy_kind: String = ""
+var rendered_weapon_name: String = "__unset__"
 
 var hero_label: Label
 var activity_label: Label
@@ -23,6 +26,9 @@ var token_label: Label
 var banner_label: Label
 var results_label: RichTextLabel
 var gacha_panel: VBoxContainer
+var equipment_panel: VBoxContainer
+var equipment_slots_label: Label
+var gear_list: VBoxContainer
 var dev_panel: VBoxContainer
 var return_panel: PanelContainer
 var return_label: Label
@@ -163,14 +169,11 @@ func _build_hero() -> Node3D:
 	head.material_override = _material(Color(0.75, 0.59, 0.43))
 	hero.add_child(head)
 
-	var sword := MeshInstance3D.new()
-	var sword_mesh := BoxMesh.new()
-	sword_mesh.size = Vector3(0.10, 0.10, 1.0)
-	sword.mesh = sword_mesh
-	sword.position = Vector3(0.48, 0.78, -0.25)
-	sword.rotation_degrees = Vector3(0.0, 0.0, -28.0)
-	sword.material_override = _material(Color(0.62, 0.64, 0.66))
-	hero.add_child(sword)
+	weapon_visual = MeshInstance3D.new()
+	weapon_visual.name = "Weapon"
+	weapon_visual.position = Vector3(0.48, 0.78, -0.25)
+	hero.add_child(weapon_visual)
+	_sync_equipment_visual()
 
 	return hero
 
@@ -180,6 +183,7 @@ func _sync_world(delta: float) -> void:
 		fight_bob = sin(Time.get_ticks_msec() * 0.018) * 0.05
 
 	hero_visual.position = sim.hero_position + Vector3(0.0, fight_bob, 0.0)
+	_sync_equipment_visual()
 
 	if sim.activity == "fighting" and not sim.enemy_kind.is_empty():
 		if rendered_enemy_kind != sim.enemy_kind:
@@ -194,6 +198,46 @@ func _sync_world(delta: float) -> void:
 	var desired_camera: Vector3 = hero_visual.position + Vector3(7.0, 6.0, 8.0)
 	camera.position = camera.position.lerp(desired_camera, min(1.0, delta * 2.0))
 	camera.look_at(hero_visual.position + Vector3(0.0, 0.7, 0.0), Vector3.UP)
+
+func _sync_equipment_visual() -> void:
+	if weapon_visual == null or sim == null:
+		return
+
+	var item_name: String = sim.equipped_item("weapon")
+	if item_name == rendered_weapon_name:
+		return
+	rendered_weapon_name = item_name
+
+	var mesh := BoxMesh.new()
+	var colour := Color(0.62, 0.64, 0.66)
+	weapon_visual.position = Vector3(0.48, 0.78, -0.25)
+	weapon_visual.rotation_degrees = Vector3(0.0, 0.0, -28.0)
+
+	if item_name.is_empty():
+		mesh.size = Vector3(0.10, 0.10, 0.85)
+	elif item_name.contains("Longbow"):
+		mesh.size = Vector3(0.08, 0.08, 1.35)
+		weapon_visual.rotation_degrees = Vector3(0.0, 0.0, 12.0)
+		colour = Color(0.45, 0.31, 0.18)
+	elif item_name.contains("Staff") or item_name == "Stormcaller":
+		mesh.size = Vector3(0.11, 0.11, 1.45)
+		weapon_visual.rotation_degrees = Vector3(0.0, 0.0, 2.0)
+		colour = Color(0.42, 0.44, 0.50)
+	elif item_name == "Crownblade":
+		mesh.size = Vector3(0.16, 0.10, 1.30)
+		colour = Color(0.80, 0.72, 0.42)
+	elif item_name == "Moonsteel Blade":
+		mesh.size = Vector3(0.14, 0.10, 1.20)
+		colour = Color(0.70, 0.75, 0.80)
+	elif item_name == "Goblin Cleaver":
+		mesh.size = Vector3(0.20, 0.11, 0.95)
+		weapon_visual.rotation_degrees = Vector3(0.0, 0.0, -38.0)
+		colour = Color(0.48, 0.50, 0.46)
+	else:
+		mesh.size = Vector3(0.12, 0.10, 1.05)
+
+	weapon_visual.mesh = mesh
+	weapon_visual.material_override = _material(colour)
 
 func _rebuild_enemy(kind: String) -> void:
 	rendered_enemy_kind = kind
@@ -347,6 +391,12 @@ func _build_ui() -> void:
 	actions.add_theme_constant_override("separation", 8)
 	bottom_column.add_child(actions)
 
+	var equipment_button := Button.new()
+	equipment_button.text = "Gear"
+	equipment_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	equipment_button.pressed.connect(_toggle_equipment)
+	actions.add_child(equipment_button)
+
 	var gacha_button := Button.new()
 	gacha_button.text = "Gacha"
 	gacha_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -360,6 +410,12 @@ func _build_ui() -> void:
 		dev_button.pressed.connect(_toggle_dev_tools)
 		actions.add_child(dev_button)
 
+	equipment_panel = VBoxContainer.new()
+	equipment_panel.visible = false
+	equipment_panel.add_theme_constant_override("separation", 6)
+	bottom_column.add_child(equipment_panel)
+	_build_equipment_panel(equipment_panel)
+
 	gacha_panel = VBoxContainer.new()
 	gacha_panel.visible = false
 	gacha_panel.add_theme_constant_override("separation", 6)
@@ -372,6 +428,70 @@ func _build_ui() -> void:
 		dev_panel.add_theme_constant_override("separation", 6)
 		bottom_column.add_child(dev_panel)
 		_build_dev_tools(dev_panel)
+
+func _build_equipment_panel(parent: VBoxContainer) -> void:
+	var title := Label.new()
+	title.text = "Equipment"
+	title.add_theme_font_size_override("font_size", 20)
+	parent.add_child(title)
+
+	equipment_slots_label = Label.new()
+	equipment_slots_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	parent.add_child(equipment_slots_label)
+
+	var scroll := ScrollContainer.new()
+	scroll.custom_minimum_size = Vector2(0.0, 145.0)
+	parent.add_child(scroll)
+
+	gear_list = VBoxContainer.new()
+	gear_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	gear_list.add_theme_constant_override("separation", 4)
+	scroll.add_child(gear_list)
+
+	_rebuild_equipment_panel()
+
+func _rebuild_equipment_panel() -> void:
+	if equipment_slots_label == null or gear_list == null:
+		return
+
+	var weapon := sim.equipped_item("weapon")
+	var head := sim.equipped_item("head")
+	var chest := sim.equipped_item("chest")
+	var offhand := sim.equipped_item("offhand")
+	equipment_slots_label.text = "ATK %d · HP %d\nWeapon: %s · Head: %s\nChest: %s · Off-hand: %s" % [
+		sim.effective_attack(),
+		sim.effective_max_hp(),
+		weapon if not weapon.is_empty() else "—",
+		head if not head.is_empty() else "—",
+		chest if not chest.is_empty() else "—",
+		offhand if not offhand.is_empty() else "—"
+	]
+
+	for child in gear_list.get_children():
+		child.queue_free()
+
+	var names: Array[String] = sim.owned_gear_names()
+	if names.is_empty():
+		var empty := Label.new()
+		empty.text = "No gear yet. Keep questing or try the Gear banner."
+		empty.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		gear_list.add_child(empty)
+		return
+
+	for item_name in names:
+		var button := Button.new()
+		button.text = GearCatalogScript.summary(item_name)
+		var slot_name: String = GearCatalogScript.slot(item_name)
+		if sim.equipped_item(slot_name) == item_name:
+			button.text += " · Equipped"
+		button.pressed.connect(_equip_item.bind(item_name))
+		gear_list.add_child(button)
+
+func _equip_item(item_name: String) -> void:
+	if sim.equip_gear(item_name):
+		_rebuild_equipment_panel()
+		_sync_equipment_visual()
+		_save_now()
 
 func _build_gacha_panel(parent: VBoxContainer) -> void:
 	token_label = Label.new()
@@ -445,8 +565,19 @@ func _build_dev_tools(parent: VBoxContainer) -> void:
 	away.pressed.connect(_dev_simulate_away)
 	parent.add_child(away)
 
+func _toggle_equipment() -> void:
+	equipment_panel.visible = not equipment_panel.visible
+	if equipment_panel.visible:
+		_rebuild_equipment_panel()
+	gacha_panel.visible = false
+	return_panel.visible = false
+	if dev_panel != null:
+		dev_panel.visible = false
+
 func _toggle_gacha() -> void:
 	gacha_panel.visible = not gacha_panel.visible
+	equipment_panel.visible = false
+	return_panel.visible = false
 	if dev_panel != null:
 		dev_panel.visible = false
 
@@ -455,6 +586,8 @@ func _toggle_dev_tools() -> void:
 		return
 	dev_panel.visible = not dev_panel.visible
 	gacha_panel.visible = false
+	equipment_panel.visible = false
+	return_panel.visible = false
 
 func _set_infinite_tokens(enabled: bool) -> void:
 	game.set_dev_infinite_tokens(enabled)
@@ -489,6 +622,7 @@ func _show_return_report(report: Dictionary) -> void:
 	return_label.text = _format_return_report(report)
 	return_panel.visible = true
 	gacha_panel.visible = false
+	equipment_panel.visible = false
 	if dev_panel != null:
 		dev_panel.visible = false
 
@@ -524,6 +658,14 @@ func _format_return_report(report: Dictionary) -> String:
 	if not loot_parts.is_empty():
 		lines.append("Loot: %s." % ", ".join(loot_parts.slice(0, 4)))
 
+	var gear_found: Dictionary = report.get("gear", {})
+	var gear_parts: Array[String] = []
+	for item_name in gear_found.keys():
+		var count := int(gear_found[item_name])
+		gear_parts.append("%s%s" % [item_name, " ×%d" % count if count > 1 else ""])
+	if not gear_parts.is_empty():
+		lines.append("New gear: %s." % ", ".join(gear_parts.slice(0, 4)))
+
 	if bool(report.get("capped", false)):
 		lines.append("Prototype catch-up is currently capped at 7 days per return.")
 
@@ -546,7 +688,7 @@ func _refresh_sim_ui() -> void:
 	hero_label.text = "Adventurer · Lv %d · HP %d/%d · %d gold" % [
 		sim.hero_level,
 		sim.hero_hp,
-		sim.hero_max_hp,
+		sim.effective_max_hp(),
 		sim.gold
 	]
 	activity_label.text = sim.current_activity_text()
@@ -554,6 +696,10 @@ func _refresh_sim_ui() -> void:
 
 func _on_sim_event(event: Dictionary) -> void:
 	event_label.text = str(event.get("message", ""))
+	var event_type := str(event.get("type", ""))
+	if event_type == "gear_obtained" or event_type == "gear_equipped":
+		if equipment_panel != null and equipment_panel.visible:
+			_rebuild_equipment_panel()
 
 func _select_banner(banner_id: String) -> void:
 	selected_banner = banner_id
@@ -572,6 +718,8 @@ func _summon(count: int) -> void:
 	for result in results:
 		var rarity: String = str(result.get("rarity", "Common"))
 		rarity_counts[rarity] = int(rarity_counts.get(rarity, 0)) + 1
+		if selected_banner == "gear":
+			sim.add_gear(str(result.get("name", "")))
 		if rarity == "Epic" or rarity == "Legendary":
 			highlights.append("%s — %s" % [rarity, result.get("name", "?")])
 
@@ -585,6 +733,8 @@ func _summon(count: int) -> void:
 	if not highlights.is_empty():
 		summary += "\n" + "\n".join(highlights.slice(0, 4))
 	results_label.text = summary
+	if equipment_panel != null and equipment_panel.visible:
+		_rebuild_equipment_panel()
 	_save_now()
 
 func _refresh_wallet(tokens: int) -> void:
