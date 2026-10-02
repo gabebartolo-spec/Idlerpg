@@ -1,14 +1,13 @@
-; VESPERBELL — portrait-first Godot 4 project, mobile renderer.
+; Fresh Idle RPG prototype — Godot 4.7.2, portrait/mobile-first.
 
 config_version=5
 
 [application]
 
-config/name="Vesperbell"
-config/description="Send them into the ash. Listen for the bell."
+config/name="Idle RPG"
+config/description="A mobile-first 3D idle RPG built around expeditions, loot and gacha."
 run/main_scene="res://main.tscn"
-config/features=PackedStringArray("4.3")
-config/icon="res://icon.svg"
+config/features=PackedStringArray("4.7")
 
 [display]
 
@@ -27,4 +26,5 @@ pointing/emulate_touch_from_mouse=true
 [rendering]
 
 renderer/rendering_method="mobile"
-environment/defaults/default_clear_color=Color(0.0902, 0.0784, 0.0706, 1)
+renderer/rendering_method.mobile="mobile"
+environment/defaults/default_clear_color=Color(0.08, 0.09, 0.11, 1)

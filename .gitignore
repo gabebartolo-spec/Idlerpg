@@ -1,12 +1,11 @@
-# Godot 4+ specific ignores
+# Godot
 .godot/
-/android/
+.android/
+android/
 *.translation
-imported/
 export.cfg
 export_credentials.cfg
-*.tmp
 
-# Python validation tools
-__pycache__/
-*.pyc
+# OS/editor
+.DS_Store
+*.tmp
