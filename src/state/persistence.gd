@@ -92,12 +92,20 @@ static func load_and_advance(sim: Node, game: Node, now_unix: int = -1, path: St
 static func _build_report(before: Dictionary, after: Dictionary, elapsed_actual: int, elapsed_simulated: int) -> Dictionary:
 	var before_inventory: Dictionary = before.get("inventory", {})
 	var after_inventory: Dictionary = after.get("inventory", {})
+	var before_gear: Dictionary = before.get("gear_inventory", {})
+	var after_gear: Dictionary = after.get("gear_inventory", {})
 	var loot_delta: Dictionary = {}
+	var gear_delta: Dictionary = {}
 
 	for key in after_inventory.keys():
 		var gained: int = int(after_inventory.get(key, 0)) - int(before_inventory.get(key, 0))
 		if gained > 0:
 			loot_delta[key] = gained
+
+	for key in after_gear.keys():
+		var gained: int = int(after_gear.get(key, 0)) - int(before_gear.get(key, 0))
+		if gained > 0:
+			gear_delta[key] = gained
 
 	return {
 		"loaded": true,
@@ -109,5 +117,6 @@ static func _build_report(before: Dictionary, after: Dictionary, elapsed_actual:
 		"levels": max(0, int(after.get("level", 1)) - int(before.get("level", 1))),
 		"deaths": max(0, int(after.get("deaths", 0)) - int(before.get("deaths", 0))),
 		"gold": max(0, int(after.get("gold", 0)) - int(before.get("gold", 0))),
-		"loot": loot_delta
+		"loot": loot_delta,
+		"gear": gear_delta
 	}
