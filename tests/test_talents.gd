@@ -27,6 +27,7 @@ func _run() -> void:
 	_check(not slayer.can_unlock_talent("sharpened_edge"), "later talents require their prerequisite")
 	_unlock_chain(slayer, ["heavy_hand", "sharpened_edge", "executioner", "bloodlust"])
 	_check(slayer.talent_points_available() == 0, "spent points reduce the available pool")
+	_check(slayer.build_summary() == "Slayer 4", "build summary reflects branch investment without recommending a build")
 
 	var slayer_attack: int = slayer.effective_attack()
 	_check(slayer_attack == slayer.hero_attack + 2, "Sharpened edge changes authoritative attack")
@@ -53,6 +54,7 @@ func _run() -> void:
 
 	slayer.reset_talents()
 	_check(slayer.talent_points_available() == 4, "free prototype respec returns spent points")
+	_check(slayer.build_summary() == "Uncommitted", "respec clears the build summary")
 	_check(slayer.effective_attack() == slayer.hero_attack, "respec removes talent stat effects")
 
 	var warden: Node = AdventurerSimScript.new()
