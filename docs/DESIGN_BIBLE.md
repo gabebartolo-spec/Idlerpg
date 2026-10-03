@@ -1183,6 +1183,7 @@ Acceptance:
 
 ## IRPG-P4 — Talents and build identity
 
+**Status:** `VERIFY` — PR #6 implements the first Wayfarer build system: 12 talents across Slayer, Warden and Trailblazer, one point per level after level 1, prerequisite chains, free prototype respec, persistent automatic effects and a portrait-friendly branch drawer. Android readability/build-feel validation remains.  
 **Goal:** let the player meaningfully coach automatic combat.
 
 Build:
@@ -1197,6 +1198,15 @@ Acceptance:
 - watching combat makes those builds look different;
 - no build requires active combat input;
 - nodes are meaningful rather than filler percentages.
+
+**Implementation (PR #6):**
+- **Slayer:** Heavy hand, Sharpened edge, Executioner, Bloodlust.
+- **Warden:** Thick hide, Iron guard, Second wind, Last stand.
+- **Trailblazer:** Quick hands, Trail legs, Opening strike, Hunter's eye.
+- Talent state is authoritative and persists through save/offline simulation.
+- Talent procs emit events and receive a small visible watch-mode pulse.
+- No active combat buttons were added.
+- Respec is free during prototyping so build experimentation is cheap.
 
 ---
 
@@ -1354,12 +1364,11 @@ Do not confuse content volume with finished quality.
 
 Do these in order:
 
-1. Keep PR #5 green in Godot 4.7.2 CI.
-2. Phone-test the completed P3 equipment drawer: inspect, compare, equip/unequip, sell/salvage and modular armour readability.
-3. Validate that Gear-banner pulls and world drops remain understandable in one shared inventory.
-4. Fix mobile/core-loop blockers only.
-5. Merge P3 once that gate passes.
-6. Then begin **IRPG-P4** talents/build identity on a fresh branch from updated main.
+1. Keep PR #5 and dependent PR #6 green in Godot 4.7.2 CI.
+2. Phone-test P3 equipment and P4 talents together: drawer readability, touch targets, visible gear, talent spending/respec and whether Slayer/Warden/Trailblazer actually feel different while watching.
+3. Fix mobile/core-loop blockers only.
+4. Merge P3 before P4, then retarget/verify P4 against updated main.
+5. Do not begin P5 collection polish until the management loop is pleasant on the phone.
 
 Do not respond to a mediocre phone test by piling on more zones, classes, currencies or content. Fix the little-adventurer loop first.
 
