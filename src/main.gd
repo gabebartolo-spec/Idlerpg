@@ -5,6 +5,7 @@ const AdventurerSimScript = preload("res://src/sim/adventurer_sim.gd")
 const PersistenceScript = preload("res://src/state/persistence.gd")
 const GearCatalogScript = preload("res://src/data/gear_catalog.gd")
 const TalentCatalogScript = preload("res://src/data/talent_catalog.gd")
+const CompanionCatalogScript = preload("res://src/data/companion_catalog.gd")
 
 var game: Node
 var sim: Node
@@ -12,6 +13,7 @@ var sim: Node
 var world: Node3D
 var hero_visual: Node3D
 var enemy_visual: Node3D
+var companion_visual: Node3D
 var camera: Camera3D
 var weapon_visual: MeshInstance3D
 var head_gear_visual: MeshInstance3D
@@ -22,6 +24,7 @@ var feet_gear_root: Node3D
 var offhand_visual: MeshInstance3D
 var accessory_visual: MeshInstance3D
 var rendered_enemy_kind: String = ""
+var rendered_companion_name: String = "__unset__"
 var rendered_equipment_key: String = "__unset__"
 
 var hero_label: Label
@@ -41,6 +44,7 @@ var gacha_history_view: VBoxContainer
 var collection_summary_label: Label
 var collection_list: VBoxContainer
 var collection_detail_label: Label
+var collection_use_button: Button
 var collection_favourite_button: Button
 var collection_lock_button: Button
 var history_label: RichTextLabel
@@ -73,6 +77,8 @@ func _ready() -> void:
 	sim = AdventurerSimScript.new()
 	add_child(sim)
 	pending_return_report = PersistenceScript.load_and_advance(sim, game)
+	if not sim.active_companion.is_empty() and game.collection_count("companions", sim.active_companion) <= 0:
+		sim.clear_active_companion()
 	sim.event_emitted.connect(_on_sim_event)
 
 	_build_world()
@@ -149,6 +155,11 @@ func _build_world() -> void:
 
 	hero_visual = _build_hero()
 	world.add_child(hero_visual)
+
+	companion_visual = Node3D.new()
+	companion_visual.name = "Companion"
+	companion_visual.visible = false
+	world.add_child(companion_visual)
 
 	enemy_visual = Node3D.new()
 	enemy_visual.name = "Encounter"
@@ -257,6 +268,7 @@ func _sync_world(delta: float) -> void:
 	var pulse_scale := 1.08 if talent_proc_pulse > 0.0 else 1.0
 	hero_visual.scale = Vector3.ONE * pulse_scale
 	_sync_equipment_visual()
+	_sync_companion_visual(delta)
 
 	if sim.activity == "fighting" and not sim.enemy_kind.is_empty():
 		if rendered_enemy_kind != sim.enemy_kind:
@@ -271,6 +283,125 @@ func _sync_world(delta: float) -> void:
 	var desired_camera: Vector3 = hero_visual.position + Vector3(7.0, 6.0, 8.0)
 	camera.position = camera.position.lerp(desired_camera, min(1.0, delta * 2.0))
 	camera.look_at(hero_visual.position + Vector3(0.0, 0.7, 0.0), Vector3.UP)
+
+func _sync_companion_visual(delta: float) -> void:
+	if companion_visual == null or sim == null:
+		return
+
+	var companion_name: String = str(sim.active_companion)
+	if companion_name.is_empty():
+		companion_visual.visible = false
+		rendered_companion_name = ""
+		return
+
+	if rendered_companion_name != companion_name:
+		_rebuild_companion_visual(companion_name)
+
+	companion_visual.visible = true
+	var desired := hero_visual.position + Vector3(-0.95, 0.0, 0.75)
+	if companion_name == "Torch Sprite":
+		desired.y += 0.65 + sin(Time.get_ticks_msec() * 0.006) * 0.08
+	companion_visual.position = companion_visual.position.lerp(desired, min(1.0, delta * 4.0))
+
+func _rebuild_companion_visual(companion_name: String) -> void:
+	rendered_companion_name = companion_name
+	for child in companion_visual.get_children():
+		child.queue_free()
+
+	var colour := _companion_colour(companion_name)
+	if companion_name == "Torch Sprite":
+		var sprite := MeshInstance3D.new()
+		var sprite_mesh := SphereMesh.new()
+		sprite_mesh.radius = 0.22
+		sprite_mesh.height = 0.44
+		sprite_mesh.radial_segments = 8
+		sprite_mesh.rings = 4
+		sprite.mesh = sprite_mesh
+		sprite.position = Vector3(0.0, 0.35, 0.0)
+		sprite.material_override = _material(colour)
+		companion_visual.add_child(sprite)
+	elif companion_name in ["Pack Rat", "Stable Hound", "Clockwork Raven"]:
+		var body := MeshInstance3D.new()
+		var body_mesh := BoxMesh.new()
+		body_mesh.size = Vector3(0.65, 0.35, 0.34)
+		if companion_name == "Stable Hound":
+			body_mesh.size = Vector3(0.82, 0.48, 0.42)
+		elif companion_name == "Clockwork Raven":
+			body_mesh.size = Vector3(0.58, 0.22, 0.34)
+		body.mesh = body_mesh
+		body.position = Vector3(0.0, 0.30, 0.0)
+		body.material_override = _material(colour)
+		companion_visual.add_child(body)
+
+		var head := MeshInstance3D.new()
+		var head_mesh := BoxMesh.new()
+		head_mesh.size = Vector3(0.30, 0.30, 0.30)
+		head.mesh = head_mesh
+		head.position = Vector3(-0.42, 0.42, 0.0)
+		head.material_override = _material(colour.lightened(0.08))
+		companion_visual.add_child(head)
+
+		if companion_name == "Clockwork Raven":
+			for wing_x in [-0.36, 0.36]:
+				var wing := MeshInstance3D.new()
+				var wing_mesh := BoxMesh.new()
+				wing_mesh.size = Vector3(0.12, 0.04, 0.70)
+				wing.mesh = wing_mesh
+				wing.position = Vector3(0.0, 0.35, wing_x)
+				wing.material_override = _material(colour.darkened(0.08))
+				companion_visual.add_child(wing)
+	else:
+		var body := MeshInstance3D.new()
+		var body_mesh := CapsuleMesh.new()
+		body_mesh.radius = 0.25
+		body_mesh.height = 0.85
+		body.mesh = body_mesh
+		body.position = Vector3(0.0, 0.43, 0.0)
+		body.material_override = _material(colour)
+		companion_visual.add_child(body)
+
+		var head := MeshInstance3D.new()
+		var head_mesh := SphereMesh.new()
+		head_mesh.radius = 0.19
+		head_mesh.height = 0.38
+		head_mesh.radial_segments = 8
+		head_mesh.rings = 4
+		head.mesh = head_mesh
+		head.position = Vector3(0.0, 1.00, 0.0)
+		head.material_override = _material(colour.lightened(0.12))
+		companion_visual.add_child(head)
+
+		if companion_name == "Ancient Warden":
+			companion_visual.scale = Vector3.ONE * 1.15
+		else:
+			companion_visual.scale = Vector3.ONE
+
+	companion_visual.position = hero_visual.position + Vector3(-0.95, 0.0, 0.75)
+
+func _companion_colour(companion_name: String) -> Color:
+	match companion_name:
+		"Pack Rat":
+			return Color(0.42, 0.29, 0.19)
+		"Stable Hound":
+			return Color(0.58, 0.43, 0.27)
+		"Torch Sprite":
+			return Color(0.90, 0.55, 0.18)
+		"Hill Squire":
+			return Color(0.38, 0.43, 0.48)
+		"Marsh Witch":
+			return Color(0.43, 0.34, 0.46)
+		"Clockwork Raven":
+			return Color(0.25, 0.27, 0.30)
+		"Frost Ranger":
+			return Color(0.32, 0.48, 0.62)
+		"Sun Cleric":
+			return Color(0.78, 0.65, 0.38)
+		"Grave Knight":
+			return Color(0.34, 0.34, 0.38)
+		"Ancient Warden":
+			return Color(0.36, 0.52, 0.55)
+		_:
+			return Color(0.45, 0.40, 0.34)
 
 func _build_pair_gear(parent: Node3D, node_name: String, left_pos: Vector3, right_pos: Vector3, size: Vector3) -> Node3D:
 	var root := Node3D.new()
@@ -929,6 +1060,12 @@ func _build_gacha_panel(parent: VBoxContainer) -> void:
 	collection_detail_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	gacha_collection_view.add_child(collection_detail_label)
 
+	collection_use_button = Button.new()
+	collection_use_button.text = "Travel together"
+	collection_use_button.visible = false
+	collection_use_button.pressed.connect(_use_collection_item)
+	gacha_collection_view.add_child(collection_use_button)
+
 	var collection_actions := HBoxContainer.new()
 	collection_actions.add_theme_constant_override("separation", 6)
 	gacha_collection_view.add_child(collection_actions)
@@ -1002,6 +1139,8 @@ func _rebuild_collection_view() -> void:
 				markers.append("Favourite")
 			if game.is_locked(item_name):
 				markers.append("Locked")
+			if selected_banner == "companions" and sim.active_companion == item_name:
+				markers.append("Active")
 			button.text = "%s · %s · ×%d" % [item_name, rarity, count]
 			if not markers.is_empty():
 				button.text += " · " + " · ".join(markers)
@@ -1019,19 +1158,48 @@ func _refresh_collection_detail() -> void:
 		return
 	if selected_collection_item.is_empty() or game.collection_count(selected_banner, selected_collection_item) <= 0:
 		collection_detail_label.text = "Tap a collected item."
+		collection_use_button.visible = false
 		collection_favourite_button.disabled = true
 		collection_lock_button.disabled = true
 		return
 
-	collection_detail_label.text = "%s · %s · Owned ×%d" % [
-		selected_collection_item,
-		game.item_rarity(selected_banner, selected_collection_item),
-		game.collection_count(selected_banner, selected_collection_item)
+	var detail_lines: Array[String] = [
+		"%s · %s · Owned ×%d" % [
+			selected_collection_item,
+			game.item_rarity(selected_banner, selected_collection_item),
+			game.collection_count(selected_banner, selected_collection_item)
+		]
 	]
+	if selected_banner == "companions" and CompanionCatalogScript.has_companion(selected_collection_item):
+		detail_lines.append("%s · Bond %d" % [
+			CompanionCatalogScript.role(selected_collection_item),
+			sim.companion_bond_level(selected_collection_item)
+		])
+		detail_lines.append(CompanionCatalogScript.description(selected_collection_item))
+		collection_use_button.visible = true
+		collection_use_button.text = "Rest companion" if sim.active_companion == selected_collection_item else "Travel together"
+	else:
+		collection_use_button.visible = false
+	collection_detail_label.text = "\n".join(detail_lines)
 	collection_favourite_button.disabled = false
 	collection_lock_button.disabled = false
 	collection_favourite_button.text = "Unfavourite" if game.is_favourite(selected_collection_item) else "Favourite"
 	collection_lock_button.text = "Unlock" if game.is_locked(selected_collection_item) else "Lock"
+
+func _use_collection_item() -> void:
+	if selected_banner != "companions" or selected_collection_item.is_empty():
+		return
+	if game.collection_count("companions", selected_collection_item) <= 0:
+		return
+
+	if sim.active_companion == selected_collection_item:
+		sim.clear_active_companion()
+	else:
+		sim.set_active_companion(selected_collection_item)
+
+	_rebuild_collection_view()
+	_sync_companion_visual(1.0)
+	_save_now()
 
 func _toggle_collection_favourite() -> void:
 	if selected_collection_item.is_empty():
@@ -1260,6 +1428,10 @@ func _on_sim_event(event: Dictionary) -> void:
 	if event_type in ["talent_unlocked", "talents_reset", "level_up"]:
 		if talent_panel != null and talent_panel.visible:
 			_rebuild_talent_panel()
+
+	if event_type in ["companion_changed", "companion_bond_up"]:
+		if gacha_collection_view != null and gacha_collection_view.visible:
+			_rebuild_collection_view()
 
 func _select_banner(banner_id: String) -> void:
 	selected_banner = banner_id
