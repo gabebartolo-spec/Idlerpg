@@ -38,6 +38,8 @@ func _run() -> void:
 	_check(instance.get("activity_label") != null, "main scene creates current-activity UI")
 	_check(instance.get("equipment_panel") != null, "main scene creates the equipment drawer")
 	_check(instance.get("talent_panel") != null, "main scene creates the talent drawer")
+	_check(instance.get("gacha_collection_view") != null, "main scene creates the gacha collection view")
+	_check(instance.get("gacha_history_view") != null, "main scene creates the summon history view")
 	_check(instance.get("weapon_visual") != null, "main scene creates a visible weapon slot")
 
 	var sim: Node = instance.get("sim")
@@ -48,6 +50,23 @@ func _run() -> void:
 		instance.call("_summon", 1)
 		await process_frame
 		_check(sim.owned_gear_names().size() >= before_gear + 1, "Gear gacha results become owned adventurer gear")
+
+		var game: Node = instance.get("game")
+		_check(game.collected_unique("gear") >= 1, "gear summons enter the persistent collection")
+		_check(game.recent_summons(1).size() == 1, "summons enter visible history")
+		instance.call("_show_gacha_mode", "collection")
+		await process_frame
+		_check(bool(instance.get("gacha_collection_view").visible), "collection mode can be opened")
+
+		var latest: Dictionary = game.recent_summons(1)[0]
+		var pulled_name: String = str(latest.get("name", ""))
+		sim.add_gear(pulled_name)
+		game.set_locked(pulled_name, true)
+		instance.call("_select_gear_item", pulled_name)
+		instance.call("_refresh_gear_detail")
+		await process_frame
+		var sell_button: Button = instance.get("sell_gear_button")
+		_check(sell_button.disabled, "locked collected gear is protected from disposal")
 
 		sim.hero_level = 2
 		instance.call("_unlock_talent", "heavy_hand")
