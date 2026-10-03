@@ -53,6 +53,7 @@ var talent_proc_pulse: float = 0.0
 var dev_panel: VBoxContainer
 var return_panel: PanelContainer
 var return_label: Label
+var return_talent_button: Button
 var pending_return_report: Dictionary = {}
 var autosave_clock: float = 0.0
 
@@ -553,6 +554,12 @@ func _build_ui() -> void:
 	return_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	return_column.add_child(return_label)
 
+	return_talent_button = Button.new()
+	return_talent_button.text = "Spend talent point"
+	return_talent_button.visible = false
+	return_talent_button.pressed.connect(_open_talents_from_return)
+	return_column.add_child(return_talent_button)
+
 	var return_close := Button.new()
 	return_close.text = "Back to the adventure"
 	return_close.pressed.connect(_close_return_report)
@@ -996,12 +1003,26 @@ func _show_return_report(report: Dictionary) -> void:
 	if return_panel == null or return_label == null:
 		return
 	return_label.text = _format_return_report(report)
+	if return_talent_button != null:
+		var earned_points: int = int(report.get("talent_points", 0))
+		return_talent_button.visible = earned_points > 0 and sim.talent_points_available() > 0
+		return_talent_button.text = "Spend talent point" if sim.talent_points_available() == 1 else "Spend talent points"
 	return_panel.visible = true
 	gacha_panel.visible = false
 	equipment_panel.visible = false
 	talent_panel.visible = false
 	if dev_panel != null:
 		dev_panel.visible = false
+
+func _open_talents_from_return() -> void:
+	if return_panel != null:
+		return_panel.visible = false
+	talent_panel.visible = true
+	equipment_panel.visible = false
+	gacha_panel.visible = false
+	if dev_panel != null:
+		dev_panel.visible = false
+	_rebuild_talent_panel()
 
 func _close_return_report() -> void:
 	if return_panel != null:
@@ -1015,6 +1036,7 @@ func _format_return_report(report: Dictionary) -> String:
 	var kills := int(report.get("kills", 0))
 	var gold_gained := int(report.get("gold", 0))
 	var levels := int(report.get("levels", 0))
+	var talent_points_earned := int(report.get("talent_points", 0))
 	var deaths_while_away := int(report.get("deaths", 0))
 
 	if quests > 0:
@@ -1025,6 +1047,8 @@ func _format_return_report(report: Dictionary) -> String:
 		lines.append("+%d gold." % gold_gained)
 	if levels > 0:
 		lines.append("Gained %d level%s." % [levels, "" if levels == 1 else "s"])
+	if talent_points_earned > 0:
+		lines.append("%d talent point%s ready." % [talent_points_earned, "" if talent_points_earned == 1 else "s"])
 	if deaths_while_away > 0:
 		lines.append("Defeated %d time%s, but recovered." % [deaths_while_away, "" if deaths_while_away == 1 else "s"])
 
