@@ -32,8 +32,19 @@ var event_label: Label
 var selected_banner: String = "gear"
 var token_label: Label
 var banner_label: Label
+var pity_label: Label
 var results_label: RichTextLabel
 var gacha_panel: VBoxContainer
+var gacha_summon_view: VBoxContainer
+var gacha_collection_view: VBoxContainer
+var gacha_history_view: VBoxContainer
+var collection_summary_label: Label
+var collection_list: VBoxContainer
+var collection_detail_label: Label
+var collection_favourite_button: Button
+var collection_lock_button: Button
+var history_label: RichTextLabel
+var selected_collection_item: String = ""
 var equipment_panel: VBoxContainer
 var equipment_slots_label: Label
 var gear_list: VBoxContainer
@@ -718,9 +729,11 @@ func _refresh_gear_detail() -> void:
 		GearCatalogScript.salvage_tokens(selected_gear_name),
 		"" if GearCatalogScript.salvage_tokens(selected_gear_name) == 1 else "s"
 	]
-	var can_dispose: bool = sim.can_dispose_gear(selected_gear_name)
+	var can_dispose: bool = sim.can_dispose_gear(selected_gear_name) and not game.is_locked(selected_gear_name)
 	sell_gear_button.disabled = not can_dispose
 	salvage_gear_button.disabled = not can_dispose
+	if game.is_locked(selected_gear_name):
+		gear_detail_label.text += "\nLocked from disposal."
 
 func _equip_selected_gear() -> void:
 	if selected_gear_name.is_empty():
@@ -737,7 +750,7 @@ func _equip_selected_gear() -> void:
 		_save_now()
 
 func _sell_selected_gear() -> void:
-	if selected_gear_name.is_empty():
+	if selected_gear_name.is_empty() or game.is_locked(selected_gear_name):
 		return
 	var result: Dictionary = sim.sell_gear(selected_gear_name)
 	if not bool(result.get("ok", false)):
@@ -748,7 +761,7 @@ func _sell_selected_gear() -> void:
 	_save_now()
 
 func _salvage_selected_gear() -> void:
-	if selected_gear_name.is_empty():
+	if selected_gear_name.is_empty() or game.is_locked(selected_gear_name):
 		return
 	var result: Dictionary = sim.salvage_gear(selected_gear_name)
 	if not bool(result.get("ok", false)):
@@ -842,19 +855,48 @@ func _build_gacha_panel(parent: VBoxContainer) -> void:
 	token_label.add_theme_font_size_override("font_size", 18)
 	parent.add_child(token_label)
 
+	var mode_row := HBoxContainer.new()
+	mode_row.add_theme_constant_override("separation", 6)
+	parent.add_child(mode_row)
+
+	var summon_mode := Button.new()
+	summon_mode.text = "Summon"
+	summon_mode.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	summon_mode.pressed.connect(_show_gacha_mode.bind("summon"))
+	mode_row.add_child(summon_mode)
+
+	var collection_mode := Button.new()
+	collection_mode.text = "Collection"
+	collection_mode.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	collection_mode.pressed.connect(_show_gacha_mode.bind("collection"))
+	mode_row.add_child(collection_mode)
+
+	var history_mode := Button.new()
+	history_mode.text = "History"
+	history_mode.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	history_mode.pressed.connect(_show_gacha_mode.bind("history"))
+	mode_row.add_child(history_mode)
+
+	gacha_summon_view = VBoxContainer.new()
+	gacha_summon_view.add_theme_constant_override("separation", 6)
+	parent.add_child(gacha_summon_view)
+
 	banner_label = Label.new()
-	parent.add_child(banner_label)
+	gacha_summon_view.add_child(banner_label)
+
+	pity_label = Label.new()
+	gacha_summon_view.add_child(pity_label)
 
 	var banner_row := HBoxContainer.new()
 	banner_row.add_theme_constant_override("separation", 6)
-	parent.add_child(banner_row)
+	gacha_summon_view.add_child(banner_row)
 	_add_banner_button(banner_row, "gear", "Gear")
 	_add_banner_button(banner_row, "companions", "Companions")
 	_add_banner_button(banner_row, "relics", "Relics")
 
 	var summon_row := HBoxContainer.new()
 	summon_row.add_theme_constant_override("separation", 6)
-	parent.add_child(summon_row)
+	gacha_summon_view.add_child(summon_row)
 
 	var one := Button.new()
 	one.text = "Summon x1"
@@ -872,9 +914,158 @@ func _build_gacha_panel(parent: VBoxContainer) -> void:
 	results_label.fit_content = true
 	results_label.custom_minimum_size = Vector2(0.0, 90.0)
 	results_label.text = "Pick a banner and summon."
-	parent.add_child(results_label)
+	gacha_summon_view.add_child(results_label)
+
+	gacha_collection_view = VBoxContainer.new()
+	gacha_collection_view.visible = false
+	gacha_collection_view.add_theme_constant_override("separation", 6)
+	parent.add_child(gacha_collection_view)
+
+	collection_summary_label = Label.new()
+	gacha_collection_view.add_child(collection_summary_label)
+
+	collection_detail_label = Label.new()
+	collection_detail_label.text = "Tap a collected item."
+	collection_detail_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	gacha_collection_view.add_child(collection_detail_label)
+
+	var collection_actions := HBoxContainer.new()
+	collection_actions.add_theme_constant_override("separation", 6)
+	gacha_collection_view.add_child(collection_actions)
+
+	collection_favourite_button = Button.new()
+	collection_favourite_button.text = "Favourite"
+	collection_favourite_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	collection_favourite_button.pressed.connect(_toggle_collection_favourite)
+	collection_actions.add_child(collection_favourite_button)
+
+	collection_lock_button = Button.new()
+	collection_lock_button.text = "Lock"
+	collection_lock_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	collection_lock_button.pressed.connect(_toggle_collection_lock)
+	collection_actions.add_child(collection_lock_button)
+
+	var collection_scroll := ScrollContainer.new()
+	collection_scroll.custom_minimum_size = Vector2(0.0, 180.0)
+	gacha_collection_view.add_child(collection_scroll)
+
+	collection_list = VBoxContainer.new()
+	collection_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	collection_list.add_theme_constant_override("separation", 4)
+	collection_scroll.add_child(collection_list)
+
+	gacha_history_view = VBoxContainer.new()
+	gacha_history_view.visible = false
+	parent.add_child(gacha_history_view)
+
+	history_label = RichTextLabel.new()
+	history_label.fit_content = true
+	history_label.custom_minimum_size = Vector2(0.0, 230.0)
+	gacha_history_view.add_child(history_label)
 
 	_select_banner(selected_banner)
+	_show_gacha_mode("summon")
+
+func _show_gacha_mode(mode: String) -> void:
+	gacha_summon_view.visible = mode == "summon"
+	gacha_collection_view.visible = mode == "collection"
+	gacha_history_view.visible = mode == "history"
+	if mode == "collection":
+		_rebuild_collection_view()
+	elif mode == "history":
+		_rebuild_history_view()
+
+func _rebuild_collection_view() -> void:
+	if collection_list == null or collection_summary_label == null:
+		return
+
+	collection_summary_label.text = "%s · %d/%d collected" % [
+		game.banner_label(selected_banner),
+		game.collected_unique(selected_banner),
+		game.banner_item_count(selected_banner)
+	]
+
+	for child in collection_list.get_children():
+		child.queue_free()
+
+	for item_name in game.collection_items(selected_banner):
+		var rarity: String = game.item_rarity(selected_banner, item_name)
+		var count: int = game.collection_count(selected_banner, item_name)
+		var button := Button.new()
+		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		if count <= 0:
+			button.text = "— %s · %s" % [item_name, rarity]
+			button.disabled = true
+		else:
+			var markers: Array[String] = []
+			if game.is_favourite(item_name):
+				markers.append("Favourite")
+			if game.is_locked(item_name):
+				markers.append("Locked")
+			button.text = "%s · %s · ×%d" % [item_name, rarity, count]
+			if not markers.is_empty():
+				button.text += " · " + " · ".join(markers)
+			button.pressed.connect(_select_collection_item.bind(item_name))
+		collection_list.add_child(button)
+
+	_refresh_collection_detail()
+
+func _select_collection_item(item_name: String) -> void:
+	selected_collection_item = item_name
+	_refresh_collection_detail()
+
+func _refresh_collection_detail() -> void:
+	if collection_detail_label == null:
+		return
+	if selected_collection_item.is_empty() or game.collection_count(selected_banner, selected_collection_item) <= 0:
+		collection_detail_label.text = "Tap a collected item."
+		collection_favourite_button.disabled = true
+		collection_lock_button.disabled = true
+		return
+
+	collection_detail_label.text = "%s · %s · Owned ×%d" % [
+		selected_collection_item,
+		game.item_rarity(selected_banner, selected_collection_item),
+		game.collection_count(selected_banner, selected_collection_item)
+	]
+	collection_favourite_button.disabled = false
+	collection_lock_button.disabled = false
+	collection_favourite_button.text = "Unfavourite" if game.is_favourite(selected_collection_item) else "Favourite"
+	collection_lock_button.text = "Unlock" if game.is_locked(selected_collection_item) else "Lock"
+
+func _toggle_collection_favourite() -> void:
+	if selected_collection_item.is_empty():
+		return
+	game.set_favourite(selected_collection_item, not game.is_favourite(selected_collection_item))
+	_rebuild_collection_view()
+	_save_now()
+
+func _toggle_collection_lock() -> void:
+	if selected_collection_item.is_empty():
+		return
+	game.set_locked(selected_collection_item, not game.is_locked(selected_collection_item))
+	_rebuild_collection_view()
+	if equipment_panel != null and equipment_panel.visible:
+		_rebuild_equipment_panel()
+	_save_now()
+
+func _rebuild_history_view() -> void:
+	if history_label == null:
+		return
+	var lines: Array[String] = ["Recent summons"]
+	var history: Array[Dictionary] = game.recent_summons(12)
+	if history.is_empty():
+		lines.append("No summons yet.")
+	else:
+		for entry in history:
+			var prefix := "NEW · " if bool(entry.get("is_new", false)) else ""
+			lines.append("%s%s · %s · copy %d" % [
+				prefix,
+				entry.get("rarity", "Common"),
+				entry.get("name", "?"),
+				int(entry.get("copy", 1))
+			])
+	history_label.text = "\n".join(lines)
 
 func _add_banner_button(parent: HBoxContainer, id: String, label: String) -> void:
 	var button := Button.new()
@@ -931,6 +1122,8 @@ func _toggle_talents() -> void:
 
 func _toggle_gacha() -> void:
 	gacha_panel.visible = not gacha_panel.visible
+	if gacha_panel.visible:
+		_show_gacha_mode("summon")
 	equipment_panel.visible = false
 	talent_panel.visible = false
 	return_panel.visible = false
@@ -1071,7 +1264,19 @@ func _on_sim_event(event: Dictionary) -> void:
 func _select_banner(banner_id: String) -> void:
 	selected_banner = banner_id
 	if banner_label != null:
-		banner_label.text = "Banner: %s" % game.banner_label(banner_id)
+		banner_label.text = "Banner: %s · Collection %d/%d" % [
+			game.banner_label(banner_id),
+			game.collected_unique(banner_id),
+			game.banner_item_count(banner_id)
+		]
+	if pity_label != null:
+		pity_label.text = "Legendary guaranteed within %d pull%s" % [
+			game.pity_remaining(banner_id),
+			"" if game.pity_remaining(banner_id) == 1 else "s"
+		]
+	if gacha_collection_view != null and gacha_collection_view.visible:
+		selected_collection_item = ""
+		_rebuild_collection_view()
 
 func _summon(count: int) -> void:
 	var response: Dictionary = game.pull(selected_banner, count)
@@ -1082,24 +1287,31 @@ func _summon(count: int) -> void:
 	var results: Array = response.get("results", [])
 	var rarity_counts := {"Common": 0, "Rare": 0, "Epic": 0, "Legendary": 0}
 	var highlights: Array[String] = []
+	var new_count := 0
 	for result in results:
 		var rarity: String = str(result.get("rarity", "Common"))
+		var item_name: String = str(result.get("name", ""))
+		var is_new: bool = bool(result.get("is_new", false))
 		rarity_counts[rarity] = int(rarity_counts.get(rarity, 0)) + 1
+		if is_new:
+			new_count += 1
 		if selected_banner == "gear":
-			sim.add_gear(str(result.get("name", "")))
-		if rarity == "Epic" or rarity == "Legendary":
-			highlights.append("%s — %s" % [rarity, result.get("name", "?")])
+			sim.add_gear(item_name)
+		if is_new or rarity == "Epic" or rarity == "Legendary":
+			highlights.append("%s%s — %s" % ["NEW · " if is_new else "", rarity, item_name])
 
-	var summary := "Pulled %d · C %d · R %d · E %d · L %d" % [
+	var summary := "Pulled %d · %d new · C %d · R %d · E %d · L %d" % [
 		results.size(),
+		new_count,
 		rarity_counts["Common"],
 		rarity_counts["Rare"],
 		rarity_counts["Epic"],
 		rarity_counts["Legendary"]
 	]
 	if not highlights.is_empty():
-		summary += "\n" + "\n".join(highlights.slice(0, 4))
+		summary += "\n" + "\n".join(highlights.slice(0, 5))
 	results_label.text = summary
+	_select_banner(selected_banner)
 	if equipment_panel != null and equipment_panel.visible:
 		_rebuild_equipment_panel()
 	_save_now()
