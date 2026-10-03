@@ -60,6 +60,7 @@ func _run() -> void:
 	_check(loaded_sim.inventory == control_sim.inventory, "offline and direct simulation produce the same loot")
 	_check(int(report.get("kills", 0)) > 0, "return report includes offline kills")
 	_check(int(report.get("gold", 0)) > 0, "return report includes offline gold")
+	_check(int(report.get("talent_points", -1)) == int(report.get("levels", -2)), "offline level gains expose the same number of new talent decisions")
 
 	var second_game: Node = GameStateScript.new()
 	var second_sim: Node = AdventurerSimScript.new()
