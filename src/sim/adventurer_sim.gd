@@ -175,8 +175,8 @@ func load_save_dict(data: Dictionary) -> void:
 	total_kills = max(0, int(data.get("total_kills", 0)))
 	deaths = max(0, int(data.get("deaths", 0)))
 	last_loot = str(data.get("last_loot", ""))
-	inventory = (data.get("inventory", {}) as Dictionary).duplicate(true)
-	gear_inventory = (data.get("gear_inventory", {}) as Dictionary).duplicate(true)
+	inventory = _normalise_count_dictionary(data.get("inventory", {}))
+	gear_inventory = _normalise_count_dictionary(data.get("gear_inventory", {}))
 
 	equipped = {
 		"weapon": "",
@@ -233,6 +233,17 @@ func _vec3_from_save(value: Variant, fallback: Vector3) -> Vector3:
 	if value is Array and value.size() >= 3:
 		return Vector3(float(value[0]), float(value[1]), float(value[2]))
 	return fallback
+
+func _normalise_count_dictionary(value: Variant) -> Dictionary:
+	var result: Dictionary = {}
+	if not (value is Dictionary):
+		return result
+	var source: Dictionary = value
+	for key in source.keys():
+		var count: int = maxi(0, int(source[key]))
+		if count > 0:
+			result[str(key)] = count
+	return result
 
 func set_active_companion(companion_name: String) -> bool:
 	if not CompanionCatalogScript.has_companion(companion_name):
