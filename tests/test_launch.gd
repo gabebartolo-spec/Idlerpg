@@ -64,6 +64,15 @@ func _run() -> void:
 		var proc_visual: MeshInstance3D = instance.get("talent_proc_visual")
 		_check(proc_visual.visible, "talent procs create watch-mode feedback")
 
+		sim.reset_talents()
+		sim.hero_level = 2
+		instance.call("_show_return_report", {"loaded": true, "elapsed_actual": 120, "talent_points": 1})
+		var return_talent_button: Button = instance.get("return_talent_button")
+		_check(return_talent_button.visible, "offline talent gains create a direct return-screen action")
+		instance.call("_open_talents_from_return")
+		var talent_panel: VBoxContainer = instance.get("talent_panel")
+		_check(talent_panel.visible, "return-screen talent action opens the talent drawer")
+
 	instance.queue_free()
 	await process_frame
 	if FileAccess.file_exists(save_path):
