@@ -1204,7 +1204,9 @@ Acceptance:
 - **Warden:** Thick hide, Iron guard, Second wind, Last stand.
 - **Trailblazer:** Quick hands, Trail legs, Opening strike, Hunter's eye.
 - Talent state is authoritative and persists through save/offline simulation.
-- Talent procs emit events and receive a small visible watch-mode pulse.
+- Talent procs emit events and receive restrained branch-specific watch-mode cues: Slayer, Warden and Trailblazer are visually distinguishable without turning combat into a particle storm.
+- Unspent talent points are surfaced on the main action row.
+- Level-ups earned while offline report newly available talent points and offer a direct action into the talent drawer.
 - No active combat buttons were added.
 - Respec is free during prototyping so build experimentation is cheap.
 
