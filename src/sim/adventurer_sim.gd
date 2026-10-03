@@ -4,6 +4,7 @@ extends Node
 signal event_emitted(event: Dictionary)
 
 const GearCatalogScript = preload("res://src/data/gear_catalog.gd")
+const TalentCatalogScript = preload("res://src/data/talent_catalog.gd")
 
 const TOWN_POSITION := Vector3(-5.0, 0.0, 3.0)
 const GOBLIN_CAMP_POSITION := Vector3(1.5, 0.0, -1.5)
@@ -56,6 +57,11 @@ var equipped: Dictionary = {
 	"accessory": ""
 }
 var recent_events: Array[String] = []
+
+var unlocked_talents: Dictionary = {}
+var hero_attack_count: int = 0
+var second_wind_used: bool = false
+var last_stand_used: bool = false
 
 func _ready() -> void:
 	if activity.is_empty():
@@ -118,7 +124,11 @@ func to_save_dict() -> Dictionary:
 		"last_loot": last_loot,
 		"inventory": inventory.duplicate(true),
 		"gear_inventory": gear_inventory.duplicate(true),
-		"equipped": equipped.duplicate(true)
+		"equipped": equipped.duplicate(true),
+		"unlocked_talents": unlocked_talents.duplicate(true),
+		"hero_attack_count": hero_attack_count,
+		"second_wind_used": second_wind_used,
+		"last_stand_used": last_stand_used
 	}
 
 func load_save_dict(data: Dictionary) -> void:
@@ -165,6 +175,16 @@ func load_save_dict(data: Dictionary) -> void:
 		if not item_name.is_empty() and GearCatalogScript.has_item(item_name) and GearCatalogScript.slot(item_name) == slot_name and int(gear_inventory.get(item_name, 0)) > 0:
 			equipped[slot_name] = item_name
 
+	unlocked_talents = {}
+	var saved_talents: Dictionary = data.get("unlocked_talents", {})
+	for talent_id in saved_talents.keys():
+		var id := str(talent_id)
+		if TalentCatalogScript.has_talent(id) and bool(saved_talents[talent_id]):
+			unlocked_talents[id] = true
+
+	hero_attack_count = max(0, int(data.get("hero_attack_count", 0)))
+	second_wind_used = bool(data.get("second_wind_used", false))
+	last_stand_used = bool(data.get("last_stand_used", false))
 	hero_hp = clampi(saved_hp, 0, effective_max_hp())
 	recent_events.clear()
 
@@ -175,6 +195,7 @@ func report_counters() -> Dictionary:
 		"total_kills": total_kills,
 		"quests": quest_cycles_completed,
 		"deaths": deaths,
+		"talent_points": talent_points_available(),
 		"inventory": inventory.duplicate(true),
 		"gear_inventory": gear_inventory.duplicate(true)
 	}
@@ -183,6 +204,76 @@ func _vec3_from_save(value: Variant, fallback: Vector3) -> Vector3:
 	if value is Array and value.size() >= 3:
 		return Vector3(float(value[0]), float(value[1]), float(value[2]))
 	return fallback
+
+func has_talent(talent_id: String) -> bool:
+	return bool(unlocked_talents.get(talent_id, false))
+
+func talent_points_total() -> int:
+	return max(0, hero_level - 1)
+
+func talent_points_spent() -> int:
+	return unlocked_talents.size()
+
+func talent_points_available() -> int:
+	return max(0, talent_points_total() - talent_points_spent())
+
+func talent_branch_spent(branch_id: String) -> int:
+	var spent := 0
+	for talent_id in TalentCatalogScript.nodes_for_branch(branch_id):
+		if has_talent(talent_id):
+			spent += 1
+	return spent
+
+func build_summary() -> String:
+	var parts: Array[String] = []
+	for branch_id in TalentCatalogScript.branch_ids():
+		var spent := talent_branch_spent(branch_id)
+		if spent > 0:
+			parts.append("%s %d" % [TalentCatalogScript.branch_label(branch_id), spent])
+	if parts.is_empty():
+		return "Uncommitted"
+	return " · ".join(parts)
+
+func can_unlock_talent(talent_id: String) -> bool:
+	if not TalentCatalogScript.has_talent(talent_id):
+		return false
+	if has_talent(talent_id):
+		return false
+	if talent_points_available() <= 0:
+		return false
+	var requirement: String = TalentCatalogScript.requirement(talent_id)
+	return requirement.is_empty() or has_talent(requirement)
+
+func unlock_talent(talent_id: String) -> bool:
+	if not can_unlock_talent(talent_id):
+		return false
+	var old_max_hp := effective_max_hp()
+	unlocked_talents[talent_id] = true
+	var new_max_hp := effective_max_hp()
+	if new_max_hp > old_max_hp:
+		hero_hp = min(new_max_hp, hero_hp + (new_max_hp - old_max_hp))
+	_emit_event(
+		"talent_unlocked",
+		"Learned %s." % TalentCatalogScript.talent_name(talent_id),
+		{"talent": talent_id}
+	)
+	return true
+
+func reset_talents() -> void:
+	if unlocked_talents.is_empty():
+		return
+	unlocked_talents.clear()
+	hero_hp = min(hero_hp, effective_max_hp())
+	hero_attack_count = 0
+	second_wind_used = false
+	last_stand_used = false
+	_emit_event("talents_reset", "Talents reset.")
+
+func effective_move_speed() -> float:
+	return MOVE_SPEED * (1.20 if has_talent("trail_legs") else 1.0)
+
+func effective_attack_interval() -> float:
+	return HERO_ATTACK_INTERVAL * (0.85 if has_talent("quick_hands") else 1.0)
 
 func add_gear(item_name: String) -> bool:
 	if not GearCatalogScript.has_item(item_name):
@@ -266,6 +357,8 @@ func owned_gear_names() -> Array[String]:
 
 func effective_attack() -> int:
 	var total := hero_attack
+	if has_talent("sharpened_edge"):
+		total += 2
 	for item_name in equipped.values():
 		if not str(item_name).is_empty():
 			total += GearCatalogScript.attack_bonus(str(item_name))
@@ -273,6 +366,8 @@ func effective_attack() -> int:
 
 func effective_max_hp() -> int:
 	var total := hero_max_hp
+	if has_talent("thick_hide"):
+		total += 10
 	for item_name in equipped.values():
 		if not str(item_name).is_empty():
 			total += GearCatalogScript.hp_bonus(str(item_name))
@@ -281,9 +376,28 @@ func effective_max_hp() -> int:
 func take_damage(amount: int) -> void:
 	if amount <= 0 or activity == "recovering":
 		return
-	hero_hp = max(0, hero_hp - amount)
+
+	var resolved_damage := amount
+	if has_talent("iron_guard"):
+		resolved_damage = max(1, resolved_damage - 1)
+
+	if resolved_damage >= hero_hp and has_talent("last_stand") and not last_stand_used:
+		last_stand_used = true
+		hero_hp = 1
+		_emit_event("talent_proc", "Last stand kept you on your feet.", {"talent": "last_stand"})
+		return
+
+	hero_hp = max(0, hero_hp - resolved_damage)
 	if hero_hp <= 0:
 		_die()
+		return
+
+	if has_talent("second_wind") and not second_wind_used:
+		var threshold: int = max(1, int(floor(float(effective_max_hp()) * 0.35)))
+		if hero_hp <= threshold:
+			second_wind_used = true
+			hero_hp = min(effective_max_hp(), hero_hp + 8)
+			_emit_event("talent_proc", "Second wind restored 8 health.", {"talent": "second_wind"})
 
 func current_activity_text() -> String:
 	match activity:
@@ -335,6 +449,7 @@ func get_snapshot() -> Dictionary:
 	}
 
 func _begin_quest_cycle() -> void:
+	last_stand_used = false
 	goblins_killed = 0
 	wolves_killed = 0
 	quest_stage = 0
@@ -356,7 +471,7 @@ func _advance_travel(delta: float) -> void:
 		_arrive()
 		return
 
-	var step: float = MOVE_SPEED * delta
+	var step: float = effective_move_speed() * delta
 	hero_position = hero_position.move_toward(destination, step)
 	if hero_position.distance_to(destination) <= 0.01:
 		hero_position = destination
@@ -388,6 +503,8 @@ func _start_fight(kind: String) -> void:
 	enemy_hp = enemy_max_hp
 	hero_attack_clock = 0.0
 	enemy_attack_clock = 0.0
+	hero_attack_count = 0
+	second_wind_used = false
 	activity = "fighting"
 	_emit_event("fight_started", "Engaged %s." % _enemy_display_name(kind), {"enemy": kind})
 
@@ -395,9 +512,11 @@ func _advance_combat(delta: float) -> void:
 	hero_attack_clock += delta
 	enemy_attack_clock += delta
 
-	while hero_attack_clock >= HERO_ATTACK_INTERVAL and activity == "fighting":
-		hero_attack_clock -= HERO_ATTACK_INTERVAL
-		enemy_hp = max(0, enemy_hp - effective_attack())
+	var attack_interval := effective_attack_interval()
+	while hero_attack_clock >= attack_interval and activity == "fighting":
+		hero_attack_clock -= attack_interval
+		var damage := _next_hero_damage()
+		enemy_hp = max(0, enemy_hp - damage)
 		if enemy_hp <= 0:
 			_defeat_enemy()
 			return
@@ -410,6 +529,25 @@ func _advance_combat(delta: float) -> void:
 		if activity != "fighting":
 			return
 
+func _next_hero_damage() -> int:
+	hero_attack_count += 1
+	var damage := effective_attack()
+
+	if has_talent("opening_strike") and hero_attack_count == 1:
+		damage += 4
+		_emit_event("talent_proc", "Opening strike hit harder.", {"talent": "opening_strike"})
+
+	if has_talent("heavy_hand") and hero_attack_count % 4 == 0:
+		damage = int(ceil(float(damage) * 1.5))
+		_emit_event("talent_proc", "Heavy hand struck hard.", {"talent": "heavy_hand"})
+
+	if has_talent("executioner") and enemy_max_hp > 0 and enemy_hp > 0:
+		if enemy_hp <= int(ceil(float(enemy_max_hp) * 0.25)):
+			damage = int(ceil(float(damage) * 1.5))
+			_emit_event("talent_proc", "Executioner found the opening.", {"talent": "executioner"})
+
+	return max(1, damage)
+
 func _defeat_enemy() -> void:
 	var defeated_kind: String = enemy_kind
 	total_kills += 1
@@ -417,11 +555,17 @@ func _defeat_enemy() -> void:
 	if defeated_kind == "goblin":
 		goblins_killed += 1
 		last_loot = "Goblin Trinket"
-		_grant_xp(8)
+		_grant_enemy_xp(8)
 	else:
 		wolves_killed += 1
 		last_loot = "Wolf Pelt"
-		_grant_xp(12)
+		_grant_enemy_xp(12)
+
+	if has_talent("bloodlust"):
+		var hp_before := hero_hp
+		hero_hp = min(effective_max_hp(), hero_hp + 4)
+		if hero_hp > hp_before:
+			_emit_event("talent_proc", "Bloodlust restored %d health." % (hero_hp - hp_before), {"talent": "bloodlust"})
 
 	inventory[last_loot] = int(inventory.get(last_loot, 0)) + 1
 	_emit_event(
@@ -495,6 +639,12 @@ func _finish_recovery() -> void:
 	else:
 		quest_stage = 4
 		_travel_to("town", "Mossgate", TOWN_POSITION, true)
+
+func _grant_enemy_xp(amount: int) -> void:
+	var resolved_amount := amount
+	if has_talent("hunter_eye"):
+		resolved_amount = int(round(float(amount) * 1.25))
+	_grant_xp(resolved_amount)
 
 func _grant_xp(amount: int) -> void:
 	hero_xp += amount

@@ -3,8 +3,15 @@ set -euo pipefail
 
 GODOT_BIN="${GODOT_BIN:-godot}"
 
-"$GODOT_BIN" --headless --path . -s res://tests/test_gacha.gd
-"$GODOT_BIN" --headless --path . -s res://tests/test_adventurer_sim.gd
-"$GODOT_BIN" --headless --path . -s res://tests/test_launch.gd
-"$GODOT_BIN" --headless --path . -s res://tests/test_persistence.gd
-"$GODOT_BIN" --headless --path . -s res://tests/test_gear.gd
+run_test() {
+  local script="$1"
+  echo "== Running $script =="
+  timeout 30s "$GODOT_BIN" --headless --path . -s "res://$script"
+}
+
+run_test tests/test_gacha.gd
+run_test tests/test_adventurer_sim.gd
+run_test tests/test_launch.gd
+run_test tests/test_persistence.gd
+run_test tests/test_gear.gd
+run_test tests/test_talents.gd
