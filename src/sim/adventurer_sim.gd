@@ -375,7 +375,7 @@ func take_damage(amount: int) -> void:
 		return
 
 	if has_talent("second_wind") and not second_wind_used:
-		var threshold := max(1, int(floor(float(effective_max_hp()) * 0.35)))
+		var threshold: int = max(1, int(floor(float(effective_max_hp()) * 0.35)))
 		if hero_hp <= threshold:
 			second_wind_used = true
 			hero_hp = min(effective_max_hp(), hero_hp + 8)
