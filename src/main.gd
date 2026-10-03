@@ -797,9 +797,10 @@ func _rebuild_talent_panel() -> void:
 	if talent_points_label == null or talent_list == null:
 		return
 
-	talent_points_label.text = "%d point%s available · %s" % [
+	talent_points_label.text = "%d point%s available\nBuild: %s\nViewing %s" % [
 		sim.talent_points_available(),
 		"" if sim.talent_points_available() == 1 else "s",
+		sim.build_summary(),
 		TalentCatalogScript.branch_label(selected_talent_branch)
 	]
 
