@@ -291,6 +291,9 @@ Class expansion happens only after:
 
 # 5. World and watch mode
 
+Production visuals must follow `docs/ART_STYLE_GUIDE.md`, which locks the original low-poly heroic-fantasy language, mobile budgets, modular gear treatment and generated-asset consistency rules.
+
+
 ## 5.1 Visual target
 
 Aim for **readable low-poly 3D MMO nostalgia**, not an exact imitation of any existing game's assets or world.
@@ -1152,7 +1155,7 @@ Acceptance:
 
 ## IRPG-P3 — Equipment and inventory loop
 
-**Status:** `IN PROGRESS` — PR #4 contains the first equipment slice: owned gear, equip effects, guaranteed first-quest gear, Gear-banner integration, persistence and visible weapon variants. Comparison UX, sell/salvage, broader armour visuals and final slot decisions remain.  
+**Status:** `VERIFY` — PR #5 completes the first equipment loop: eight restrained slots, inspect/comparison UX, equip/unequip, duplicate-safe sell for gold, duplicate-safe salvage for the existing gacha currency, Gear-banner integration, persistence, guaranteed world gear, visible weapon variants and modular armour visuals. Android usability/visual validation remains.  
 **Goal:** create the first meaningful management game.
 
 Build:
@@ -1171,6 +1174,10 @@ Acceptance:
 - equipping changes combat outcomes;
 - at least weapons visibly change in 3D;
 - gacha gear does not invalidate ordinary drops.
+
+---
+
+**Implementation note:** itemisation is still intentionally simple. P3 proves the management loop; it does not introduce random affix soup, crafting/upgrading, durability or extra currencies. Those require a later design need.
 
 ---
 
@@ -1347,13 +1354,12 @@ Do not confuse content volume with finished quality.
 
 Do these in order:
 
-1. Keep PR #4 green in Godot 4.7.2 CI.
-2. Install the current reset build on Android portrait.
-3. Phone-test three things together: **watchability**, real suspend/resume offline catch-up, and the Gear drawer/equip flow.
-4. Fix runtime/mobile blockers and awkward core-loop UX only.
-5. Merge the clean reset once that phone gate passes.
-6. Finish **IRPG-P3** narrowly: item comparison, sell/salvage, remaining core slots and useful armour visuals.
-7. Then begin **IRPG-P4** talents/build identity.
+1. Keep PR #5 green in Godot 4.7.2 CI.
+2. Phone-test the completed P3 equipment drawer: inspect, compare, equip/unequip, sell/salvage and modular armour readability.
+3. Validate that Gear-banner pulls and world drops remain understandable in one shared inventory.
+4. Fix mobile/core-loop blockers only.
+5. Merge P3 once that gate passes.
+6. Then begin **IRPG-P4** talents/build identity on a fresh branch from updated main.
 
 Do not respond to a mediocre phone test by piling on more zones, classes, currencies or content. Fix the little-adventurer loop first.
 

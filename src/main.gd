@@ -13,8 +13,15 @@ var hero_visual: Node3D
 var enemy_visual: Node3D
 var camera: Camera3D
 var weapon_visual: MeshInstance3D
+var head_gear_visual: MeshInstance3D
+var chest_gear_visual: MeshInstance3D
+var legs_gear_visual: MeshInstance3D
+var hands_gear_root: Node3D
+var feet_gear_root: Node3D
+var offhand_visual: MeshInstance3D
+var accessory_visual: MeshInstance3D
 var rendered_enemy_kind: String = ""
-var rendered_weapon_name: String = "__unset__"
+var rendered_equipment_key: String = "__unset__"
 
 var hero_label: Label
 var activity_label: Label
@@ -29,6 +36,12 @@ var gacha_panel: VBoxContainer
 var equipment_panel: VBoxContainer
 var equipment_slots_label: Label
 var gear_list: VBoxContainer
+var selected_gear_name: String = ""
+var gear_detail_label: Label
+var gear_action_row: HBoxContainer
+var equip_gear_button: Button
+var sell_gear_button: Button
+var salvage_gear_button: Button
 var dev_panel: VBoxContainer
 var return_panel: PanelContainer
 var return_label: Label
@@ -169,6 +182,46 @@ func _build_hero() -> Node3D:
 	head.material_override = _material(Color(0.75, 0.59, 0.43))
 	hero.add_child(head)
 
+	head_gear_visual = MeshInstance3D.new()
+	head_gear_visual.name = "HeadGear"
+	head_gear_visual.visible = false
+	hero.add_child(head_gear_visual)
+
+	chest_gear_visual = MeshInstance3D.new()
+	chest_gear_visual.name = "ChestGear"
+	chest_gear_visual.visible = false
+	hero.add_child(chest_gear_visual)
+
+	legs_gear_visual = MeshInstance3D.new()
+	legs_gear_visual.name = "LegGear"
+	legs_gear_visual.visible = false
+	hero.add_child(legs_gear_visual)
+
+	hands_gear_root = _build_pair_gear(
+		hero,
+		"HandGear",
+		Vector3(-0.43, 0.73, -0.01),
+		Vector3(0.43, 0.73, -0.01),
+		Vector3(0.18, 0.28, 0.20)
+	)
+	feet_gear_root = _build_pair_gear(
+		hero,
+		"FootGear",
+		Vector3(-0.20, 0.10, 0.0),
+		Vector3(0.20, 0.10, 0.0),
+		Vector3(0.22, 0.20, 0.34)
+	)
+
+	offhand_visual = MeshInstance3D.new()
+	offhand_visual.name = "Offhand"
+	offhand_visual.visible = false
+	hero.add_child(offhand_visual)
+
+	accessory_visual = MeshInstance3D.new()
+	accessory_visual.name = "Accessory"
+	accessory_visual.visible = false
+	hero.add_child(accessory_visual)
+
 	weapon_visual = MeshInstance3D.new()
 	weapon_visual.name = "Weapon"
 	weapon_visual.position = Vector3(0.48, 0.78, -0.25)
@@ -199,15 +252,45 @@ func _sync_world(delta: float) -> void:
 	camera.position = camera.position.lerp(desired_camera, min(1.0, delta * 2.0))
 	camera.look_at(hero_visual.position + Vector3(0.0, 0.7, 0.0), Vector3.UP)
 
+func _build_pair_gear(parent: Node3D, node_name: String, left_pos: Vector3, right_pos: Vector3, size: Vector3) -> Node3D:
+	var root := Node3D.new()
+	root.name = node_name
+	root.visible = false
+	parent.add_child(root)
+
+	for pos in [left_pos, right_pos]:
+		var piece := MeshInstance3D.new()
+		var mesh := BoxMesh.new()
+		mesh.size = size
+		piece.mesh = mesh
+		piece.position = pos
+		root.add_child(piece)
+
+	return root
+
 func _sync_equipment_visual() -> void:
 	if weapon_visual == null or sim == null:
 		return
 
-	var item_name: String = sim.equipped_item("weapon")
-	if item_name == rendered_weapon_name:
+	var slots: Array[String] = ["weapon", "head", "chest", "legs", "hands", "feet", "offhand", "accessory"]
+	var equipped_names: Array[String] = []
+	for slot_name in slots:
+		equipped_names.append(str(sim.equipped_item(slot_name)))
+	var equipment_key := "|".join(equipped_names)
+	if equipment_key == rendered_equipment_key:
 		return
-	rendered_weapon_name = item_name
+	rendered_equipment_key = equipment_key
 
+	_sync_weapon_visual(equipped_names[0])
+	_sync_head_visual(equipped_names[1])
+	_sync_box_visual(chest_gear_visual, equipped_names[2], Vector3(0.80, 0.70, 0.48), Vector3(0.0, 0.72, 0.0))
+	_sync_box_visual(legs_gear_visual, equipped_names[3], Vector3(0.58, 0.44, 0.42), Vector3(0.0, 0.31, 0.0))
+	_sync_pair_visual(hands_gear_root, equipped_names[4])
+	_sync_pair_visual(feet_gear_root, equipped_names[5])
+	_sync_box_visual(offhand_visual, equipped_names[6], Vector3(0.38, 0.56, 0.12), Vector3(-0.48, 0.72, -0.16))
+	_sync_accessory_visual(equipped_names[7])
+
+func _sync_weapon_visual(item_name: String) -> void:
 	var mesh := BoxMesh.new()
 	var colour := Color(0.62, 0.64, 0.66)
 	weapon_visual.position = Vector3(0.48, 0.78, -0.25)
@@ -222,22 +305,82 @@ func _sync_equipment_visual() -> void:
 	elif item_name.contains("Staff") or item_name == "Stormcaller":
 		mesh.size = Vector3(0.11, 0.11, 1.45)
 		weapon_visual.rotation_degrees = Vector3(0.0, 0.0, 2.0)
-		colour = Color(0.42, 0.44, 0.50)
+		colour = _gear_colour(item_name)
 	elif item_name == "Crownblade":
 		mesh.size = Vector3(0.16, 0.10, 1.30)
-		colour = Color(0.80, 0.72, 0.42)
+		colour = _gear_colour(item_name)
 	elif item_name == "Moonsteel Blade":
 		mesh.size = Vector3(0.14, 0.10, 1.20)
-		colour = Color(0.70, 0.75, 0.80)
+		colour = _gear_colour(item_name)
 	elif item_name == "Goblin Cleaver":
 		mesh.size = Vector3(0.20, 0.11, 0.95)
 		weapon_visual.rotation_degrees = Vector3(0.0, 0.0, -38.0)
 		colour = Color(0.48, 0.50, 0.46)
 	else:
 		mesh.size = Vector3(0.12, 0.10, 1.05)
+		colour = _gear_colour(item_name)
 
 	weapon_visual.mesh = mesh
 	weapon_visual.material_override = _material(colour)
+
+func _sync_head_visual(item_name: String) -> void:
+	head_gear_visual.visible = not item_name.is_empty()
+	if item_name.is_empty():
+		return
+
+	var mesh := SphereMesh.new()
+	mesh.radius = 0.33
+	mesh.height = 0.38 if item_name.contains("Hood") else 0.48
+	mesh.radial_segments = 8
+	mesh.rings = 4
+	head_gear_visual.mesh = mesh
+	head_gear_visual.position = Vector3(0.0, 1.55, 0.0)
+	head_gear_visual.scale = Vector3(1.10, 0.72 if item_name.contains("Hood") else 0.88, 1.08)
+	head_gear_visual.material_override = _material(_gear_colour(item_name))
+
+func _sync_box_visual(visual: MeshInstance3D, item_name: String, size: Vector3, position: Vector3) -> void:
+	visual.visible = not item_name.is_empty()
+	if item_name.is_empty():
+		return
+	var mesh := BoxMesh.new()
+	mesh.size = size
+	visual.mesh = mesh
+	visual.position = position
+	visual.material_override = _material(_gear_colour(item_name))
+
+func _sync_pair_visual(root: Node3D, item_name: String) -> void:
+	root.visible = not item_name.is_empty()
+	if item_name.is_empty():
+		return
+	for child in root.get_children():
+		if child is MeshInstance3D:
+			(child as MeshInstance3D).material_override = _material(_gear_colour(item_name))
+
+func _sync_accessory_visual(item_name: String) -> void:
+	accessory_visual.visible = not item_name.is_empty()
+	if item_name.is_empty():
+		return
+	var mesh := SphereMesh.new()
+	mesh.radius = 0.09
+	mesh.height = 0.18
+	mesh.radial_segments = 8
+	mesh.rings = 4
+	accessory_visual.mesh = mesh
+	accessory_visual.position = Vector3(0.0, 0.88, -0.28)
+	accessory_visual.material_override = _material(_gear_colour(item_name))
+
+func _gear_colour(item_name: String) -> Color:
+	if item_name == "Wolfskin Hood":
+		return Color(0.38, 0.40, 0.40)
+	match GearCatalogScript.rarity(item_name):
+		"Rare":
+			return Color(0.34, 0.46, 0.58)
+		"Epic":
+			return Color(0.46, 0.36, 0.58)
+		"Legendary":
+			return Color(0.72, 0.58, 0.30)
+		_:
+			return Color(0.40, 0.32, 0.23)
 
 func _rebuild_enemy(kind: String) -> void:
 	rendered_enemy_kind = kind
@@ -356,7 +499,7 @@ func _build_ui() -> void:
 	bottom.anchor_bottom = 1.0
 	bottom.offset_left = 16.0
 	bottom.offset_right = -16.0
-	bottom.offset_top = -370.0
+	bottom.offset_top = -455.0
 	bottom.offset_bottom = -16.0
 	canvas.add_child(bottom)
 
@@ -439,8 +582,34 @@ func _build_equipment_panel(parent: VBoxContainer) -> void:
 	equipment_slots_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	parent.add_child(equipment_slots_label)
 
+	gear_detail_label = Label.new()
+	gear_detail_label.text = "Tap an item to inspect it."
+	gear_detail_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	parent.add_child(gear_detail_label)
+
+	gear_action_row = HBoxContainer.new()
+	gear_action_row.visible = false
+	gear_action_row.add_theme_constant_override("separation", 6)
+	parent.add_child(gear_action_row)
+
+	equip_gear_button = Button.new()
+	equip_gear_button.text = "Equip"
+	equip_gear_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	equip_gear_button.pressed.connect(_equip_selected_gear)
+	gear_action_row.add_child(equip_gear_button)
+
+	sell_gear_button = Button.new()
+	sell_gear_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	sell_gear_button.pressed.connect(_sell_selected_gear)
+	gear_action_row.add_child(sell_gear_button)
+
+	salvage_gear_button = Button.new()
+	salvage_gear_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	salvage_gear_button.pressed.connect(_salvage_selected_gear)
+	gear_action_row.add_child(salvage_gear_button)
+
 	var scroll := ScrollContainer.new()
-	scroll.custom_minimum_size = Vector2(0.0, 145.0)
+	scroll.custom_minimum_size = Vector2(0.0, 160.0)
 	parent.add_child(scroll)
 
 	gear_list = VBoxContainer.new()
@@ -455,16 +624,16 @@ func _rebuild_equipment_panel() -> void:
 		return
 
 	var weapon: String = str(sim.equipped_item("weapon"))
-	var head: String = str(sim.equipped_item("head"))
-	var chest: String = str(sim.equipped_item("chest"))
-	var offhand: String = str(sim.equipped_item("offhand"))
-	equipment_slots_label.text = "ATK %d · HP %d\nWeapon: %s · Head: %s\nChest: %s · Off-hand: %s" % [
+	var equipped_count := 0
+	for slot_name in ["head", "chest", "legs", "hands", "feet", "offhand", "accessory"]:
+		if not str(sim.equipped_item(slot_name)).is_empty():
+			equipped_count += 1
+
+	equipment_slots_label.text = "ATK %d · HP %d\nWeapon: %s · Other slots %d/7" % [
 		sim.effective_attack(),
 		sim.effective_max_hp(),
-		weapon if not weapon.is_empty() else "—",
-		head if not head.is_empty() else "—",
-		chest if not chest.is_empty() else "—",
-		offhand if not offhand.is_empty() else "—"
+		weapon if not weapon.is_empty() else "Starter sword",
+		equipped_count
 	]
 
 	for child in gear_list.get_children():
@@ -472,26 +641,102 @@ func _rebuild_equipment_panel() -> void:
 
 	var names: Array[String] = sim.owned_gear_names()
 	if names.is_empty():
+		selected_gear_name = ""
 		var empty := Label.new()
 		empty.text = "No gear yet. Keep questing or try the Gear banner."
 		empty.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		gear_list.add_child(empty)
+		_refresh_gear_detail()
 		return
+
+	if not selected_gear_name.is_empty() and sim.gear_count(selected_gear_name) <= 0:
+		selected_gear_name = ""
 
 	for item_name in names:
 		var button := Button.new()
+		var count: int = sim.gear_count(item_name)
 		button.text = GearCatalogScript.summary(item_name)
+		if count > 1:
+			button.text += " · ×%d" % count
 		var slot_name: String = GearCatalogScript.slot(item_name)
 		if sim.equipped_item(slot_name) == item_name:
 			button.text += " · Equipped"
-		button.pressed.connect(_equip_item.bind(item_name))
+		button.pressed.connect(_select_gear_item.bind(item_name))
 		gear_list.add_child(button)
 
-func _equip_item(item_name: String) -> void:
-	if sim.equip_gear(item_name):
+	_refresh_gear_detail()
+
+func _select_gear_item(item_name: String) -> void:
+	selected_gear_name = item_name
+	_refresh_gear_detail()
+
+func _refresh_gear_detail() -> void:
+	if gear_detail_label == null or gear_action_row == null:
+		return
+	if selected_gear_name.is_empty() or sim.gear_count(selected_gear_name) <= 0:
+		gear_detail_label.text = "Tap an item to inspect it."
+		gear_action_row.visible = false
+		return
+
+	var slot_name: String = GearCatalogScript.slot(selected_gear_name)
+	var equipped_name: String = str(sim.equipped_item(slot_name))
+	var comparison: String = GearCatalogScript.comparison(selected_gear_name, equipped_name)
+	var lines: Array[String] = [GearCatalogScript.summary(selected_gear_name)]
+	lines.append("Owned ×%d" % sim.gear_count(selected_gear_name))
+	if equipped_name == selected_gear_name:
+		lines.append("Currently equipped.")
+	else:
+		lines.append("vs %s: %s" % [equipped_name if not equipped_name.is_empty() else "empty slot", comparison])
+	gear_detail_label.text = "\n".join(lines)
+
+	gear_action_row.visible = true
+	equip_gear_button.text = "Unequip" if equipped_name == selected_gear_name else "Equip"
+	equip_gear_button.disabled = false
+	sell_gear_button.text = "Sell +%dg" % GearCatalogScript.sell_value(selected_gear_name)
+	salvage_gear_button.text = "Salvage +%d token%s" % [
+		GearCatalogScript.salvage_tokens(selected_gear_name),
+		"" if GearCatalogScript.salvage_tokens(selected_gear_name) == 1 else "s"
+	]
+	var can_dispose: bool = sim.can_dispose_gear(selected_gear_name)
+	sell_gear_button.disabled = not can_dispose
+	salvage_gear_button.disabled = not can_dispose
+
+func _equip_selected_gear() -> void:
+	if selected_gear_name.is_empty():
+		return
+	var slot_name: String = GearCatalogScript.slot(selected_gear_name)
+	var changed := false
+	if sim.equipped_item(slot_name) == selected_gear_name:
+		changed = sim.unequip_gear(selected_gear_name)
+	else:
+		changed = sim.equip_gear(selected_gear_name)
+	if changed:
 		_rebuild_equipment_panel()
 		_sync_equipment_visual()
 		_save_now()
+
+func _sell_selected_gear() -> void:
+	if selected_gear_name.is_empty():
+		return
+	var result: Dictionary = sim.sell_gear(selected_gear_name)
+	if not bool(result.get("ok", false)):
+		return
+	if sim.gear_count(selected_gear_name) <= 0:
+		selected_gear_name = ""
+	_rebuild_equipment_panel()
+	_save_now()
+
+func _salvage_selected_gear() -> void:
+	if selected_gear_name.is_empty():
+		return
+	var result: Dictionary = sim.salvage_gear(selected_gear_name)
+	if not bool(result.get("ok", false)):
+		return
+	game.grant_tokens(int(result.get("tokens", 0)))
+	if sim.gear_count(selected_gear_name) <= 0:
+		selected_gear_name = ""
+	_rebuild_equipment_panel()
+	_save_now()
 
 func _build_gacha_panel(parent: VBoxContainer) -> void:
 	token_label = Label.new()
@@ -697,7 +942,7 @@ func _refresh_sim_ui() -> void:
 func _on_sim_event(event: Dictionary) -> void:
 	event_label.text = str(event.get("message", ""))
 	var event_type := str(event.get("type", ""))
-	if event_type == "gear_obtained" or event_type == "gear_equipped":
+	if event_type in ["gear_obtained", "gear_equipped", "gear_unequipped", "gear_sold", "gear_salvaged"]:
 		if equipment_panel != null and equipment_panel.visible:
 			_rebuild_equipment_panel()
 
