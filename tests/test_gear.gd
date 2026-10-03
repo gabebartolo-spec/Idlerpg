@@ -27,6 +27,10 @@ func _run() -> void:
 	_check(sim.equip_gear("Iron Sword"), "owned weapon can be equipped")
 	_check(sim.equipped_item("weapon") == "Iron Sword", "weapon slot records equipped item")
 	_check(sim.effective_attack() == base_attack + 2, "equipped weapon changes combat attack")
+	_check(sim.unequip_gear("Iron Sword"), "equipped gear can be deliberately unequipped")
+	_check(sim.equipped_item("weapon").is_empty(), "unequip clears the slot")
+	_check(sim.effective_attack() == base_attack, "unequip restores base combat attack")
+	_check(sim.equip_gear("Iron Sword"), "gear can be equipped again after unequipping")
 
 	_check(sim.add_gear("Knight Mail"), "armour can be added")
 	_check(sim.equip_gear("Knight Mail"), "owned armour can be equipped")
