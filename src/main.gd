@@ -21,6 +21,7 @@ var hands_gear_root: Node3D
 var feet_gear_root: Node3D
 var offhand_visual: MeshInstance3D
 var accessory_visual: MeshInstance3D
+var talent_proc_visual: MeshInstance3D
 var rendered_enemy_kind: String = ""
 var rendered_equipment_key: String = "__unset__"
 
@@ -44,6 +45,7 @@ var equip_gear_button: Button
 var sell_gear_button: Button
 var salvage_gear_button: Button
 var talent_panel: VBoxContainer
+var talent_button: Button
 var talent_points_label: Label
 var talent_list: VBoxContainer
 var selected_talent_branch: String = "slayer"
@@ -233,6 +235,18 @@ func _build_hero() -> Node3D:
 	weapon_visual.name = "Weapon"
 	weapon_visual.position = Vector3(0.48, 0.78, -0.25)
 	hero.add_child(weapon_visual)
+
+	talent_proc_visual = MeshInstance3D.new()
+	talent_proc_visual.name = "TalentProc"
+	var proc_mesh := CylinderMesh.new()
+	proc_mesh.top_radius = 0.72
+	proc_mesh.bottom_radius = 0.72
+	proc_mesh.height = 0.035
+	talent_proc_visual.mesh = proc_mesh
+	talent_proc_visual.position = Vector3(0.0, 0.025, 0.0)
+	talent_proc_visual.visible = false
+	hero.add_child(talent_proc_visual)
+
 	_sync_equipment_visual()
 
 	return hero
@@ -243,8 +257,13 @@ func _sync_world(delta: float) -> void:
 		fight_bob = sin(Time.get_ticks_msec() * 0.018) * 0.05
 
 	hero_visual.position = sim.hero_position + Vector3(0.0, fight_bob, 0.0)
-	var pulse_scale := 1.08 if talent_proc_pulse > 0.0 else 1.0
+	var pulse_scale: float = 1.06 if talent_proc_pulse > 0.0 else 1.0
 	hero_visual.scale = Vector3.ONE * pulse_scale
+	if talent_proc_visual != null:
+		talent_proc_visual.visible = talent_proc_pulse > 0.0
+		if talent_proc_visual.visible:
+			var progress: float = 1.0 - clampf(talent_proc_pulse / 0.28, 0.0, 1.0)
+			talent_proc_visual.scale = Vector3.ONE * (0.85 + progress * 0.45)
 	_sync_equipment_visual()
 
 	if sim.activity == "fighting" and not sim.enemy_kind.is_empty():
@@ -549,7 +568,7 @@ func _build_ui() -> void:
 	equipment_button.pressed.connect(_toggle_equipment)
 	actions.add_child(equipment_button)
 
-	var talent_button := Button.new()
+	talent_button = Button.new()
 	talent_button.text = "Talents"
 	talent_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	talent_button.pressed.connect(_toggle_talents)
@@ -1042,6 +1061,23 @@ func _format_duration(seconds: int) -> String:
 		return "%dm" % (seconds / 60)
 	return "%ds" % seconds
 
+func _show_talent_proc(branch_id: String) -> void:
+	if talent_proc_visual == null:
+		return
+
+	var colour := Color(0.62, 0.54, 0.34)
+	match branch_id:
+		"slayer":
+			colour = Color(0.68, 0.30, 0.18)
+		"warden":
+			colour = Color(0.32, 0.46, 0.56)
+		"trailblazer":
+			colour = Color(0.58, 0.50, 0.22)
+
+	talent_proc_visual.material_override = _material(colour)
+	talent_proc_visual.visible = true
+	talent_proc_visual.scale = Vector3.ONE * 0.85
+
 func _refresh_sim_ui() -> void:
 	hero_label.text = "%s · Lv %d · HP %d/%d · %d gold" % [
 		TalentCatalogScript.CLASS_NAME,
@@ -1052,13 +1088,18 @@ func _refresh_sim_ui() -> void:
 	]
 	activity_label.text = sim.current_activity_text()
 	quest_label.text = sim.current_quest_text()
+	if talent_button != null:
+		var points: int = sim.talent_points_available()
+		talent_button.text = "Talents" if points <= 0 else "Talents · %d" % points
 
 func _on_sim_event(event: Dictionary) -> void:
 	event_label.text = str(event.get("message", ""))
 	var event_type := str(event.get("type", ""))
 
 	if event_type == "talent_proc":
-		talent_proc_pulse = 0.22
+		talent_proc_pulse = 0.28
+		var talent_id: String = str(event.get("talent", ""))
+		_show_talent_proc(TalentCatalogScript.branch(talent_id))
 
 	if event_type in ["gear_obtained", "gear_equipped", "gear_unequipped", "gear_sold", "gear_salvaged", "talent_unlocked", "talents_reset"]:
 		if equipment_panel != null and equipment_panel.visible:
