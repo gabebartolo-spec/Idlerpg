@@ -32,7 +32,8 @@ const ITEMS := {
 	"Worldwalker Boots": {"slot": "feet", "attack": 5, "hp": 12, "rarity": "Legendary"},
 
 	"Goblin Cleaver": {"slot": "weapon", "attack": 3, "hp": 0, "rarity": "Common"},
-	"Wolfskin Hood": {"slot": "head", "attack": 1, "hp": 5, "rarity": "Common"}
+	"Wolfskin Hood": {"slot": "head", "attack": 1, "hp": 5, "rarity": "Common"},
+	"Briarheart Charm": {"slot": "accessory", "attack": 2, "hp": 6, "rarity": "Rare"}
 }
 
 const SELL_VALUES := {
