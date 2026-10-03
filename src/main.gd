@@ -690,7 +690,8 @@ func _refresh_gear_detail() -> void:
 	gear_detail_label.text = "\n".join(lines)
 
 	gear_action_row.visible = true
-	equip_gear_button.disabled = equipped_name == selected_gear_name
+	equip_gear_button.text = "Unequip" if equipped_name == selected_gear_name else "Equip"
+	equip_gear_button.disabled = false
 	sell_gear_button.text = "Sell +%dg" % GearCatalogScript.sell_value(selected_gear_name)
 	salvage_gear_button.text = "Salvage +%d token%s" % [
 		GearCatalogScript.salvage_tokens(selected_gear_name),
@@ -703,7 +704,13 @@ func _refresh_gear_detail() -> void:
 func _equip_selected_gear() -> void:
 	if selected_gear_name.is_empty():
 		return
-	if sim.equip_gear(selected_gear_name):
+	var slot_name: String = GearCatalogScript.slot(selected_gear_name)
+	var changed := false
+	if sim.equipped_item(slot_name) == selected_gear_name:
+		changed = sim.unequip_gear(selected_gear_name)
+	else:
+		changed = sim.equip_gear(selected_gear_name)
+	if changed:
 		_rebuild_equipment_panel()
 		_sync_equipment_visual()
 		_save_now()
@@ -935,7 +942,7 @@ func _refresh_sim_ui() -> void:
 func _on_sim_event(event: Dictionary) -> void:
 	event_label.text = str(event.get("message", ""))
 	var event_type := str(event.get("type", ""))
-	if event_type in ["gear_obtained", "gear_equipped", "gear_sold", "gear_salvaged"]:
+	if event_type in ["gear_obtained", "gear_equipped", "gear_unequipped", "gear_sold", "gear_salvaged"]:
 		if equipment_panel != null and equipment_panel.visible:
 			_rebuild_equipment_panel()
 
