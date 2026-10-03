@@ -37,6 +37,7 @@ func _run() -> void:
 	_check(instance.get("hero_visual") != null, "main scene creates the watched 3D adventurer")
 	_check(instance.get("activity_label") != null, "main scene creates current-activity UI")
 	_check(instance.get("equipment_panel") != null, "main scene creates the equipment drawer")
+	_check(instance.get("talent_panel") != null, "main scene creates the talent drawer")
 	_check(instance.get("weapon_visual") != null, "main scene creates a visible weapon slot")
 
 	var sim: Node = instance.get("sim")
@@ -47,6 +48,11 @@ func _run() -> void:
 		instance.call("_summon", 1)
 		await process_frame
 		_check(sim.owned_gear_names().size() >= before_gear + 1, "Gear gacha results become owned adventurer gear")
+
+		sim.hero_level = 2
+		instance.call("_unlock_talent", "heavy_hand")
+		await process_frame
+		_check(sim.has_talent("heavy_hand"), "talent drawer actions change the authoritative build")
 
 	instance.queue_free()
 	await process_frame
