@@ -57,9 +57,6 @@ func _run() -> void:
 	_check(loaded_sim.gold == control_sim.gold, "offline and direct simulation grant the same gold")
 	_check(loaded_sim.total_kills == control_sim.total_kills, "offline and direct simulation record the same kills")
 	_check(loaded_sim.quest_cycles_completed == control_sim.quest_cycles_completed, "offline and direct simulation complete the same quests")
-	if loaded_sim.inventory != control_sim.inventory:
-		print("Offline inventory: ", loaded_sim.inventory)
-		print("Direct inventory: ", control_sim.inventory)
 	_check(loaded_sim.inventory == control_sim.inventory, "offline and direct simulation produce the same loot")
 	_check(int(report.get("kills", 0)) > 0, "return report includes offline kills")
 	_check(int(report.get("gold", 0)) > 0, "return report includes offline gold")
