@@ -180,7 +180,7 @@ func load_save_dict(data: Dictionary) -> void:
 		var banner_saved: Dictionary = saved_collection.get(banner_id, {})
 		var banner_collection: Dictionary = {}
 		for item_name in collection_items(str(banner_id)):
-			var count := max(0, int(banner_saved.get(item_name, 0)))
+			var count: int = maxi(0, int(banner_saved.get(item_name, 0)))
 			if count > 0:
 				banner_collection[item_name] = count
 		collection[banner_id] = banner_collection
