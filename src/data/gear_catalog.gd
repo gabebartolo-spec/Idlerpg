@@ -82,9 +82,9 @@ static func comparison(item_name: String, equipped_name: String) -> String:
 	var hp_delta := hp_bonus(item_name) - hp_bonus(equipped_name)
 	var parts: Array[String] = []
 	if attack_delta != 0:
-		parts.append("%+d ATK" % attack_delta)
+		parts.append("%s%d ATK" % ["+" if attack_delta > 0 else "", attack_delta])
 	if hp_delta != 0:
-		parts.append("%+d HP" % hp_delta)
+		parts.append("%s%d HP" % ["+" if hp_delta > 0 else "", hp_delta])
 	if parts.is_empty():
 		return "Same combat stats"
 	return " · ".join(parts)
