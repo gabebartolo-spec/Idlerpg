@@ -59,18 +59,18 @@ func _run() -> void:
 	var bond: Node = AdventurerSimScript.new()
 	root.add_child(bond)
 	bond.set_active_companion("Frost Ranger")
-	for _i in range(10):
+	for _i in range(25):
 		bond._grant_companion_bond_xp(1)
-	_check(bond.companion_bond_level("Frost Ranger") == 2, "active companion bond rises after enough shared kills")
-	_check(bond.effective_attack() > base_attack + 3, "bond level modestly improves companion passive")
+	_check(bond.companion_bond_level("Frost Ranger") == 3, "active companion bond rises after enough shared kills")
+	_check(bond.effective_attack() > base_attack + 3, "higher bond modestly improves companion passive")
 
 	var saved: Dictionary = bond.to_save_dict()
 	var restored: Node = AdventurerSimScript.new()
 	root.add_child(restored)
 	restored.load_save_dict(saved)
 	_check(restored.active_companion == "Frost Ranger", "active companion survives save/load")
-	_check(restored.companion_bond_xp_for("Frost Ranger") == 10, "companion bond XP survives save/load")
-	_check(restored.companion_bond_level("Frost Ranger") == 2, "companion bond level survives save/load")
+	_check(restored.companion_bond_xp_for("Frost Ranger") == 25, "companion bond XP survives save/load")
+	_check(restored.companion_bond_level("Frost Ranger") == 3, "companion bond level survives save/load")
 
 	restored.clear_active_companion()
 	_check(restored.active_companion.is_empty(), "active companion can be rested")
