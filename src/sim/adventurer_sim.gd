@@ -207,6 +207,17 @@ func equip_gear(item_name: String) -> bool:
 func equipped_item(slot_name: String) -> String:
 	return str(equipped.get(slot_name, ""))
 
+func unequip_gear(item_name: String) -> bool:
+	if not GearCatalogScript.has_item(item_name):
+		return false
+	var slot_name: String = GearCatalogScript.slot(item_name)
+	if equipped_item(slot_name) != item_name:
+		return false
+	equipped[slot_name] = ""
+	hero_hp = min(hero_hp, effective_max_hp())
+	_emit_event("gear_unequipped", "Unequipped %s." % item_name, {"gear": item_name, "slot": slot_name})
+	return true
+
 func gear_count(item_name: String) -> int:
 	return max(0, int(gear_inventory.get(item_name, 0)))
 
