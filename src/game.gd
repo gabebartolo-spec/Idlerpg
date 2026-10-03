@@ -40,12 +40,17 @@ const BANNERS: Dictionary = {
 var gacha_tokens: int = STARTING_TOKENS
 var dev_infinite_tokens: bool = false
 var pity: Dictionary = {}
+var collection: Dictionary = {}
+var favourites: Dictionary = {}
+var locked_items: Dictionary = {}
+var summon_history: Array[Dictionary] = []
 var rng: RandomNumberGenerator = RandomNumberGenerator.new()
 
 func _ready() -> void:
 	rng.randomize()
 	for banner_id in BANNERS.keys():
 		pity[banner_id] = 0
+		collection[banner_id] = {}
 
 func set_seed(seed_value: int) -> void:
 	rng.seed = seed_value
@@ -57,6 +62,76 @@ func banner_label(banner_id: String) -> String:
 	if not BANNERS.has(banner_id):
 		return banner_id
 	return str(BANNERS[banner_id]["label"])
+
+func pity_remaining(banner_id: String) -> int:
+	if not BANNERS.has(banner_id):
+		return 0
+	return max(1, 90 - int(pity.get(banner_id, 0)))
+
+func collection_count(banner_id: String, item_name: String) -> int:
+	var banner_collection: Dictionary = collection.get(banner_id, {})
+	return max(0, int(banner_collection.get(item_name, 0)))
+
+func collected_unique(banner_id: String) -> int:
+	var banner_collection: Dictionary = collection.get(banner_id, {})
+	var count := 0
+	for item_name in banner_collection.keys():
+		if int(banner_collection.get(item_name, 0)) > 0:
+			count += 1
+	return count
+
+func banner_item_count(banner_id: String) -> int:
+	if not BANNERS.has(banner_id):
+		return 0
+	var total := 0
+	var items_by_rarity: Dictionary = BANNERS[banner_id]["items"]
+	for rarity in items_by_rarity.keys():
+		total += (items_by_rarity[rarity] as Array).size()
+	return total
+
+func collection_items(banner_id: String) -> Array[String]:
+	var names: Array[String] = []
+	if not BANNERS.has(banner_id):
+		return names
+	var items_by_rarity: Dictionary = BANNERS[banner_id]["items"]
+	for rarity in ["Legendary", "Epic", "Rare", "Common"]:
+		for item_name in items_by_rarity.get(rarity, []):
+			names.append(str(item_name))
+	return names
+
+func item_rarity(banner_id: String, item_name: String) -> String:
+	if not BANNERS.has(banner_id):
+		return ""
+	var items_by_rarity: Dictionary = BANNERS[banner_id]["items"]
+	for rarity in items_by_rarity.keys():
+		if item_name in (items_by_rarity[rarity] as Array):
+			return str(rarity)
+	return ""
+
+func is_favourite(item_name: String) -> bool:
+	return bool(favourites.get(item_name, false))
+
+func set_favourite(item_name: String, enabled: bool) -> void:
+	if enabled:
+		favourites[item_name] = true
+	else:
+		favourites.erase(item_name)
+
+func is_locked(item_name: String) -> bool:
+	return bool(locked_items.get(item_name, false))
+
+func set_locked(item_name: String, enabled: bool) -> void:
+	if enabled:
+		locked_items[item_name] = true
+	else:
+		locked_items.erase(item_name)
+
+func recent_summons(limit: int = 20) -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	var capped := mini(max(0, limit), summon_history.size())
+	for i in range(capped):
+		result.append(summon_history[i].duplicate(true))
+	return result
 
 func dev_tools_available() -> bool:
 	return OS.is_debug_build() or Engine.is_editor_hint()
@@ -88,14 +163,47 @@ func dev_reset_pity() -> void:
 func to_save_dict() -> Dictionary:
 	return {
 		"gacha_tokens": gacha_tokens,
-		"pity": pity.duplicate(true)
+		"pity": pity.duplicate(true),
+		"collection": collection.duplicate(true),
+		"favourites": favourites.duplicate(true),
+		"locked_items": locked_items.duplicate(true),
+		"summon_history": summon_history.duplicate(true)
 	}
 
 func load_save_dict(data: Dictionary) -> void:
 	gacha_tokens = max(0, int(data.get("gacha_tokens", STARTING_TOKENS)))
 	var saved_pity: Dictionary = data.get("pity", {})
+	var saved_collection: Dictionary = data.get("collection", {})
+	collection = {}
 	for banner_id in BANNERS.keys():
 		pity[banner_id] = max(0, int(saved_pity.get(banner_id, 0)))
+		var banner_saved: Dictionary = saved_collection.get(banner_id, {})
+		var banner_collection: Dictionary = {}
+		for item_name in collection_items(str(banner_id)):
+			var count := max(0, int(banner_saved.get(item_name, 0)))
+			if count > 0:
+				banner_collection[item_name] = count
+		collection[banner_id] = banner_collection
+
+	favourites = {}
+	var saved_favourites: Dictionary = data.get("favourites", {})
+	for item_name in saved_favourites.keys():
+		if bool(saved_favourites[item_name]):
+			favourites[str(item_name)] = true
+
+	locked_items = {}
+	var saved_locked: Dictionary = data.get("locked_items", {})
+	for item_name in saved_locked.keys():
+		if bool(saved_locked[item_name]):
+			locked_items[str(item_name)] = true
+
+	summon_history = []
+	for raw_entry in data.get("summon_history", []):
+		if raw_entry is Dictionary:
+			summon_history.append((raw_entry as Dictionary).duplicate(true))
+	if summon_history.size() > 50:
+		summon_history.resize(50)
+
 	dev_infinite_tokens = false
 	wallet_changed.emit(gacha_tokens)
 
@@ -131,11 +239,23 @@ func _roll_one(banner_id: String) -> Dictionary:
 
 	var items: Array = BANNERS[banner_id]["items"][rarity]
 	var item_name: String = str(items[rng.randi_range(0, items.size() - 1)])
-	return {
+	var previous_count := collection_count(banner_id, item_name)
+	var new_count := previous_count + 1
+	var banner_collection: Dictionary = collection.get(banner_id, {})
+	banner_collection[item_name] = new_count
+	collection[banner_id] = banner_collection
+
+	var result := {
 		"name": item_name,
 		"rarity": rarity,
-		"banner": banner_id
+		"banner": banner_id,
+		"is_new": previous_count == 0,
+		"copy": new_count
 	}
+	summon_history.push_front(result.duplicate(true))
+	if summon_history.size() > 50:
+		summon_history.resize(50)
+	return result
 
 func _roll_rarity(pity_count: int) -> String:
 	# Hard legendary pity on pull 90. Rates are intentionally simple for the prototype.
