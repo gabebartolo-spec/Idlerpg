@@ -4,6 +4,7 @@ const GameStateScript = preload("res://src/game.gd")
 const AdventurerSimScript = preload("res://src/sim/adventurer_sim.gd")
 const PersistenceScript = preload("res://src/state/persistence.gd")
 const GearCatalogScript = preload("res://src/data/gear_catalog.gd")
+const TalentCatalogScript = preload("res://src/data/talent_catalog.gd")
 
 var game: Node
 var sim: Node
@@ -42,6 +43,11 @@ var gear_action_row: HBoxContainer
 var equip_gear_button: Button
 var sell_gear_button: Button
 var salvage_gear_button: Button
+var talent_panel: VBoxContainer
+var talent_points_label: Label
+var talent_list: VBoxContainer
+var selected_talent_branch: String = "slayer"
+var talent_proc_pulse: float = 0.0
 var dev_panel: VBoxContainer
 var return_panel: PanelContainer
 var return_label: Label
@@ -67,6 +73,7 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	sim.advance(delta)
+	talent_proc_pulse = max(0.0, talent_proc_pulse - delta)
 	_sync_world(delta)
 	_refresh_sim_ui()
 
@@ -236,6 +243,8 @@ func _sync_world(delta: float) -> void:
 		fight_bob = sin(Time.get_ticks_msec() * 0.018) * 0.05
 
 	hero_visual.position = sim.hero_position + Vector3(0.0, fight_bob, 0.0)
+	var pulse_scale := 1.08 if talent_proc_pulse > 0.0 else 1.0
+	hero_visual.scale = Vector3.ONE * pulse_scale
 	_sync_equipment_visual()
 
 	if sim.activity == "fighting" and not sim.enemy_kind.is_empty():
@@ -540,6 +549,12 @@ func _build_ui() -> void:
 	equipment_button.pressed.connect(_toggle_equipment)
 	actions.add_child(equipment_button)
 
+	var talent_button := Button.new()
+	talent_button.text = "Talents"
+	talent_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	talent_button.pressed.connect(_toggle_talents)
+	actions.add_child(talent_button)
+
 	var gacha_button := Button.new()
 	gacha_button.text = "Gacha"
 	gacha_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -548,7 +563,7 @@ func _build_ui() -> void:
 
 	if game.dev_tools_available():
 		var dev_button := Button.new()
-		dev_button.text = "Dev tools"
+		dev_button.text = "Dev"
 		dev_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		dev_button.pressed.connect(_toggle_dev_tools)
 		actions.add_child(dev_button)
@@ -558,6 +573,12 @@ func _build_ui() -> void:
 	equipment_panel.add_theme_constant_override("separation", 6)
 	bottom_column.add_child(equipment_panel)
 	_build_equipment_panel(equipment_panel)
+
+	talent_panel = VBoxContainer.new()
+	talent_panel.visible = false
+	talent_panel.add_theme_constant_override("separation", 6)
+	bottom_column.add_child(talent_panel)
+	_build_talent_panel(talent_panel)
 
 	gacha_panel = VBoxContainer.new()
 	gacha_panel.visible = false
@@ -738,6 +759,83 @@ func _salvage_selected_gear() -> void:
 	_rebuild_equipment_panel()
 	_save_now()
 
+func _build_talent_panel(parent: VBoxContainer) -> void:
+	var title := Label.new()
+	title.text = "%s talents" % TalentCatalogScript.CLASS_NAME
+	title.add_theme_font_size_override("font_size", 20)
+	parent.add_child(title)
+
+	talent_points_label = Label.new()
+	parent.add_child(talent_points_label)
+
+	var branches := HBoxContainer.new()
+	branches.add_theme_constant_override("separation", 6)
+	parent.add_child(branches)
+	for branch_id in TalentCatalogScript.branch_ids():
+		var button := Button.new()
+		button.text = TalentCatalogScript.branch_label(branch_id)
+		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		button.pressed.connect(_select_talent_branch.bind(branch_id))
+		branches.add_child(button)
+
+	talent_list = VBoxContainer.new()
+	talent_list.add_theme_constant_override("separation", 5)
+	parent.add_child(talent_list)
+
+	var reset := Button.new()
+	reset.text = "Reset talents"
+	reset.pressed.connect(_reset_talents)
+	parent.add_child(reset)
+
+	_rebuild_talent_panel()
+
+func _select_talent_branch(branch_id: String) -> void:
+	selected_talent_branch = branch_id
+	_rebuild_talent_panel()
+
+func _rebuild_talent_panel() -> void:
+	if talent_points_label == null or talent_list == null:
+		return
+
+	talent_points_label.text = "%d point%s available · %s" % [
+		sim.talent_points_available(),
+		"" if sim.talent_points_available() == 1 else "s",
+		TalentCatalogScript.branch_label(selected_talent_branch)
+	]
+
+	for child in talent_list.get_children():
+		child.queue_free()
+
+	for talent_id in TalentCatalogScript.nodes_for_branch(selected_talent_branch):
+		var button := Button.new()
+		var unlocked: bool = sim.has_talent(talent_id)
+		var requirement: String = TalentCatalogScript.requirement(talent_id)
+		var prefix := "✓" if unlocked else "○"
+		button.text = "%s %s\n%s" % [
+			prefix,
+			TalentCatalogScript.talent_name(talent_id),
+			TalentCatalogScript.description(talent_id)
+		]
+		button.custom_minimum_size = Vector2(0.0, 54.0)
+		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		button.disabled = unlocked or not sim.can_unlock_talent(talent_id)
+		if not unlocked and not requirement.is_empty() and not sim.has_talent(requirement):
+			button.tooltip_text = "Requires %s" % TalentCatalogScript.talent_name(requirement)
+		button.pressed.connect(_unlock_talent.bind(talent_id))
+		talent_list.add_child(button)
+
+func _unlock_talent(talent_id: String) -> void:
+	if sim.unlock_talent(talent_id):
+		_rebuild_talent_panel()
+		_rebuild_equipment_panel()
+		_save_now()
+
+func _reset_talents() -> void:
+	sim.reset_talents()
+	_rebuild_talent_panel()
+	_rebuild_equipment_panel()
+	_save_now()
+
 func _build_gacha_panel(parent: VBoxContainer) -> void:
 	token_label = Label.new()
 	token_label.add_theme_font_size_override("font_size", 18)
@@ -814,6 +912,17 @@ func _toggle_equipment() -> void:
 	equipment_panel.visible = not equipment_panel.visible
 	if equipment_panel.visible:
 		_rebuild_equipment_panel()
+	talent_panel.visible = false
+	gacha_panel.visible = false
+	return_panel.visible = false
+	if dev_panel != null:
+		dev_panel.visible = false
+
+func _toggle_talents() -> void:
+	talent_panel.visible = not talent_panel.visible
+	if talent_panel.visible:
+		_rebuild_talent_panel()
+	equipment_panel.visible = false
 	gacha_panel.visible = false
 	return_panel.visible = false
 	if dev_panel != null:
@@ -822,6 +931,7 @@ func _toggle_equipment() -> void:
 func _toggle_gacha() -> void:
 	gacha_panel.visible = not gacha_panel.visible
 	equipment_panel.visible = false
+	talent_panel.visible = false
 	return_panel.visible = false
 	if dev_panel != null:
 		dev_panel.visible = false
@@ -832,6 +942,7 @@ func _toggle_dev_tools() -> void:
 	dev_panel.visible = not dev_panel.visible
 	gacha_panel.visible = false
 	equipment_panel.visible = false
+	talent_panel.visible = false
 	return_panel.visible = false
 
 func _set_infinite_tokens(enabled: bool) -> void:
@@ -868,6 +979,7 @@ func _show_return_report(report: Dictionary) -> void:
 	return_panel.visible = true
 	gacha_panel.visible = false
 	equipment_panel.visible = false
+	talent_panel.visible = false
 	if dev_panel != null:
 		dev_panel.visible = false
 
@@ -930,7 +1042,8 @@ func _format_duration(seconds: int) -> String:
 	return "%ds" % seconds
 
 func _refresh_sim_ui() -> void:
-	hero_label.text = "Adventurer · Lv %d · HP %d/%d · %d gold" % [
+	hero_label.text = "%s · Lv %d · HP %d/%d · %d gold" % [
+		TalentCatalogScript.CLASS_NAME,
 		sim.hero_level,
 		sim.hero_hp,
 		sim.effective_max_hp(),
@@ -942,9 +1055,17 @@ func _refresh_sim_ui() -> void:
 func _on_sim_event(event: Dictionary) -> void:
 	event_label.text = str(event.get("message", ""))
 	var event_type := str(event.get("type", ""))
-	if event_type in ["gear_obtained", "gear_equipped", "gear_unequipped", "gear_sold", "gear_salvaged"]:
+
+	if event_type == "talent_proc":
+		talent_proc_pulse = 0.22
+
+	if event_type in ["gear_obtained", "gear_equipped", "gear_unequipped", "gear_sold", "gear_salvaged", "talent_unlocked", "talents_reset"]:
 		if equipment_panel != null and equipment_panel.visible:
 			_rebuild_equipment_panel()
+
+	if event_type in ["talent_unlocked", "talents_reset", "level_up"]:
+		if talent_panel != null and talent_panel.visible:
+			_rebuild_talent_panel()
 
 func _select_banner(banner_id: String) -> void:
 	selected_banner = banner_id
