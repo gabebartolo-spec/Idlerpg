@@ -10,6 +10,8 @@ const CompanionCatalogScript = preload("res://src/data/companion_catalog.gd")
 const TOWN_POSITION := Vector3(-5.0, 0.0, 3.0)
 const GOBLIN_CAMP_POSITION := Vector3(1.5, 0.0, -1.5)
 const WOLF_DEN_POSITION := Vector3(5.0, 0.0, -4.0)
+const BRIARFEN_POSITION := Vector3(8.0, 0.0, 3.2)
+const THORNBACK_POSITION := Vector3(8.0, 0.0, -1.2)
 
 const MOVE_SPEED := 2.4
 const HERO_ATTACK_INTERVAL := 0.9
@@ -38,9 +40,12 @@ var enemy_attack_clock: float = 0.0
 var hero_attack_clock: float = 0.0
 
 var quest_stage: int = 0
+var quest_kind: String = "rangers_errand"
 var quest_cycles_completed: int = 0
 var goblins_killed: int = 0
 var wolves_killed: int = 0
+var briarlings_killed: int = 0
+var thornback_killed: bool = false
 var total_kills: int = 0
 var deaths: int = 0
 
@@ -120,9 +125,12 @@ func to_save_dict() -> Dictionary:
 		"enemy_attack_clock": enemy_attack_clock,
 		"hero_attack_clock": hero_attack_clock,
 		"quest_stage": quest_stage,
+		"quest_kind": quest_kind,
 		"quest_cycles_completed": quest_cycles_completed,
 		"goblins_killed": goblins_killed,
 		"wolves_killed": wolves_killed,
+		"briarlings_killed": briarlings_killed,
+		"thornback_killed": thornback_killed,
 		"total_kills": total_kills,
 		"deaths": deaths,
 		"last_loot": last_loot,
@@ -156,9 +164,14 @@ func load_save_dict(data: Dictionary) -> void:
 	enemy_attack_clock = max(0.0, float(data.get("enemy_attack_clock", 0.0)))
 	hero_attack_clock = max(0.0, float(data.get("hero_attack_clock", 0.0)))
 	quest_stage = clampi(int(data.get("quest_stage", 0)), 0, 5)
+	quest_kind = str(data.get("quest_kind", "rangers_errand"))
+	if quest_kind not in ["rangers_errand", "briarfen"]:
+		quest_kind = "rangers_errand"
 	quest_cycles_completed = max(0, int(data.get("quest_cycles_completed", 0)))
 	goblins_killed = max(0, int(data.get("goblins_killed", 0)))
 	wolves_killed = max(0, int(data.get("wolves_killed", 0)))
+	briarlings_killed = max(0, int(data.get("briarlings_killed", 0)))
+	thornback_killed = bool(data.get("thornback_killed", false))
 	total_kills = max(0, int(data.get("total_kills", 0)))
 	deaths = max(0, int(data.get("deaths", 0)))
 	last_loot = str(data.get("last_loot", ""))
@@ -491,6 +504,15 @@ func current_activity_text() -> String:
 			return "Waiting in Mossgate"
 
 func current_quest_text() -> String:
+	if quest_kind == "briarfen":
+		if quest_stage <= 1:
+			return "Briarfen Trouble · Briarlings %d/4" % briarlings_killed
+		if quest_stage <= 3 and not thornback_killed:
+			return "Briarfen Trouble · Defeat Old Thornback"
+		if quest_stage == 4:
+			return "Briarfen Trouble · Return to Mossgate"
+		return "Briarfen Trouble · Complete"
+
 	if quest_stage <= 1:
 		return "Ranger's Errand · Goblins %d/3" % goblins_killed
 	if quest_stage <= 3:
@@ -528,10 +550,19 @@ func _begin_quest_cycle() -> void:
 	last_stand_used = false
 	goblins_killed = 0
 	wolves_killed = 0
+	briarlings_killed = 0
+	thornback_killed = false
 	quest_stage = 0
 	hero_hp = effective_max_hp()
-	_emit_event("quest_started", "Ranger's Errand started.")
-	_travel_to("goblin_camp", "Goblin Camp", GOBLIN_CAMP_POSITION, false)
+
+	if quest_cycles_completed <= 0:
+		quest_kind = "rangers_errand"
+		_emit_event("quest_started", "Ranger's Errand started.")
+		_travel_to("goblin_camp", "Goblin Camp", GOBLIN_CAMP_POSITION, false)
+	else:
+		quest_kind = "briarfen"
+		_emit_event("quest_started", "Briarfen Trouble started.")
+		_travel_to("briarfen", "Briarfen", BRIARFEN_POSITION, false)
 
 func _travel_to(id: String, label: String, target: Vector3, returning: bool) -> void:
 	destination_id = id
@@ -563,6 +594,12 @@ func _arrive() -> void:
 		"wolf_den":
 			quest_stage = 3
 			_start_fight("wolf")
+		"briarfen":
+			quest_stage = 1
+			_start_fight("briarling")
+		"thornback_lair":
+			quest_stage = 3
+			_start_fight("thornback")
 		"town":
 			_complete_quest()
 
@@ -573,6 +610,10 @@ func _start_fight(kind: String) -> void:
 			enemy_max_hp = 14
 		"wolf":
 			enemy_max_hp = 22
+		"briarling":
+			enemy_max_hp = 28
+		"thornback":
+			enemy_max_hp = 60
 		_:
 			enemy_max_hp = 10
 
@@ -597,8 +638,21 @@ func _advance_combat(delta: float) -> void:
 			_defeat_enemy()
 			return
 
-	var enemy_interval: float = 1.55 if enemy_kind == "goblin" else 1.30
-	var enemy_damage: int = 2 if enemy_kind == "goblin" else 4
+	var enemy_interval: float = 1.30
+	var enemy_damage: int = 4
+	match enemy_kind:
+		"goblin":
+			enemy_interval = 1.55
+			enemy_damage = 2
+		"wolf":
+			enemy_interval = 1.30
+			enemy_damage = 4
+		"briarling":
+			enemy_interval = 1.45
+			enemy_damage = 4
+		"thornback":
+			enemy_interval = 1.55
+			enemy_damage = 6
 	while enemy_attack_clock >= enemy_interval and activity == "fighting":
 		enemy_attack_clock -= enemy_interval
 		take_damage(enemy_damage)
@@ -628,14 +682,28 @@ func _defeat_enemy() -> void:
 	var defeated_kind: String = enemy_kind
 	total_kills += 1
 
-	if defeated_kind == "goblin":
-		goblins_killed += 1
-		last_loot = "Goblin Trinket"
-		_grant_enemy_xp(8)
-	else:
-		wolves_killed += 1
-		last_loot = "Wolf Pelt"
-		_grant_enemy_xp(12)
+	match defeated_kind:
+		"goblin":
+			goblins_killed += 1
+			last_loot = "Goblin Trinket"
+			_grant_enemy_xp(8)
+		"wolf":
+			wolves_killed += 1
+			last_loot = "Wolf Pelt"
+			_grant_enemy_xp(12)
+		"briarling":
+			briarlings_killed += 1
+			last_loot = "Briar Sap"
+			_grant_enemy_xp(16)
+		"thornback":
+			thornback_killed = true
+			last_loot = "Thornback Tusk"
+			_grant_enemy_xp(40)
+			if int(gear_inventory.get("Briarheart Charm", 0)) == 0:
+				add_gear("Briarheart Charm")
+		_:
+			last_loot = "Unknown Trophy"
+			_grant_enemy_xp(5)
 
 	if has_talent("bloodlust"):
 		var hp_before := hero_hp
@@ -677,6 +745,23 @@ func _defeat_enemy() -> void:
 func _finish_looting() -> void:
 	enemy_kind = ""
 
+	if quest_kind == "briarfen":
+		if quest_stage == 1:
+			if briarlings_killed < 4:
+				_start_fight("briarling")
+			else:
+				quest_stage = 2
+				_travel_to("thornback_lair", "Old Thornback's Hollow", THORNBACK_POSITION, false)
+			return
+
+		if quest_stage == 3:
+			if not thornback_killed:
+				_start_fight("thornback")
+			else:
+				quest_stage = 4
+				_travel_to("town", "Mossgate", TOWN_POSITION, true)
+			return
+
 	if quest_stage == 1:
 		if goblins_killed < 3:
 			_start_fight("goblin")
@@ -693,20 +778,24 @@ func _finish_looting() -> void:
 			_travel_to("town", "Mossgate", TOWN_POSITION, true)
 
 func _complete_quest() -> void:
-	quest_cycles_completed += 1
-	var gold_reward := 20
+	var completed_quest := quest_kind
+	var gold_reward := 40 if completed_quest == "briarfen" else 20
+	var xp_reward := 35 if completed_quest == "briarfen" else 20
 	if not active_companion.is_empty():
 		gold_reward = int(round(float(gold_reward) * CompanionCatalogScript.gold_multiplier(active_companion, active_companion_bond_level())))
+
+	quest_cycles_completed += 1
 	gold += gold_reward
-	_grant_xp(20)
+	_grant_xp(xp_reward)
 	hero_hp = effective_max_hp()
 	quest_stage = 5
 	activity = "resting"
 	activity_timer = REST_TIME
+	var quest_name := "Briarfen Trouble" if completed_quest == "briarfen" else "Ranger's Errand"
 	_emit_event(
 		"quest_completed",
-		"Ranger's Errand complete. +%d gold." % gold_reward,
-		{"gold": gold_reward, "cycle": quest_cycles_completed}
+		"%s complete. +%d gold." % [quest_name, gold_reward],
+		{"gold": gold_reward, "cycle": quest_cycles_completed, "quest": completed_quest}
 	)
 
 func _die() -> void:
@@ -720,7 +809,19 @@ func _die() -> void:
 
 func _finish_recovery() -> void:
 	hero_hp = effective_max_hp()
-	_emit_event("recovered", "Recovered. Back to the errand.")
+	_emit_event("recovered", "Recovered. Back to the quest.")
+
+	if quest_kind == "briarfen":
+		if briarlings_killed < 4:
+			quest_stage = 0
+			_travel_to("briarfen", "Briarfen", BRIARFEN_POSITION, false)
+		elif not thornback_killed:
+			quest_stage = 2
+			_travel_to("thornback_lair", "Old Thornback's Hollow", THORNBACK_POSITION, false)
+		else:
+			quest_stage = 4
+			_travel_to("town", "Mossgate", TOWN_POSITION, true)
+		return
 
 	if goblins_killed < 3:
 		quest_stage = 0
@@ -756,6 +857,10 @@ func _enemy_display_name(kind: String) -> String:
 			return "Goblin"
 		"wolf":
 			return "Grey Wolf"
+		"briarling":
+			return "Briarling"
+		"thornback":
+			return "Old Thornback"
 		_:
 			return "Enemy"
 
