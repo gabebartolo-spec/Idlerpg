@@ -5,6 +5,7 @@ signal event_emitted(event: Dictionary)
 
 const GearCatalogScript = preload("res://src/data/gear_catalog.gd")
 const TalentCatalogScript = preload("res://src/data/talent_catalog.gd")
+const CompanionCatalogScript = preload("res://src/data/companion_catalog.gd")
 
 const TOWN_POSITION := Vector3(-5.0, 0.0, 3.0)
 const GOBLIN_CAMP_POSITION := Vector3(1.5, 0.0, -1.5)
@@ -62,6 +63,9 @@ var unlocked_talents: Dictionary = {}
 var hero_attack_count: int = 0
 var second_wind_used: bool = false
 var last_stand_used: bool = false
+
+var active_companion: String = ""
+var companion_bond_xp: Dictionary = {}
 
 func _ready() -> void:
 	if activity.is_empty():
@@ -128,7 +132,9 @@ func to_save_dict() -> Dictionary:
 		"unlocked_talents": unlocked_talents.duplicate(true),
 		"hero_attack_count": hero_attack_count,
 		"second_wind_used": second_wind_used,
-		"last_stand_used": last_stand_used
+		"last_stand_used": last_stand_used,
+		"active_companion": active_companion,
+		"companion_bond_xp": companion_bond_xp.duplicate(true)
 	}
 
 func load_save_dict(data: Dictionary) -> void:
@@ -185,6 +191,17 @@ func load_save_dict(data: Dictionary) -> void:
 	hero_attack_count = max(0, int(data.get("hero_attack_count", 0)))
 	second_wind_used = bool(data.get("second_wind_used", false))
 	last_stand_used = bool(data.get("last_stand_used", false))
+
+	active_companion = str(data.get("active_companion", ""))
+	if not active_companion.is_empty() and not CompanionCatalogScript.has_companion(active_companion):
+		active_companion = ""
+	companion_bond_xp = {}
+	var saved_bond: Dictionary = data.get("companion_bond_xp", {})
+	for companion_name in saved_bond.keys():
+		var name := str(companion_name)
+		if CompanionCatalogScript.has_companion(name):
+			companion_bond_xp[name] = maxi(0, int(saved_bond[companion_name]))
+
 	hero_hp = clampi(saved_hp, 0, effective_max_hp())
 	recent_events.clear()
 
@@ -203,6 +220,57 @@ func _vec3_from_save(value: Variant, fallback: Vector3) -> Vector3:
 	if value is Array and value.size() >= 3:
 		return Vector3(float(value[0]), float(value[1]), float(value[2]))
 	return fallback
+
+func set_active_companion(companion_name: String) -> bool:
+	if not CompanionCatalogScript.has_companion(companion_name):
+		return false
+	var old_max_hp := effective_max_hp()
+	active_companion = companion_name
+	var new_max_hp := effective_max_hp()
+	if new_max_hp > old_max_hp:
+		hero_hp = min(new_max_hp, hero_hp + (new_max_hp - old_max_hp))
+	else:
+		hero_hp = min(hero_hp, new_max_hp)
+	_emit_event(
+		"companion_changed",
+		"%s joined the adventure." % companion_name,
+		{"companion": companion_name}
+	)
+	return true
+
+func clear_active_companion() -> void:
+	if active_companion.is_empty():
+		return
+	var old_name := active_companion
+	active_companion = ""
+	hero_hp = min(hero_hp, effective_max_hp())
+	_emit_event("companion_changed", "%s is resting." % old_name, {"companion": ""})
+
+func companion_bond_xp_for(companion_name: String) -> int:
+	return maxi(0, int(companion_bond_xp.get(companion_name, 0)))
+
+func companion_bond_level(companion_name: String) -> int:
+	if not CompanionCatalogScript.has_companion(companion_name):
+		return 0
+	return CompanionCatalogScript.bond_level_for_xp(companion_bond_xp_for(companion_name))
+
+func active_companion_bond_level() -> int:
+	if active_companion.is_empty():
+		return 0
+	return companion_bond_level(active_companion)
+
+func _grant_companion_bond_xp(amount: int) -> void:
+	if active_companion.is_empty() or amount <= 0:
+		return
+	var old_level := companion_bond_level(active_companion)
+	companion_bond_xp[active_companion] = companion_bond_xp_for(active_companion) + amount
+	var new_level := companion_bond_level(active_companion)
+	if new_level > old_level:
+		_emit_event(
+			"companion_bond_up",
+			"%s reached bond %d." % [active_companion, new_level],
+			{"companion": active_companion, "bond_level": new_level}
+		)
 
 func has_talent(talent_id: String) -> bool:
 	return bool(unlocked_talents.get(talent_id, false))
@@ -269,7 +337,10 @@ func reset_talents() -> void:
 	_emit_event("talents_reset", "Talents reset.")
 
 func effective_move_speed() -> float:
-	return MOVE_SPEED * (1.20 if has_talent("trail_legs") else 1.0)
+	var speed := MOVE_SPEED * (1.20 if has_talent("trail_legs") else 1.0)
+	if not active_companion.is_empty():
+		speed *= CompanionCatalogScript.move_multiplier(active_companion, active_companion_bond_level())
+	return speed
 
 func effective_attack_interval() -> float:
 	return HERO_ATTACK_INTERVAL * (0.85 if has_talent("quick_hands") else 1.0)
@@ -358,6 +429,8 @@ func effective_attack() -> int:
 	var total := hero_attack
 	if has_talent("sharpened_edge"):
 		total += 2
+	if not active_companion.is_empty():
+		total += CompanionCatalogScript.attack_bonus(active_companion, active_companion_bond_level())
 	for item_name in equipped.values():
 		if not str(item_name).is_empty():
 			total += GearCatalogScript.attack_bonus(str(item_name))
@@ -367,6 +440,8 @@ func effective_max_hp() -> int:
 	var total := hero_max_hp
 	if has_talent("thick_hide"):
 		total += 10
+	if not active_companion.is_empty():
+		total += CompanionCatalogScript.hp_bonus(active_companion, active_companion_bond_level())
 	for item_name in equipped.values():
 		if not str(item_name).is_empty():
 			total += GearCatalogScript.hp_bonus(str(item_name))
@@ -444,7 +519,9 @@ func get_snapshot() -> Dictionary:
 		"enemy_hp": enemy_hp,
 		"enemy_max_hp": enemy_max_hp,
 		"quest_cycles_completed": quest_cycles_completed,
-		"deaths": deaths
+		"deaths": deaths,
+		"active_companion": active_companion,
+		"companion_bond_level": active_companion_bond_level()
 	}
 
 func _begin_quest_cycle() -> void:
@@ -566,6 +643,19 @@ func _defeat_enemy() -> void:
 		if hero_hp > hp_before:
 			_emit_event("talent_proc", "Bloodlust restored %d health." % (hero_hp - hp_before), {"talent": "bloodlust"})
 
+	if not active_companion.is_empty():
+		var companion_heal := CompanionCatalogScript.kill_heal(active_companion, active_companion_bond_level())
+		if companion_heal > 0:
+			var companion_hp_before := hero_hp
+			hero_hp = min(effective_max_hp(), hero_hp + companion_heal)
+			if hero_hp > companion_hp_before:
+				_emit_event(
+					"companion_proc",
+					"%s restored %d health." % [active_companion, hero_hp - companion_hp_before],
+					{"companion": active_companion}
+				)
+		_grant_companion_bond_xp(1)
+
 	inventory[last_loot] = int(inventory.get(last_loot, 0)) + 1
 	_emit_event(
 		"enemy_defeated",
@@ -604,7 +694,10 @@ func _finish_looting() -> void:
 
 func _complete_quest() -> void:
 	quest_cycles_completed += 1
-	gold += 20
+	var gold_reward := 20
+	if not active_companion.is_empty():
+		gold_reward = int(round(float(gold_reward) * CompanionCatalogScript.gold_multiplier(active_companion, active_companion_bond_level())))
+	gold += gold_reward
 	_grant_xp(20)
 	hero_hp = effective_max_hp()
 	quest_stage = 5
@@ -612,8 +705,8 @@ func _complete_quest() -> void:
 	activity_timer = REST_TIME
 	_emit_event(
 		"quest_completed",
-		"Ranger's Errand complete. +20 gold.",
-		{"gold": 20, "cycle": quest_cycles_completed}
+		"Ranger's Errand complete. +%d gold." % gold_reward,
+		{"gold": gold_reward, "cycle": quest_cycles_completed}
 	)
 
 func _die() -> void:
@@ -642,7 +735,9 @@ func _finish_recovery() -> void:
 func _grant_enemy_xp(amount: int) -> void:
 	var resolved_amount := amount
 	if has_talent("hunter_eye"):
-		resolved_amount = int(round(float(amount) * 1.25))
+		resolved_amount = int(round(float(resolved_amount) * 1.25))
+	if not active_companion.is_empty():
+		resolved_amount = int(round(float(resolved_amount) * CompanionCatalogScript.xp_multiplier(active_companion, active_companion_bond_level())))
 	_grant_xp(resolved_amount)
 
 func _grant_xp(amount: int) -> void:
