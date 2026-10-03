@@ -216,6 +216,23 @@ func talent_points_spent() -> int:
 func talent_points_available() -> int:
 	return max(0, talent_points_total() - talent_points_spent())
 
+func talent_branch_spent(branch_id: String) -> int:
+	var spent := 0
+	for talent_id in TalentCatalogScript.nodes_for_branch(branch_id):
+		if has_talent(talent_id):
+			spent += 1
+	return spent
+
+func build_summary() -> String:
+	var parts: Array[String] = []
+	for branch_id in TalentCatalogScript.branch_ids():
+		var spent := talent_branch_spent(branch_id)
+		if spent > 0:
+			parts.append("%s %d" % [TalentCatalogScript.branch_label(branch_id), spent])
+	if parts.is_empty():
+		return "Uncommitted"
+	return " · ".join(parts)
+
 func can_unlock_talent(talent_id: String) -> bool:
 	if not TalentCatalogScript.has_talent(talent_id):
 		return false
