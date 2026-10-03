@@ -1273,6 +1273,7 @@ Acceptance:
 
 ## IRPG-P7 — World expansion
 
+**Status:** `VERIFY` — PR #9 adds the first controlled world expansion: Briarfen, Briarlings, named boss Old Thornback, a second autonomous quest chain and a guaranteed world-only Rare accessory. Android zone/boss readability remains to validate.  
 **Goal:** turn the vertical slice into a small RPG journey.
 
 Build only after P1–P6 are stable:
@@ -1283,6 +1284,15 @@ Build only after P1–P6 are stable:
 - zone progression;
 - travel transitions;
 - light narrative.
+
+**Implementation (PR #9):**
+- The opening Ranger's Errand remains unchanged for new and existing saves.
+- After the opening quest, the adventurer travels to **Briarfen**.
+- **Briarfen Trouble:** defeat four Briarlings, enter Old Thornback's Hollow, defeat **Old Thornback**, return to Mossgate.
+- Old Thornback guarantees the world-only Rare **Briarheart Charm** (+2 ATK, +6 HP) the first time it is earned.
+- Briarfen uses darker wet terrain, thorn forms, a distinct boss hollow and separate Briarling/Thornback silhouettes while staying inside the mobile art budget.
+- Expanded quest/death/recovery state persists and resolves through the same authoritative offline simulation.
+- This phase deliberately adds one zone and one boss rather than beginning a content-production treadmill.
 
 Guardrail:
 Each new zone must introduce at least one meaningful gameplay or spectacle change. Do not clone the same kill quest ten times with different nouns.
@@ -1384,12 +1394,12 @@ Do not confuse content volume with finished quality.
 
 Do these in order:
 
-1. Keep the linear stack PR #5 → #6 → #7 → #8 green in Godot 4.7.2 CI.
-2. Phone-test the combined management/watch loop: equipment, talents, gacha collection and active companions.
-3. Validate touch targets, drawer height, follower readability, real suspend/resume and whether companion choices are understandable while watching.
-4. Fix mobile/core-loop blockers before broad content expansion.
-5. Merge in dependency order: P3, P4, P5, P6; retarget and re-verify each exact head as its base lands.
-6. After that gate, begin **IRPG-P7** world expansion with one additional zone and one named boss—not a content dump.
+1. Keep the linear stack PR #5 → #6 → #7 → #8 → #9 green in Godot 4.7.2 CI.
+2. Phone-test the combined management/watch loop plus Briarfen: equipment, talents, gacha collection, companions, zone readability and Old Thornback.
+3. Validate touch targets, drawer height, follower/boss silhouettes, real suspend/resume and whether the second quest is understandable without micromanagement.
+4. Fix mobile/core-loop blockers before adding another content system.
+5. Merge in dependency order: P3, P4, P5, P6, P7; retarget and re-verify each exact head as its base lands.
+6. After that gate, the next roadmap item is **IRPG-P8**: one passive profession with one optional minigame. Fishing remains the default candidate.
 
 Do not respond to a mediocre phone test by piling on more zones, classes, currencies or content. Fix the little-adventurer loop first.
 
