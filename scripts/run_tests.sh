@@ -16,3 +16,4 @@ run_test tests/test_persistence.gd
 run_test tests/test_gear.gd
 run_test tests/test_talents.gd
 run_test tests/test_companions.gd
+run_test tests/test_briarfen.gd
