@@ -91,6 +91,13 @@ func _build_world() -> void:
 	environment.ambient_light_source = Environment.AMBIENT_SOURCE_SKY
 	environment.ambient_light_energy = 1.0
 	environment.tonemap_mode = Environment.TONE_MAPPER_FILMIC
+	# Fade the far ground into the horizon so it never ends in a hard edge.
+	environment.fog_enabled = true
+	environment.fog_mode = Environment.FOG_MODE_DEPTH
+	environment.fog_light_color = sky_material.sky_horizon_color
+	environment.fog_depth_begin = 30.0
+	environment.fog_depth_end = 160.0
+	environment.fog_sky_affect = 0.0
 	var world_environment := WorldEnvironment.new()
 	world_environment.environment = environment
 	world.add_child(world_environment)
@@ -115,7 +122,7 @@ func _build_world() -> void:
 
 	var ground := MeshInstance3D.new()
 	var ground_mesh := BoxMesh.new()
-	ground_mesh.size = Vector3(20.0, 0.35, 18.0)
+	ground_mesh.size = Vector3(400.0, 0.35, 400.0)
 	ground.mesh = ground_mesh
 	ground.position = Vector3(0.0, -0.2, 0.0)
 	ground.material_override = _material(Color(0.24, 0.36, 0.20))
