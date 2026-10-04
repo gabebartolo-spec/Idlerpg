@@ -54,6 +54,18 @@ Debug/editor builds expose:
 
 These are development tools, not economy design.
 
+## Art
+
+All 3D art is scripted low-poly, built by Blender from `tools/art/` into `assets/`:
+
+```sh
+scripts/build_art.sh
+```
+
+The adventurer, goblin and wolf are part-animated models; weapons, hoods, armour and the buckler
+show on the adventurer when equipped; the gear drawer uses icons rendered from the same models.
+See `docs/ART_PIPELINE.md`.
+
 ## Design source of truth
 
 Read `docs/DESIGN_BIBLE.md`.
@@ -96,6 +108,7 @@ Current targeted tests cover:
 - gear ownership/equip stat changes and persistence;
 - first-quest guaranteed gear;
 - Gear gacha → owned equipment integration;
-- real main-scene launch smoke coverage.
+- real main-scene launch smoke coverage;
+- every art model loads, and every gear item has a model and icon.
 
 This branch still needs actual Godot 4.7.2 runtime validation. Static repository inspection is not a passing build.
