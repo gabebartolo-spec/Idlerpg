@@ -43,9 +43,9 @@ Colours are stored per face, so a model needs one matte material however many co
 uses. Only the glow colours (`GLOWS` in the palette) get a material of their own. In the game
 `ArtCatalog` swaps every model's matte surface for one shared material.
 
-The look follows `docs/ART_STYLE_GUIDE.md`. The hero, gear and weapons are built to it:
-about 5.5 heads tall, tapered and bevelled forms, oversized weapons. The goblin, wolf and
-props predate the guide and are still plain boxes.
+The look follows `docs/ART_STYLE_GUIDE.md`: a hero about 5.5 heads tall, tapered and
+bevelled forms, oversized weapons, an enemy silhouette rule per family, and buildings with
+steep roofs and thick beams. New models should be checked against it.
 
 ## Conventions
 

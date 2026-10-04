@@ -25,4 +25,4 @@ def model(model_id, category, item=None):
     return register
 
 
-from . import armour, backdrops, characters, props, weapons  # noqa: E402,F401
+from . import armour, backdrops, characters, enemies, props, weapons  # noqa: E402,F401
