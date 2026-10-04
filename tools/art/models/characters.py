@@ -11,6 +11,63 @@ from lowpoly import Part
 
 from . import model
 
+# Weapons point +Z; tilt the right grip so a held weapon points forward and a little up.
+GRIP_TILT = (70, 0, 0)
+
+
+@model("hero", "character")
+def hero():
+    """The adventurer, per docs/ART_STYLE_GUIDE.md section 3: about 5.5 heads tall, broad
+    torso, slightly oversized head and hands, sturdy feet. Gear in armour.py is fitted to
+    these dimensions, so change them together."""
+    root = Part("hero")
+    torso = Part("torso", (0, 0, 0.82), root)
+    torso.box((0.4, 0.24, 0.5), (0, 0, 1.07), "cloth_blue", taper=1.35, bevel=0.035)
+    torso.box((0.43, 0.27, 0.09), (0, 0, 0.85), "leather", bevel=0.02)
+    torso.box((0.09, 0.03, 0.08), (0, -0.14, 0.85), "gold")
+    torso.box((0.2, 0.02, 0.09), (0, -0.152, 1.25), "cloth_cream")
+    torso.cyl(0.075, 0.08, (0, 0, 1.35), "skin", sides=6)
+
+    head = Part("head", (0, 0, 1.36), torso)
+    head.box((0.3, 0.29, 0.3), (0, 0, 1.53), "skin", bevel=0.05)
+    head.box((0.33, 0.32, 0.11), (0, 0.01, 1.675), "hair", bevel=0.03)
+    head.box((0.33, 0.11, 0.24), (0, 0.13, 1.56), "hair", bevel=0.03)
+    head.box((0.33, 0.05, 0.06), (0, -0.14, 1.65), "hair")
+    head.box((0.04, 0.04, 0.05), (0, -0.155, 1.5), "skin")
+    for x in (-0.07, 0.07):
+        head.box((0.045, 0.02, 0.07), (x, -0.146, 1.55), "black")
+        head.box((0.07, 0.02, 0.02), (x, -0.148, 1.605), "hair")
+
+    parts = [
+        root, torso, head,
+        Part("attach_head", (0, 0, 1.53), head),
+        Part("attach_chest", (0, 0, 1.07), torso),
+        Part("attach_accessory", (0, -0.2, 1.2), torso),
+    ]
+    for side, sx in (("l", 1), ("r", -1)):
+        x = sx * 0.34
+        arm = Part("arm_" + side, (x, 0, 1.26), torso)
+        arm.ball(0.1, (x, 0, 1.26), "cloth_blue", detail=1)
+        arm.cyl(0.07, 0.26, (x, 0, 1.13), "cloth_blue", sides=6, top=0.085)
+        arm.cyl(0.075, 0.24, (x, 0, 0.89), "skin", sides=6, top=0.065)
+        arm.box((0.13, 0.15, 0.16), (x, 0, 0.7), "skin", bevel=0.03)
+        parts += [
+            arm,
+            Part("attach_hand_" + side, (x, -0.02, 0.7), arm, rot=GRIP_TILT if side == "r" else (0, 0, 0)),
+            Part("attach_glove_" + side, (x, 0, 0.7), arm),
+        ]
+
+        x = sx * 0.12
+        leg = Part("leg_" + side, (x, 0, 0.82), root)
+        leg.cyl(0.095, 0.7, (x, 0, 0.48), "leather_dark", sides=6, top=0.125)
+        leg.box((0.19, 0.32, 0.15), (x, -0.05, 0.075), "leather", bevel=0.035)
+        parts += [
+            leg,
+            Part("attach_leg_" + side, (x, 0, 0.48), leg),
+            Part("attach_foot_" + side, (x, -0.05, 0.075), leg),
+        ]
+    return parts
+
 
 def _humanoid(name, s, skin, shirt, pants, boots, belt, head_size=0.42):
     parts = {}
@@ -24,40 +81,18 @@ def _humanoid(name, s, skin, shirt, pants, boots, belt, head_size=0.42):
     head.box((head_size, head_size * 0.95, head_size), (0, 0, head_z), skin)
     for x in (-0.24, 0.24):
         head.box((head_size * 0.14, 0.02, head_size * 0.2), (x * head_size, -head_size * 0.48, head_z + head_size * 0.05), "black")
-    parts["attach_head"] = Part("attach_head", (0, 0, head_z), head)
-    parts["attach_chest"] = Part("attach_chest", (0, 0, 0.9 * s), torso)
-    parts["attach_accessory"] = Part("attach_accessory", (0, -0.17 * s, 0.98 * s), torso)
 
     for side, sx in (("l", 1), ("r", -1)):
         x = sx * 0.33 * s
         arm = parts["arm_" + side] = Part("arm_" + side, (x, 0, 1.1 * s), torso)
         arm.box((0.15 * s, 0.17 * s, 0.36 * s), (x, 0, 0.95 * s), shirt)
         arm.box((0.14 * s, 0.16 * s, 0.15 * s), (x, 0, 0.7 * s), skin)
-        # Weapons point +Z; tilt the grip so a held weapon points forward and a little up.
-        tilt = (70, 0, 0) if side == "r" else (0, 0, 0)
-        parts["attach_hand_" + side] = Part("attach_hand_" + side, (x, -0.03 * s, 0.68 * s), arm, rot=tilt)
-        parts["attach_glove_" + side] = Part("attach_glove_" + side, (x, 0, 0.7 * s), arm)
 
         x = sx * 0.13 * s
         leg = parts["leg_" + side] = Part("leg_" + side, (x, 0, 0.62 * s), root)
         leg.box((0.2 * s, 0.22 * s, 0.44 * s), (x, 0, 0.41 * s), pants)
         leg.box((0.22 * s, 0.3 * s, 0.2 * s), (x, -0.03 * s, 0.1 * s), boots)
-        parts["attach_leg_" + side] = Part("attach_leg_" + side, (x, 0, 0.41 * s), leg)
-        parts["attach_foot_" + side] = Part("attach_foot_" + side, (x, -0.03 * s, 0.1 * s), leg)
     return parts
-
-
-@model("hero", "character")
-def hero():
-    parts = _humanoid("hero", 1.0, "skin", "cloth_blue", "leather_dark", "leather", "leather")
-    parts["torso"].box((0.1, 0.03, 0.1), (0, -0.16, 0.68), "gold")
-    parts["torso"].box((0.3, 0.02, 0.14), (0, -0.155, 1.06), "cloth_cream")
-    head = parts["head"]
-    head.box((0.46, 0.42, 0.08), (0, 0.01, 1.64), "hair")
-    head.box((0.46, 0.1, 0.3), (0, 0.19, 1.5), "hair")
-    head.box((0.46, 0.06, 0.07), (0, -0.19, 1.59), "hair")
-    head.box((0.06, 0.05, 0.07), (0, -0.215, 1.36), "skin")
-    return list(parts.values())
 
 
 @model("goblin", "character")

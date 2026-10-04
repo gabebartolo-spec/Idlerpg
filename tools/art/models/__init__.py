@@ -4,12 +4,13 @@ from collections import namedtuple
 
 Spec = namedtuple("Spec", "id category item build")
 
-# Per category: triangle budget, largest allowed dimension (m), most materials.
+# Per category: triangle budget, largest allowed dimension (m), most materials
+# (the shared matte material plus glow accents).
 BUDGETS = {
-    "weapon": (250, 1.8, 5),
-    "armour": (250, 1.0, 5),
-    "prop": (500, 5.0, 6),
-    "character": (800, 2.0, 8),
+    "weapon": (300, 2.0, 3),
+    "armour": (400, 1.0, 3),
+    "prop": (500, 5.0, 3),
+    "character": (1500, 2.0, 3),
     "backdrop": (300, 45.0, 3),
 }
 
