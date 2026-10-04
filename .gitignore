@@ -12,3 +12,6 @@ export_credentials.cfg
 
 # Python
 __pycache__/
+
+# Exported builds
+build/
