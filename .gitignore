@@ -9,3 +9,9 @@ export_credentials.cfg
 # OS/editor
 .DS_Store
 *.tmp
+
+# Python
+__pycache__/
+
+# Exported builds
+build/
