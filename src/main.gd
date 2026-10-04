@@ -77,14 +77,34 @@ func _build_world() -> void:
 	world.name = "Greenway"
 	add_child(world)
 
+	var sky_material := ProceduralSkyMaterial.new()
+	sky_material.sky_top_color = Color(0.30, 0.52, 0.85)
+	sky_material.sky_horizon_color = Color(0.72, 0.84, 0.93)
+	sky_material.ground_horizon_color = Color(0.72, 0.84, 0.93)
+	sky_material.ground_bottom_color = Color(0.36, 0.45, 0.36)
+	var sky := Sky.new()
+	sky.sky_material = sky_material
+
+	var environment := Environment.new()
+	environment.background_mode = Environment.BG_SKY
+	environment.sky = sky
+	environment.ambient_light_source = Environment.AMBIENT_SOURCE_SKY
+	environment.ambient_light_energy = 1.0
+	environment.tonemap_mode = Environment.TONE_MAPPER_FILMIC
+	var world_environment := WorldEnvironment.new()
+	world_environment.environment = environment
+	world.add_child(world_environment)
+
 	var sun := DirectionalLight3D.new()
 	sun.rotation_degrees = Vector3(-55.0, -25.0, 0.0)
+	sun.light_color = Color(1.0, 0.96, 0.88)
+	sun.light_energy = 1.3
 	sun.shadow_enabled = true
 	world.add_child(sun)
 
 	var fill := DirectionalLight3D.new()
 	fill.rotation_degrees = Vector3(-25.0, 145.0, 0.0)
-	fill.light_energy = 0.4
+	fill.light_energy = 0.3
 	world.add_child(fill)
 
 	camera = Camera3D.new()
@@ -262,6 +282,11 @@ func _build_ui() -> void:
 	event_label.text = "The adventure begins."
 	event_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	top_column.add_child(event_label)
+
+	# The HUD sits over a bright sky; outline it so it stays readable.
+	for label in [hero_label, activity_label, quest_label, event_label]:
+		label.add_theme_color_override("font_outline_color", Color(0.08, 0.09, 0.11))
+		label.add_theme_constant_override("outline_size", 6)
 
 	var bottom := MarginContainer.new()
 	bottom.anchor_right = 1.0
