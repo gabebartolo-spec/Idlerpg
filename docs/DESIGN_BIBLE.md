@@ -1376,6 +1376,7 @@ Do not respond to a mediocre phone test by piling on more zones, classes, curren
 - Debug builds have effectively unlimited gacha resources.
 - Simulation is authoritative; 3D presentation never creates separate outcomes.
 - Offline progression is core, not an afterthought.
+- Art is scripted low-poly built by Blender (`docs/ART_PIPELINE.md`); the look itself stays open.
 
 ## Deliberately unresolved
 
@@ -1390,7 +1391,7 @@ Do not prematurely lock:
 - exact stat formula;
 - final profession list;
 - real online/social features;
-- final art asset pipeline.
+- final art identity.
 
 Resolve these with prototypes and evidence, not because a roadmap needs every blank filled.
 
