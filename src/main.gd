@@ -135,6 +135,7 @@ func _build_world() -> void:
 	_build_town()
 	_build_goblin_camp()
 	_build_wolf_den()
+	_build_horizon()
 
 	var trees := [
 		Vector3(-6.8, 0.0, -2.5),
@@ -184,6 +185,18 @@ func _build_wolf_den() -> void:
 	_add_prop("rock_large", den + Vector3(2.8, 0.0, -1.2), 110.0)
 	_add_prop("bone_pile", den + Vector3(-1.5, 0.0, -1.6), 200.0)
 	_add_prop("rock_small", den + Vector3(-2.3, 0.0, -2.6), 20.0)
+
+func _build_horizon() -> void:
+	# Backdrop only, on the side the fixed camera looks towards.
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 7
+	var view := Vector2(-7.0, -8.0).normalized()
+	for index in 16:
+		var spot := view.rotated(rng.randf_range(-1.3, 1.3)) * rng.randf_range(55.0, 120.0)
+		_add_prop("hill_round" if index % 2 == 0 else "hill_ridge", Vector3(spot.x, 0.0, spot.y), rng.randf_range(0.0, 360.0), rng.randf_range(0.7, 1.5))
+	for index in 45:
+		var spot := view.rotated(rng.randf_range(-1.4, 1.4)) * rng.randf_range(16.0, 50.0)
+		_add_prop("tree_oak" if index % 3 == 0 else "tree_pine", Vector3(spot.x, 0.0, spot.y), rng.randf_range(0.0, 360.0), rng.randf_range(0.9, 1.6))
 
 func _build_hero() -> Node3D:
 	var hero: Node3D = CharacterVisualScript.new()

@@ -34,6 +34,7 @@ install folder. The outputs are committed, so the game, the tests and CI do not 
 | armour | 250 | 1.0 m | 5 | |
 | prop | 500 | 5.0 m | 6 | sits on the ground |
 | character | 800 | 2.0 m | 8 | sits on the ground |
+| backdrop | 300 | 45 m | 3 | sits on the ground |
 
 Budgets live in `tools/art/models/__init__.py`. Colours come only from `tools/art/palette.py`;
 change a colour there and every model that uses it changes on the next build.

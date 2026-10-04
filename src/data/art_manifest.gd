@@ -7,6 +7,8 @@ const MODELS := {
 	"oak_buckler": {"path": "res://assets/models/armours/oak_buckler.glb", "category": "armour", "tris": 100, "size": Vector3(0.600, 0.600, 0.181), "nodes": []},
 	"knight_mail": {"path": "res://assets/models/armours/knight_mail.glb", "category": "armour", "tris": 76, "size": Vector3(0.960, 0.615, 0.390), "nodes": []},
 	"wyrmhide_coat": {"path": "res://assets/models/armours/wyrmhide_coat.glb", "category": "armour", "tris": 102, "size": Vector3(0.900, 0.810, 0.491), "nodes": []},
+	"hill_round": {"path": "res://assets/models/backdrops/hill_round.glb", "category": "backdrop", "tris": 100, "size": Vector3(34.487, 6.238, 25.472), "nodes": []},
+	"hill_ridge": {"path": "res://assets/models/backdrops/hill_ridge.glb", "category": "backdrop", "tris": 120, "size": Vector3(37.074, 9.422, 19.840), "nodes": []},
 	"hero": {"path": "res://assets/models/characters/hero.glb", "category": "character", "tris": 228, "size": Vector3(0.810, 1.680, 0.480), "nodes": ["torso", "head", "attach_head", "attach_chest", "arm_l", "attach_hand_l", "leg_l", "arm_r", "attach_hand_r", "leg_r"]},
 	"goblin": {"path": "res://assets/models/characters/goblin.glb", "category": "character", "tris": 224, "size": Vector3(0.880, 1.209, 0.668), "nodes": ["torso", "head", "attach_head", "attach_chest", "arm_l", "attach_hand_l", "leg_l", "arm_r", "attach_hand_r", "leg_r"]},
 	"wolf": {"path": "res://assets/models/characters/wolf.glb", "category": "character", "tris": 240, "size": Vector3(0.420, 1.025, 1.803), "nodes": ["body", "head", "leg_fl", "leg_fr", "leg_bl", "leg_br", "tail"]},

@@ -38,6 +38,7 @@ VIEWS = {
     "armour": (30, 15, 0),
     "prop": (35, 20, 0),
     "character": (35, 20, 0),
+    "backdrop": (35, 20, 0),
 }
 
 
@@ -107,7 +108,7 @@ def build_model(spec, gear):
         errors.append("%.2f m across, limit %.2f" % (max(size), max_size))
     if len(colours) > max_materials:
         errors.append("%d materials, limit %d" % (len(colours), max_materials))
-    if spec.category in ("prop", "character") and not -0.01 <= low.z <= 0.05:
+    if spec.category in ("prop", "character", "backdrop") and not -0.01 <= low.z <= 0.05:
         errors.append("does not sit on the ground (lowest point %.2f)" % low.z)
     if spec.category == "weapon" and not all(low[i] <= 0.0 <= high[i] for i in range(3)):
         errors.append("origin is not on the grip")

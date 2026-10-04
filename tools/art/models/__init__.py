@@ -10,6 +10,7 @@ BUDGETS = {
     "armour": (250, 1.0, 5),
     "prop": (500, 5.0, 6),
     "character": (800, 2.0, 8),
+    "backdrop": (300, 45.0, 3),
 }
 
 MODELS = {}
@@ -23,4 +24,4 @@ def model(model_id, category, item=None):
     return register
 
 
-from . import armour, characters, props, weapons  # noqa: E402,F401
+from . import armour, backdrops, characters, props, weapons  # noqa: E402,F401
