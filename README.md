@@ -72,6 +72,18 @@ Debug/editor builds expose:
 
 These are development tools, not economy design.
 
+## Art
+
+All 3D art is scripted low-poly, built by Blender from `tools/art/` into `assets/`:
+
+```sh
+scripts/build_art.sh
+```
+
+The adventurer, goblin and wolf are part-animated models; weapons, hoods, armour and the buckler
+show on the adventurer when equipped; the gear drawer uses icons rendered from the same models.
+See `docs/ART_PIPELINE.md`.
+
 ## Design source of truth
 
 Read `docs/DESIGN_BIBLE.md` for product/roadmap decisions and `docs/ART_STYLE_GUIDE.md` for the locked visual language.
@@ -117,6 +129,7 @@ Current targeted tests cover:
 - Gear gacha → owned equipment integration;
 - talent prerequisites, point spending, respec and persistence;
 - Slayer/Warden/Trailblazer simulation effects;
-- real main-scene launch smoke coverage including the talent drawer.
+- real main-scene launch smoke coverage including the talent drawer;
+- every art model loads, and every gear item has a model and icon.
 
 Godot 4.7.2 CI must be green on the exact branch head. Android portrait validation is still required for watchability, touch UX and real suspend/resume behaviour.

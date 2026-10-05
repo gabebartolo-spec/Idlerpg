@@ -3,6 +3,9 @@ set -euo pipefail
 
 GODOT_BIN="${GODOT_BIN:-godot}"
 
+# Models and icons must be imported before a headless run can load them.
+"$GODOT_BIN" --headless --path . --import
+
 run_test() {
   local script="$1"
   echo "== Running $script =="
@@ -15,3 +18,4 @@ run_test tests/test_launch.gd
 run_test tests/test_persistence.gd
 run_test tests/test_gear.gd
 run_test tests/test_talents.gd
+run_test tests/test_art.gd
