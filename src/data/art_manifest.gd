@@ -39,7 +39,7 @@ const MODELS := {
 	"hill_squire": {"path": "res://assets/models/characters/hill_squire.glb", "category": "character", "tris": 672, "size": Vector3(0.931, 1.674, 0.774), "nodes": ["torso", "head", "arm_l", "leg_l", "arm_r", "leg_r"]},
 	"marsh_witch": {"path": "res://assets/models/characters/marsh_witch.glb", "category": "character", "tris": 704, "size": Vector3(0.790, 1.936, 0.626), "nodes": ["torso", "head", "arm_l", "leg_l", "arm_r", "leg_r"]},
 	"clockwork_raven": {"path": "res://assets/models/characters/clockwork_raven.glb", "category": "character", "tris": 266, "size": Vector3(1.260, 0.545, 0.744), "nodes": ["body", "head", "wing_l", "wing_r"]},
-	"frost_ranger": {"path": "res://assets/models/characters/frost_ranger.glb", "category": "character", "tris": 916, "size": Vector3(0.816, 1.677, 0.447), "nodes": ["torso", "head", "arm_l", "leg_l", "arm_r", "leg_r"]},
+	"frost_ranger": {"path": "res://assets/models/characters/frost_ranger.glb", "category": "character", "tris": 960, "size": Vector3(0.856, 1.677, 0.447), "nodes": ["torso", "head", "arm_l", "leg_l", "arm_r", "leg_r"]},
 	"sun_cleric": {"path": "res://assets/models/characters/sun_cleric.glb", "category": "character", "tris": 844, "size": Vector3(0.892, 1.774, 0.468), "nodes": ["torso", "head", "arm_l", "leg_l", "arm_r", "leg_r"]},
 	"grave_knight": {"path": "res://assets/models/characters/grave_knight.glb", "category": "character", "tris": 816, "size": Vector3(1.034, 1.920, 1.505), "nodes": ["torso", "head", "arm_l", "leg_l", "arm_r", "leg_r"]},
 	"ancient_warden": {"path": "res://assets/models/characters/ancient_warden.glb", "category": "character", "tris": 928, "size": Vector3(1.277, 2.404, 0.484), "nodes": ["torso", "head", "arm_l", "leg_l", "arm_r", "leg_r"]},
