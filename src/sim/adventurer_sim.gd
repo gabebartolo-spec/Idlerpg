@@ -6,6 +6,8 @@ signal event_emitted(event: Dictionary)
 const GearCatalogScript = preload("res://src/data/gear_catalog.gd")
 const TalentCatalogScript = preload("res://src/data/talent_catalog.gd")
 const CompanionCatalogScript = preload("res://src/data/companion_catalog.gd")
+const BossCatalogScript = preload("res://src/data/boss_catalog.gd")
+const HuntCatalogScript = preload("res://src/data/hunt_catalog.gd")
 
 const TOWN_POSITION := Vector3(-5.0, 0.0, 3.0)
 const GOBLIN_CAMP_POSITION := Vector3(1.5, 0.0, -1.5)
@@ -18,6 +20,10 @@ const HERO_ATTACK_INTERVAL := 0.9
 const LOOT_TIME := 0.7
 const RECOVERY_TIME := 3.0
 const REST_TIME := 2.5
+# World item effects (GearCatalog.EFFECTS holds the words for these).
+const CARAPACE_MULTIPLIER := 0.75
+const THORNWARD_MULTIPLIER := 0.5
+const OPPORTUNIST_MULTIPLIER := 2.0
 # The simulation is resolved in steps of this many seconds when no one is watching.
 const STEP := 0.1
 # Saved values that only ever count up and never change how a quest cycle plays out,
@@ -43,6 +49,24 @@ var enemy_hp: int = 0
 var enemy_max_hp: int = 0
 var enemy_attack_clock: float = 0.0
 var hero_attack_clock: float = 0.0
+var enemy_attack_count: int = 0
+
+# Old Thornback returns one rank stronger each time it is beaten.
+var thornback_rank: int = 0
+var thornback_lost: bool = false
+# The build the adventurer last lost with. They do not challenge again until it changes.
+var boss_retry_mark: String = ""
+# A tally of the boss fight in progress, and the last finished one, for the explanation.
+var boss_fight: Dictionary = {}
+var last_boss_fight: Dictionary = {}
+
+# World hunts: the chosen hunt, kills since its last drop, rolls ever made, and the items
+# found at least once. `drop_seed` fixes the rolls for this save.
+var hunt_target: String = HuntCatalogScript.DEFAULT_HUNT
+var hunt_progress: Dictionary = {}
+var hunt_rolls: Dictionary = {}
+var discovered: Dictionary = {}
+var drop_seed: int = 0
 
 var quest_stage: int = 0
 var quest_kind: String = "rangers_errand"
@@ -226,6 +250,17 @@ func to_save_dict() -> Dictionary:
 		"enemy_max_hp": enemy_max_hp,
 		"enemy_attack_clock": enemy_attack_clock,
 		"hero_attack_clock": hero_attack_clock,
+		"enemy_attack_count": enemy_attack_count,
+		"thornback_rank": thornback_rank,
+		"thornback_lost": thornback_lost,
+		"boss_retry_mark": boss_retry_mark,
+		"boss_fight": boss_fight.duplicate(true),
+		"last_boss_fight": last_boss_fight.duplicate(true),
+		"hunt_target": hunt_target,
+		"hunt_progress": hunt_progress.duplicate(true),
+		"hunt_rolls": hunt_rolls.duplicate(true),
+		"discovered": discovered.duplicate(true),
+		"drop_seed": drop_seed,
 		"quest_stage": quest_stage,
 		"quest_kind": quest_kind,
 		"quest_cycles_completed": quest_cycles_completed,
@@ -317,6 +352,29 @@ func load_save_dict(data: Dictionary) -> void:
 		if CompanionCatalogScript.has_companion(name):
 			companion_bond_xp[name] = maxi(0, int(saved_bond[companion_name]))
 
+	enemy_attack_count = max(0, int(data.get("enemy_attack_count", 0)))
+	thornback_rank = max(0, int(data.get("thornback_rank", 0)))
+	thornback_lost = bool(data.get("thornback_lost", false))
+	boss_retry_mark = str(data.get("boss_retry_mark", ""))
+	boss_fight = _normalise_fight(data.get("boss_fight", {}))
+	last_boss_fight = _normalise_fight(data.get("last_boss_fight", {}))
+	hunt_target = str(data.get("hunt_target", HuntCatalogScript.DEFAULT_HUNT))
+	if not hunt_target.is_empty() and not HuntCatalogScript.has_hunt(hunt_target):
+		hunt_target = HuntCatalogScript.DEFAULT_HUNT
+	hunt_progress = _normalise_count_dictionary(data.get("hunt_progress", {}))
+	hunt_rolls = _normalise_count_dictionary(data.get("hunt_rolls", {}))
+	drop_seed = max(0, int(data.get("drop_seed", drop_seed)))
+	discovered = {}
+	var saved_discovered: Variant = data.get("discovered", {})
+	if saved_discovered is Dictionary:
+		for item_name in saved_discovered:
+			if GearCatalogScript.has_item(str(item_name)) and bool(saved_discovered[item_name]):
+				discovered[str(item_name)] = true
+	# A world item already owned was found before discoveries were recorded.
+	for item_name in gear_inventory:
+		if not GearCatalogScript.source(str(item_name)).is_empty():
+			discovered[str(item_name)] = true
+
 	hero_hp = clampi(saved_hp, 0, effective_max_hp())
 	recent_events.clear()
 
@@ -327,6 +385,7 @@ func report_counters() -> Dictionary:
 		"total_kills": total_kills,
 		"quests": quest_cycles_completed,
 		"deaths": deaths,
+		"thornback_rank": thornback_rank,
 		"talent_points": talent_points_available(),
 		"inventory": inventory.duplicate(true),
 		"gear_inventory": gear_inventory.duplicate(true)
@@ -347,6 +406,94 @@ func _normalise_count_dictionary(value: Variant) -> Dictionary:
 		if count > 0:
 			result[str(key)] = count
 	return result
+
+# A fight tally read back from a save: whole numbers, and whether it was won.
+func _normalise_fight(value: Variant) -> Dictionary:
+	var result: Dictionary = {}
+	if not (value is Dictionary):
+		return result
+	var source: Dictionary = value
+	for key in source:
+		if str(key) == "won":
+			result["won"] = bool(source[key])
+		else:
+			result[str(key)] = int(source[key])
+	return result
+
+func has_gear_effect(effect_id: String) -> bool:
+	for item_name in equipped.values():
+		if not str(item_name).is_empty() and str((GearCatalogScript.ITEMS[item_name] as Dictionary).get("effect", "")) == effect_id:
+			return true
+	return false
+
+# True while Old Thornback is gathering itself for the burst: the warning.
+func enemy_winding_up() -> bool:
+	return activity == "fighting" and enemy_kind == "thornback" and BossCatalogScript.is_winding_up(enemy_attack_count)
+
+# Everything about the adventurer that could change how a boss fight goes.
+func _build_signature() -> String:
+	var talents: Array = unlocked_talents.keys()
+	talents.sort()
+	return "%d|%s|%s|%s|%d" % [hero_level, ",".join(PackedStringArray(equipped.values())), ",".join(PackedStringArray(talents)), active_companion, active_companion_bond_level()]
+
+# After a loss the adventurer leaves Old Thornback alone until something has changed:
+# a level, the gear worn, talents or the companion.
+func will_challenge_boss() -> bool:
+	return boss_retry_mark.is_empty() or boss_retry_mark != _build_signature()
+
+func set_hunt_target(hunt_id: String) -> bool:
+	if not hunt_id.is_empty() and not HuntCatalogScript.has_hunt(hunt_id):
+		return false
+	hunt_target = hunt_id
+	if hunt_id.is_empty():
+		_emit_event("hunt_changed", "No hunt chosen.", {"hunt": ""})
+	else:
+		_emit_event("hunt_changed", "Now hunting %s." % str(HuntCatalogScript.hunt(hunt_id)["item"]), {"hunt": hunt_id})
+	return true
+
+# Kills counted towards a hunt's guaranteed drop.
+func hunt_kills(hunt_id: String) -> int:
+	return maxi(0, int(hunt_progress.get(hunt_id, 0)))
+
+func has_discovered(item_name: String) -> bool:
+	return bool(discovered.get(item_name, false))
+
+# One roll of the active hunt, if this enemy is its quarry and the item is not owned.
+func _roll_hunt(kind: String) -> void:
+	if hunt_target.is_empty():
+		return
+	var hunt: Dictionary = HuntCatalogScript.HUNTS[hunt_target]
+	var item_name := str(hunt["item"])
+	if str(hunt["enemy"]) != kind or gear_count(item_name) > 0:
+		return
+	var kills := hunt_kills(hunt_target) + 1
+	var index := int(hunt_rolls.get(hunt_target, 0))
+	hunt_rolls[hunt_target] = index + 1
+	if kills < int(hunt["pity"]) and HuntCatalogScript.roll(drop_seed, int(hunt["salt"]), index) >= float(hunt["chance"]):
+		hunt_progress[hunt_target] = kills
+		return
+
+	hunt_progress.erase(hunt_target)
+	add_gear(item_name)
+	_discover(item_name)
+	# Move on to a hunt that still has something to find.
+	for other in HuntCatalogScript.hunt_ids():
+		if gear_count(str(HuntCatalogScript.HUNTS[other]["item"])) <= 0:
+			hunt_target = other
+			break
+
+# The first-discovery reward. Paid once per item for the life of the save, so selling an
+# item and finding it again pays nothing more.
+func _discover(item_name: String) -> void:
+	if has_discovered(item_name):
+		return
+	discovered[item_name] = true
+	gold += HuntCatalogScript.FIRST_DISCOVERY_GOLD
+	_emit_event(
+		"world_discovery",
+		"First %s found. +%d gold." % [item_name, HuntCatalogScript.FIRST_DISCOVERY_GOLD],
+		{"gear": item_name, "gold": HuntCatalogScript.FIRST_DISCOVERY_GOLD}
+	)
 
 func set_active_companion(companion_name: String) -> bool:
 	if not CompanionCatalogScript.has_companion(companion_name):
@@ -574,15 +721,28 @@ func effective_max_hp() -> int:
 			total += GearCatalogScript.hp_bonus(str(item_name))
 	return total
 
-func take_damage(amount: int) -> void:
+# `telegraphed` marks a blow the enemy warned of first.
+func take_damage(amount: int, telegraphed: bool = false) -> void:
 	if amount <= 0 or activity == "recovering":
 		return
 
 	var resolved_damage := amount
+	if has_gear_effect("carapace"):
+		resolved_damage = int(ceil(float(resolved_damage) * CARAPACE_MULTIPLIER))
+	if telegraphed and has_gear_effect("thornward"):
+		resolved_damage = int(ceil(float(resolved_damage) * THORNWARD_MULTIPLIER))
 	if has_talent("iron_guard"):
 		resolved_damage = max(1, resolved_damage - 1)
 
-	if resolved_damage >= hero_hp and has_talent("last_stand") and not last_stand_used:
+	var last_stand: bool = resolved_damage >= hero_hp and has_talent("last_stand") and not last_stand_used
+	if not boss_fight.is_empty():
+		var lost: int = hero_hp - 1 if last_stand else mini(resolved_damage, hero_hp)
+		boss_fight["damage_taken"] = int(boss_fight["damage_taken"]) + lost
+		if telegraphed:
+			boss_fight["burst_damage"] = int(boss_fight["burst_damage"]) + lost
+			boss_fight["bursts"] = int(boss_fight["bursts"]) + 1
+
+	if last_stand:
 		last_stand_used = true
 		hero_hp = 1
 		_emit_event("talent_proc", "Last stand kept you on your feet.", {"talent": "last_stand"})
@@ -607,7 +767,7 @@ func current_activity_text() -> String:
 		"returning":
 			return "Heading back to Mossgate"
 		"fighting":
-			return "Fighting %s · %d/%d HP" % [_enemy_display_name(enemy_kind), enemy_hp, enemy_max_hp]
+			return "Fighting %s · %d/%d HP" % [_enemy_title(enemy_kind), enemy_hp, enemy_max_hp]
 		"looting":
 			return "Picking up %s" % last_loot
 		"recovering":
@@ -622,7 +782,7 @@ func current_quest_text() -> String:
 		if quest_stage <= 1:
 			return "Briarfen Trouble · Briarlings %d/4" % briarlings_killed
 		if quest_stage <= 3 and not thornback_killed:
-			return "Briarfen Trouble · Defeat Old Thornback"
+			return "Briarfen Trouble · Defeat Old Thornback, rank %d" % thornback_rank
 		if quest_stage == 4:
 			return "Briarfen Trouble · Return to Mossgate"
 		return "Briarfen Trouble · Complete"
@@ -667,6 +827,7 @@ func _begin_quest_cycle() -> void:
 	wolves_killed = 0
 	briarlings_killed = 0
 	thornback_killed = false
+	thornback_lost = false
 	quest_stage = 0
 	hero_hp = effective_max_hp()
 
@@ -728,17 +889,24 @@ func _start_fight(kind: String) -> void:
 		"briarling":
 			enemy_max_hp = 28
 		"thornback":
-			enemy_max_hp = 60
+			enemy_max_hp = BossCatalogScript.max_hp(thornback_rank)
 		_:
 			enemy_max_hp = 10
 
 	enemy_hp = enemy_max_hp
 	hero_attack_clock = 0.0
 	enemy_attack_clock = 0.0
+	enemy_attack_count = 0
+	boss_fight = {}
+	if kind == "thornback":
+		boss_fight = {
+			"rank": thornback_rank, "level": hero_level, "boss_max_hp": enemy_max_hp,
+			"damage_dealt": 0, "windup_damage": 0, "damage_taken": 0, "burst_damage": 0, "bursts": 0
+		}
 	hero_attack_count = 0
 	second_wind_used = false
 	activity = "fighting"
-	_emit_event("fight_started", "Engaged %s." % _enemy_display_name(kind), {"enemy": kind})
+	_emit_event("fight_started", "Engaged %s." % _enemy_title(kind), {"enemy": kind})
 
 func _advance_combat(delta: float) -> void:
 	hero_attack_clock += delta
@@ -748,6 +916,8 @@ func _advance_combat(delta: float) -> void:
 	while hero_attack_clock >= attack_interval and activity == "fighting":
 		hero_attack_clock -= attack_interval
 		var damage := _next_hero_damage()
+		if not boss_fight.is_empty():
+			boss_fight["damage_dealt"] = int(boss_fight["damage_dealt"]) + mini(damage, enemy_hp)
 		enemy_hp = max(0, enemy_hp - damage)
 		if enemy_hp <= 0:
 			_defeat_enemy()
@@ -766,13 +936,20 @@ func _advance_combat(delta: float) -> void:
 			enemy_interval = 1.45
 			enemy_damage = 4
 		"thornback":
-			enemy_interval = 1.55
-			enemy_damage = 6
+			enemy_interval = BossCatalogScript.ATTACK_INTERVAL
+			enemy_damage = BossCatalogScript.damage(thornback_rank)
 	while enemy_attack_clock >= enemy_interval and activity == "fighting":
 		enemy_attack_clock -= enemy_interval
-		take_damage(enemy_damage)
+		enemy_attack_count += 1
+		if enemy_kind == "thornback" and BossCatalogScript.is_burst(enemy_attack_count):
+			_emit_event("boss_burst", "%s unleashes %s." % [BossCatalogScript.NAME, BossCatalogScript.BURST_NAME], {"enemy": enemy_kind})
+			take_damage(BossCatalogScript.burst_damage(thornback_rank), true)
+		else:
+			take_damage(enemy_damage)
 		if activity != "fighting":
 			return
+		if enemy_winding_up():
+			_emit_event("boss_windup", "%s raises its thorns. %s is coming." % [BossCatalogScript.NAME, BossCatalogScript.BURST_NAME], {"enemy": enemy_kind})
 
 func _next_hero_damage() -> int:
 	hero_attack_count += 1
@@ -791,7 +968,22 @@ func _next_hero_damage() -> int:
 			damage = int(ceil(float(damage) * 1.5))
 			_emit_event("talent_proc", "Executioner found the opening.", {"talent": "executioner"})
 
+	if enemy_winding_up() and has_gear_effect("opportunist"):
+		var boosted := int(ceil(float(damage) * OPPORTUNIST_MULTIPLIER))
+		if not boss_fight.is_empty():
+			boss_fight["windup_damage"] = int(boss_fight["windup_damage"]) + boosted - damage
+		damage = boosted
+
 	return max(1, damage)
+
+# Closes the tally of a boss fight and keeps it as the last one fought.
+func _finish_boss_fight(won: bool) -> void:
+	if boss_fight.is_empty():
+		return
+	last_boss_fight = boss_fight
+	last_boss_fight["won"] = won
+	last_boss_fight["boss_hp_left"] = enemy_hp
+	boss_fight = {}
 
 func _defeat_enemy() -> void:
 	var defeated_kind: String = enemy_kind
@@ -813,9 +1005,18 @@ func _defeat_enemy() -> void:
 		"thornback":
 			thornback_killed = true
 			last_loot = "Thornback Tusk"
-			_grant_enemy_xp(40)
+			_grant_enemy_xp(BossCatalogScript.xp(thornback_rank))
+			_finish_boss_fight(true)
+			_emit_event(
+				"boss_defeated",
+				"%s fell at rank %d. It will return stronger." % [BossCatalogScript.NAME, thornback_rank],
+				{"enemy": defeated_kind, "rank": thornback_rank}
+			)
+			thornback_rank += 1
+			boss_retry_mark = ""
 			if int(gear_inventory.get("Briarheart Charm", 0)) == 0:
 				add_gear("Briarheart Charm")
+				_discover("Briarheart Charm")
 		_:
 			last_loot = "Unknown Trophy"
 			_grant_enemy_xp(5)
@@ -853,6 +1054,8 @@ func _defeat_enemy() -> void:
 	elif quest_cycles_completed == 0 and defeated_kind == "wolf" and wolves_killed == 2 and int(gear_inventory.get("Wolfskin Hood", 0)) == 0:
 		add_gear("Wolfskin Hood")
 
+	_roll_hunt(defeated_kind)
+
 	activity = "looting"
 	activity_timer = LOOT_TIME
 	enemy_hp = 0
@@ -864,9 +1067,13 @@ func _finish_looting() -> void:
 		if quest_stage == 1:
 			if briarlings_killed < 4:
 				_start_fight("briarling")
-			else:
+			elif will_challenge_boss():
 				quest_stage = 2
 				_travel_to("thornback_lair", "Old Thornback's Hollow", THORNBACK_POSITION, false)
+			else:
+				quest_stage = 4
+				_emit_event("boss_skipped", "%s is still too strong. Heading home to prepare." % BossCatalogScript.NAME)
+				_travel_to("town", "Mossgate", TOWN_POSITION, true)
 			return
 
 		if quest_stage == 3:
@@ -894,8 +1101,12 @@ func _finish_looting() -> void:
 
 func _complete_quest() -> void:
 	var completed_quest := quest_kind
-	var gold_reward := 40 if completed_quest == "briarfen" else 20
-	var xp_reward := 35 if completed_quest == "briarfen" else 20
+	var gold_reward := 20
+	var xp_reward := 20
+	if completed_quest == "briarfen":
+		# The full reward is for beating Old Thornback; clearing the Briarlings pays less.
+		gold_reward = 40 if thornback_killed else 25
+		xp_reward = 35 if thornback_killed else 20
 	if not active_companion.is_empty():
 		gold_reward = int(round(float(gold_reward) * CompanionCatalogScript.gold_multiplier(active_companion, active_companion_bond_level())))
 
@@ -915,6 +1126,16 @@ func _complete_quest() -> void:
 
 func _die() -> void:
 	deaths += 1
+	if enemy_kind == "thornback":
+		thornback_lost = true
+		boss_retry_mark = _build_signature()
+		_finish_boss_fight(false)
+		_emit_event(
+			"boss_lost",
+			"%s drove you off at rank %d." % [BossCatalogScript.NAME, thornback_rank],
+			{"enemy": enemy_kind, "rank": thornback_rank}
+		)
+	boss_fight = {}
 	activity = "recovering"
 	activity_timer = RECOVERY_TIME
 	hero_position = TOWN_POSITION
@@ -927,7 +1148,11 @@ func _finish_recovery() -> void:
 	_emit_event("recovered", "Recovered. Back to the quest.")
 
 	if quest_kind == "briarfen":
-		if briarlings_killed < 4:
+		if thornback_lost:
+			# Driven off: the quest ends without the boss, and the adventurer prepares.
+			quest_stage = 4
+			_travel_to("town", "Mossgate", TOWN_POSITION, true)
+		elif briarlings_killed < 4:
 			quest_stage = 0
 			_travel_to("briarfen", "Briarfen", BRIARFEN_POSITION, false)
 		elif not thornback_killed:
@@ -978,6 +1203,11 @@ func _enemy_display_name(kind: String) -> String:
 			return "Old Thornback"
 		_:
 			return "Enemy"
+
+func _enemy_title(kind: String) -> String:
+	if kind == "thornback":
+		return "%s rank %d" % [BossCatalogScript.NAME, thornback_rank]
+	return _enemy_display_name(kind)
 
 func _emit_event(type: String, message: String, details: Dictionary = {}) -> void:
 	var event: Dictionary = {"type": type, "message": message}

@@ -7,6 +7,7 @@ const TouchListScript = preload("res://src/ui/touch_list.gd")
 const GearScreenScript = preload("res://src/ui/gear_screen.gd")
 const TalentScreenScript = preload("res://src/ui/talent_screen.gd")
 const GachaScreenScript = preload("res://src/ui/gacha_screen.gd")
+const BossScreenScript = preload("res://src/ui/boss_screen.gd")
 const TalentCatalogScript = preload("res://src/data/talent_catalog.gd")
 const Style = preload("res://src/ui/ui_style.gd")
 const GearCatalogScript = preload("res://src/data/gear_catalog.gd")
@@ -75,6 +76,7 @@ func _run() -> void:
 	await _test_gear_screen()
 	await _test_talent_screen()
 	await _test_gacha_screen()
+	await _test_boss_screen()
 	print("UI tests complete: %d failure(s)" % failures)
 	quit(failures)
 
@@ -319,3 +321,59 @@ func _test_gacha_screen() -> void:
 	screen.free()
 	sim.free()
 	game.free()
+
+func _test_boss_screen() -> void:
+	var sim: Node = AdventurerSimScript.new()
+	root.add_child(sim)
+	sim.hunt_target = "carapace"
+	sim.add_gear("Briarheart Charm")
+	# A lost fight to explain: rank 30 against a level 1 adventurer.
+	sim.thornback_rank = 30
+	sim.quest_kind = "briarfen"
+	sim._start_fight("thornback")
+	while sim.activity == "fighting":
+		sim.advance(0.1)
+
+	var screen: Control = BossScreenScript.new()
+	root.add_child(screen)
+	screen.setup(sim)
+	screen.open()
+	await _settle()
+
+	var view := root.get_visible_rect()
+	_check(screen.subtitle_label.text.contains("rank 30"), "the boss screen names the boss's rank")
+	_check(screen.rows.has("hunt:briarhook") and screen.rows.has("hunt:carapace"), "both hunts have a row")
+	_check(screen.act_button.disabled, "nothing happens until a row is chosen")
+	var rect: Rect2 = screen.act_button.get_global_rect()
+	_check(view.encloses(rect) and rect.size.y >= Style.TOUCH, "the action button stays on screen at touch size")
+
+	var equip_key := ""
+	for key in screen.row_actions:
+		if screen.row_actions[key]["action"] == "equip" and screen.row_actions[key]["target"] == "Briarheart Charm":
+			equip_key = key
+	_check(not equip_key.is_empty(), "the owned counter is offered as a suggestion")
+	screen.list.scroll_to(0.0)
+	await _settle()
+	await _tap((screen.rows[equip_key] as Control).get_global_rect().get_center())
+	_check(screen.selected == equip_key and sim.equipped_item("accessory").is_empty(), "tapping a suggestion selects it without acting")
+	await _tap(screen.act_button.get_global_rect().get_center())
+	_check(sim.equipped_item("accessory") == "Briarheart Charm", "the button carries the suggestion out")
+	_check(sim.will_challenge_boss(), "and the adventurer will now try the boss again")
+
+	screen.select("hunt:briarhook")
+	_check(not screen.act_button.disabled and screen.act_button.text == "Hunt Briarhook", "a hunt that is not active can be chosen")
+	screen.act()
+	_check(sim.hunt_target == "briarhook", "choosing it changes the hunt")
+	screen.select("hunt:briarhook")
+	_check(screen.act_button.disabled, "the active hunt has nothing left to choose")
+
+	screen.list.scroll_to(screen.list.max_offset())
+	await _settle()
+	var before: float = screen.list.offset
+	if before > 60.0:
+		var area: Rect2 = screen.list.get_global_rect()
+		await _swipe(area.position + Vector2(300.0, 40.0), area.position + Vector2(300.0, area.size.y - 20.0))
+		_check(screen.list.offset < before - 40.0, "the boss screen scrolls back up")
+
+	screen.free()
+	sim.free()

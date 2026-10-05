@@ -49,6 +49,7 @@ class Account:
 	var tokens_salvaged: int = 0
 	var tokens_spent: int = 0
 	var gold_from_quests: int = 0
+	var gold_from_discoveries: int = 0
 	# Per day, index 1..days.
 	var draws: PackedInt32Array
 	var new_draws: PackedInt32Array
@@ -68,6 +69,8 @@ class Account:
 		var type := str(event.get("type", ""))
 		if type == "quest_completed":
 			gold_from_quests += int(event.get("gold", 0))
+		if type == "world_discovery":
+			gold_from_discoveries += int(event.get("gold", 0))
 		elif type == "enemy_defeated" and str(event.get("enemy", "")) == "thornback" and boss_first_kill_seconds < 0.0:
 			# Known to the nearest check-in: it happened during the step just simulated.
 			boss_first_kill_seconds = clock + step
@@ -285,8 +288,9 @@ func _check_ledger(account: Account, label: String) -> void:
 	var expected := account.tokens_started + account.tokens_purchased + account.tokens_income + account.tokens_salvaged - account.tokens_spent
 	if expected != account.game.gacha_tokens or account.game.gacha_tokens < 0:
 		ledger_failures.append("%s: tokens %d, ledger says %d" % [label, account.game.gacha_tokens, expected])
-	if account.stepped and account.gold_from_quests != account.sim.gold:
-		ledger_failures.append("%s: gold %d, ledger says %d" % [label, account.sim.gold, account.gold_from_quests])
+	var gold_earned: int = account.gold_from_quests + account.gold_from_discoveries
+	if account.stepped and gold_earned != account.sim.gold:
+		ledger_failures.append("%s: gold %d, ledger says %d" % [label, account.sim.gold, gold_earned])
 
 
 func _sim_point(account: Account) -> Dictionary:

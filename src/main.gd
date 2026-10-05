@@ -10,6 +10,7 @@ const CharacterVisualScript = preload("res://src/view/character_visual.gd")
 const GearScreenScript = preload("res://src/ui/gear_screen.gd")
 const TalentScreenScript = preload("res://src/ui/talent_screen.gd")
 const GachaScreenScript = preload("res://src/ui/gacha_screen.gd")
+const BossScreenScript = preload("res://src/ui/boss_screen.gd")
 const UiStyleScript = preload("res://src/ui/ui_style.gd")
 
 const ACTIVITY_POSES := {"travelling": "walk", "returning": "walk", "fighting": "attack", "recovering": "down"}
@@ -48,6 +49,7 @@ var selected_collection_item: String:
 var equipment_panel: Control
 var sell_gear_button: Button
 var talent_panel: Control
+var boss_panel: Control
 var talent_button: Button
 var talent_proc_pulse: float = 0.0
 var dev_panel: VBoxContainer
@@ -65,6 +67,9 @@ func _ready() -> void:
 	sim = AdventurerSimScript.new()
 	add_child(sim)
 	pending_return_report = PersistenceScript.load_and_advance(sim, game)
+	# Each save gets its own run of hunt rolls, fixed from here on.
+	if sim.drop_seed == 0:
+		sim.drop_seed = 1 + randi() % 0x7ffffffe
 	if not sim.active_companion.is_empty() and game.collection_count("companions", sim.active_companion) <= 0:
 		sim.clear_active_companion()
 	sim.event_emitted.connect(_on_sim_event)
@@ -296,6 +301,9 @@ func _sync_world(delta: float) -> void:
 		enemy_visual.visible = true
 		enemy_visual.position = enemy_position
 		enemy_visual.rotation.y = atan2(sim.hero_position.x - enemy_position.x, sim.hero_position.z - enemy_position.z)
+		# The telegraph: the boss swells and shudders while it winds up.
+		var swell: float = 1.14 + sin(Time.get_ticks_msec() * 0.03) * 0.04 if sim.enemy_winding_up() else 1.0
+		enemy_visual.scale = enemy_visual.scale.lerp(Vector3.ONE * swell, min(1.0, delta * 12.0))
 	else:
 		enemy_visual.visible = false
 		rendered_enemy_kind = ""
@@ -475,6 +483,12 @@ func _build_ui() -> void:
 	talent_button.pressed.connect(_toggle_talents)
 	actions.add_child(talent_button)
 
+	var boss_button := Button.new()
+	boss_button.text = "Boss"
+	boss_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	boss_button.pressed.connect(_toggle_boss)
+	actions.add_child(boss_button)
+
 	var gacha_button := Button.new()
 	gacha_button.text = "Gacha"
 	gacha_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -514,6 +528,13 @@ func _build_ui() -> void:
 	canvas.add_child(talent_panel)
 	talent_panel.setup(sim)
 	talent_panel.talents_changed.connect(_on_build_changed)
+
+	boss_panel = BossScreenScript.new()
+	boss_panel.visible = false
+	canvas.add_child(boss_panel)
+	boss_panel.setup(sim)
+	boss_panel.build_changed.connect(_on_gear_changed)
+	boss_panel.talents_requested.connect(_open_talents_from_return)
 
 	gacha_panel = GachaScreenScript.new()
 	gacha_panel.visible = false
@@ -569,7 +590,7 @@ func _refresh_wallet(_tokens: int) -> void:
 
 # Only one sheet, drawer or report is open at a time.
 func _close_drawers() -> void:
-	for sheet in [equipment_panel, talent_panel, gacha_panel, dev_panel, return_panel]:
+	for sheet in [equipment_panel, talent_panel, boss_panel, gacha_panel, dev_panel, return_panel]:
 		if sheet != null:
 			sheet.visible = false
 
@@ -584,6 +605,9 @@ func _toggle_equipment() -> void:
 
 func _toggle_talents() -> void:
 	_toggle_sheet(talent_panel)
+
+func _toggle_boss() -> void:
+	_toggle_sheet(boss_panel)
 
 func _toggle_gacha() -> void:
 	gacha_panel.show_mode("summon")
@@ -704,6 +728,9 @@ func _format_return_report(report: Dictionary) -> String:
 		lines.append("%d talent point%s ready." % [talent_points_earned, "" if talent_points_earned == 1 else "s"])
 	if deaths_while_away > 0:
 		lines.append("Defeated %d time%s, but recovered." % [deaths_while_away, "" if deaths_while_away == 1 else "s"])
+	var boss_ranks := int(report.get("boss_ranks", 0))
+	if boss_ranks > 0:
+		lines.append("Beat Old Thornback %d time%s. It is now rank %d." % [boss_ranks, "" if boss_ranks == 1 else "s", sim.thornback_rank])
 
 	var loot: Dictionary = report.get("loot", {})
 	var loot_parts: Array[String] = []
@@ -787,6 +814,10 @@ func _on_sim_event(event: Dictionary) -> void:
 	if event_type in ["talent_unlocked", "talents_reset", "level_up"]:
 		if talent_panel != null and talent_panel.visible:
 			talent_panel.refresh()
+
+	if event_type in ["boss_defeated", "boss_lost", "gear_obtained", "gear_equipped", "gear_unequipped", "hunt_changed", "level_up"]:
+		if boss_panel != null and boss_panel.visible:
+			boss_panel.refresh()
 
 	if event_type in ["companion_changed", "companion_bond_up"]:
 		if gacha_panel != null and gacha_panel.visible:

@@ -6,7 +6,7 @@ extends RefCounted
 # These saves are for single-player continuity. They are files on the player's device and
 # a device clock, so nothing here can be trusted as online or competitive state.
 
-const SAVE_VERSION := 2
+const SAVE_VERSION := 3
 const DEFAULT_PATH := "user://idle_rpg_save.json"
 const MAX_OFFLINE_SECONDS := 7 * 24 * 60 * 60
 
@@ -42,7 +42,8 @@ static func save(sim: Node, game: Node, now_unix: int = -1, path: String = DEFAU
 	var file := FileAccess.open(temp, FileAccess.WRITE)
 	if file == null:
 		return false
-	file.store_string(JSON.stringify(payload))
+	# Full precision, so the clocks read back exactly and play resumes as it would have.
+	file.store_string(JSON.stringify(payload, "", true, true))
 	var write_error := file.get_error()
 	file.close()
 	if write_error != OK or not bool(_read(temp)["ok"]):
@@ -164,6 +165,11 @@ static func _migrate(data: Dictionary) -> Dictionary:
 		# Version 2 adds the gacha generator state to "game". A version 1 save has none,
 		# and the game keeps a freshly randomised generator for it.
 		version = 2
+	if version == 2:
+		# Version 3 adds Old Thornback's rank, the boss fight tally and world hunts to
+		# "sim". A version 2 save has none, and the simulation starts them from nothing:
+		# rank 0, the default hunt, and world items already owned counted as discovered.
+		version = 3
 	data["version"] = version
 	return data
 
@@ -201,6 +207,7 @@ static func _build_report(before: Dictionary, after: Dictionary, elapsed_actual:
 		"levels": max(0, int(after.get("level", 1)) - int(before.get("level", 1))),
 		"talent_points": max(0, int(after.get("talent_points", 0)) - int(before.get("talent_points", 0))),
 		"deaths": max(0, int(after.get("deaths", 0)) - int(before.get("deaths", 0))),
+		"boss_ranks": max(0, int(after.get("thornback_rank", 0)) - int(before.get("thornback_rank", 0))),
 		"gold": max(0, int(after.get("gold", 0)) - int(before.get("gold", 0))),
 		"loot": loot_delta,
 		"gear": gear_delta

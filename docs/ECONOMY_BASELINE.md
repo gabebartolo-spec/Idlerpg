@@ -3,6 +3,8 @@
 What the economy that is in the game today does over 1, 7, 30, 90 and 180 days, measured by
 driving the real game code with a scripted player.
 
+**Out of date for progression:** these results were measured before Old Thornback gained ranks and world items gained effects ([BOSS_AND_WORLD_ITEMS.md](BOSS_AND_WORLD_ITEMS.md)). Levels, gold, deaths and "nothing resists the adventurer" below describe the game before that change. The draw and collection findings are unaffected. Rerun the tool before relying on the progression figures.
+
 **Status:** the model, its inputs and its results are checked in and reproducible. The
 player research the ticket asks for has **not** been done (see "Not done").
 

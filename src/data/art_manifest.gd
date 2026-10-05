@@ -22,6 +22,7 @@ const MODELS := {
 	"copper_ring": {"path": "res://assets/models/armours/copper_ring.glb", "category": "armour", "tris": 108, "size": Vector3(0.170, 0.183, 0.040), "nodes": []},
 	"sapphire_charm": {"path": "res://assets/models/armours/sapphire_charm.glb", "category": "armour", "tris": 142, "size": Vector3(0.200, 0.340, 0.100), "nodes": []},
 	"phoenix_sigil": {"path": "res://assets/models/armours/phoenix_sigil.glb", "category": "armour", "tris": 80, "size": Vector3(0.480, 0.400, 0.060), "nodes": []},
+	"thornback_carapace": {"path": "res://assets/models/armours/thornback_carapace.glb", "category": "armour", "tris": 352, "size": Vector3(0.880, 0.690, 0.598), "nodes": []},
 	"hill_round": {"path": "res://assets/models/backdrops/hill_round.glb", "category": "backdrop", "tris": 100, "size": Vector3(34.487, 6.238, 25.472), "nodes": []},
 	"hill_ridge": {"path": "res://assets/models/backdrops/hill_ridge.glb", "category": "backdrop", "tris": 120, "size": Vector3(37.074, 9.422, 19.840), "nodes": []},
 	"briarling": {"path": "res://assets/models/characters/briarling.glb", "category": "character", "tris": 366, "size": Vector3(0.766, 1.520, 0.483), "nodes": ["torso", "head", "arm_l", "leg_l", "arm_r", "leg_r"]},
@@ -69,6 +70,7 @@ const MODELS := {
 	"runed_longbow": {"path": "res://assets/models/weapons/runed_longbow.glb", "category": "weapon", "tris": 176, "size": Vector3(0.255, 1.635, 0.075), "nodes": []},
 	"ember_staff": {"path": "res://assets/models/weapons/ember_staff.glb", "category": "weapon", "tris": 216, "size": Vector3(0.397, 1.725, 0.221), "nodes": []},
 	"stormcaller": {"path": "res://assets/models/weapons/stormcaller.glb", "category": "weapon", "tris": 144, "size": Vector3(0.720, 1.790, 0.260), "nodes": []},
+	"briarhook": {"path": "res://assets/models/weapons/briarhook.glb", "category": "weapon", "tris": 80, "size": Vector3(0.502, 1.120, 0.100), "nodes": []},
 }
 
 const ITEMS := {
@@ -92,6 +94,7 @@ const ITEMS := {
 	"Copper Ring": {"model": "copper_ring", "icon": "res://assets/icons/copper_ring.png"},
 	"Sapphire Charm": {"model": "sapphire_charm", "icon": "res://assets/icons/sapphire_charm.png"},
 	"Phoenix Sigil": {"model": "phoenix_sigil", "icon": "res://assets/icons/phoenix_sigil.png"},
+	"Thornback Carapace": {"model": "thornback_carapace", "icon": "res://assets/icons/thornback_carapace.png"},
 	"Briarheart Charm": {"model": "briarheart_charm", "icon": "res://assets/icons/briarheart_charm.png"},
 	"Iron Sword": {"model": "iron_sword", "icon": "res://assets/icons/iron_sword.png"},
 	"Moonsteel Blade": {"model": "moonsteel_blade", "icon": "res://assets/icons/moonsteel_blade.png"},
@@ -100,6 +103,7 @@ const ITEMS := {
 	"Runed Longbow": {"model": "runed_longbow", "icon": "res://assets/icons/runed_longbow.png"},
 	"Ember Staff": {"model": "ember_staff", "icon": "res://assets/icons/ember_staff.png"},
 	"Stormcaller": {"model": "stormcaller", "icon": "res://assets/icons/stormcaller.png"},
+	"Briarhook": {"model": "briarhook", "icon": "res://assets/icons/briarhook.png"},
 }
 
 const COMPANIONS := {

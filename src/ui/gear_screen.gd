@@ -102,7 +102,8 @@ func _build() -> void:
 	detail_name.clip_text = true
 	column.add_child(detail_name)
 	detail_compare = Style.label("", 19, Style.MUTED)
-	detail_compare.clip_text = true
+	detail_compare.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	detail_compare.custom_minimum_size = Vector2(0.0, 56.0)
 	column.add_child(detail_compare)
 
 	var actions := HBoxContainer.new()
@@ -239,6 +240,9 @@ func refresh_detail() -> void:
 		detail_compare.add_theme_color_override("font_color", _change_colour(change))
 	if locked:
 		detail_compare.text += " · Locked"
+	var effect_text: String = GearCatalogScript.effect_text(selected)
+	if not effect_text.is_empty():
+		detail_compare.text += "\n" + effect_text
 
 	equip_button.text = "Take off" if is_worn else "Equip"
 	sell_button.text = "Sell +%dg" % GearCatalogScript.sell_value(selected)
@@ -253,6 +257,9 @@ func _stats(item_name: String) -> String:
 		parts.append("+%d attack" % GearCatalogScript.attack_bonus(item_name))
 	if GearCatalogScript.hp_bonus(item_name) > 0:
 		parts.append("+%d health" % GearCatalogScript.hp_bonus(item_name))
+	var effect_id: String = GearCatalogScript.effect(item_name)
+	if not effect_id.is_empty():
+		parts.append(str(GearCatalogScript.EFFECTS[effect_id]["name"]))
 	return " · ".join(parts) if not parts.is_empty() else "no stats"
 
 # Attack and health change from swapping `worn` for `item_name`.

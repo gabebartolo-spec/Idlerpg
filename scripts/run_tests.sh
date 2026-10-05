@@ -21,6 +21,8 @@ run_test tests/test_gear.gd
 run_test tests/test_talents.gd
 run_test tests/test_companions.gd
 run_test tests/test_briarfen.gd
+run_test tests/test_boss.gd
+run_test tests/test_hunts.gd
 run_test tests/test_art.gd
 run_test tests/test_ui.gd
 run_test tests/test_economy.gd

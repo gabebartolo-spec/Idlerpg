@@ -255,3 +255,21 @@ def phoenix_sigil():
         part.prism([(0.06 * sign, -0.03), (0.24 * sign, 0.14), (0.14 * sign, 0.08), (0.17 * sign, 0.2), (0.04 * sign, 0.07)], 0.035, (0, 0, 0), "gold")
     part.prism([(-0.04, -0.07), (0.04, -0.07), (0, -0.2)], 0.035, (0, 0, 0), "ember")
     return [part]
+
+
+@model("thornback_carapace", "armour", item="Thornback Carapace")
+def thornback_carapace():
+    part = Part("thornback_carapace")
+    _cuirass(part, "briar")
+    part.box((0.47, 0.31, 0.08), (0, 0, -0.22), "leather_dark", bevel=0.02)
+    part.box((0.3, 0.06, 0.34), (0, 0.16, 0.04), "thorn", taper=0.7, bevel=0.02)
+    for x, z in ((-0.1, 0.16), (0.1, 0.16), (0, 0.02), (-0.09, -0.1), (0.09, -0.1)):
+        part.cyl(0.045, 0.16, (x, 0.24, z), "bone", sides=4, top=0.0, rot=(-80, 0, 0))
+    for x in (-0.34, 0.34):
+        part.box((0.2, 0.26, 0.1), (x, 0, 0.22), "thorn", taper=0.6, bevel=0.02)
+        part.cyl(0.05, 0.2, (x, 0, 0.33), "bone", sides=4, top=0.0)
+    part.box((0.3, 0.05, 0.32), (0, -0.165, 0.04), "thorn", taper=0.7, bevel=0.02)
+    for x, z in ((-0.08, 0.12), (0.08, 0.12), (0, -0.03)):
+        part.cyl(0.04, 0.12, (x, -0.22, z), "bone", sides=4, top=0.0, rot=(80, 0, 0))
+    part.cyl(0.13, 0.08, (0, 0, 0.27), "thorn", sides=8)
+    return [part]
