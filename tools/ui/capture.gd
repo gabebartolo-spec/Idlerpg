@@ -1,7 +1,7 @@
 extends SceneTree
 
 # Management UI review: runs the real main scene with a full inventory and saves
-# screenshots of the gear, talent and gacha sheets. Needs a window, so run it without --headless:
+# screenshots of the gear, talent, gacha and boss sheets. Needs a window, so run it without --headless:
 #   godot --path . -s res://tools/ui/capture.gd
 # Writes art/review/ui_*.png. Moves the player's save aside while it runs.
 
@@ -77,6 +77,29 @@ func _run() -> void:
 	await _snap("gacha_collection")
 	main.call("_show_gacha_mode", "history")
 	await _snap("gacha_history")
+
+	# A lost boss fight to explain, then a world item in the gear screen.
+	sim.unequip_gear("Briarheart Charm")
+	sim.thornback_rank = 30
+	sim.quest_kind = "briarfen"
+	sim._start_fight("thornback")
+	while sim.activity == "fighting":
+		sim.advance(0.1)
+	var boss: Control = main.get("boss_panel")
+	main.call("_toggle_boss")
+	await _snap("boss_lost")
+	for key in boss.row_actions:
+		if boss.row_actions[key]["action"] == "equip":
+			boss.select(key)
+			break
+	await _snap("boss_suggestion")
+	boss.list.scroll_to(boss.list.max_offset())
+	boss.select("hunt:briarhook")
+	await _snap("boss_hunts")
+	main.call("_toggle_equipment")
+	gear.set_slot_filter("weapon")
+	gear.select("Briarhook")
+	await _snap("gear_world_item")
 
 	main.free()
 	for path in PersistenceScript.files_for():

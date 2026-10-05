@@ -92,3 +92,16 @@ def stormcaller():
     for sign in (1, -1):
         part.prism([(0.09 * sign, 0.9), (0.36 * sign, 1.14), (0.24 * sign, 1.28), (0.16 * sign, 1.1)], 0.05, (0, 0, 0), "gold")
     return [part]
+
+
+@model("briarhook", "weapon", item="Briarhook")
+def briarhook():
+    part = Part("briarhook")
+    part.cyl(0.04, 0.62, (0, 0, 0.17), "briar", sides=5)
+    part.box((0.1, 0.1, 0.045), (0, 0, 0.06), "leather_dark")
+    part.box((0.1, 0.1, 0.045), (0, 0, -0.08), "leather_dark")
+    part.prism([(-0.04, 0.44), (0.1, 0.5), (0.3, 0.72), (0.34, 0.98), (0.2, 0.78), (0.02, 0.62)], 0.05, (0, 0, 0), "thorn")
+    part.prism([(0.3, 0.72), (0.34, 0.98), (0.4, 0.8)], 0.035, (0, 0, 0), "bone")
+    for z, lean in ((0.3, 60), (0.42, -60)):
+        part.cyl(0.03, 0.12, (0.05 if lean > 0 else -0.05, 0, z), "thorn", sides=4, top=0.0, rot=(0, lean, 0))
+    return [part]

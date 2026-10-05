@@ -53,13 +53,14 @@ cannot overwrite it.
 
 ## Versions
 
-`SAVE_VERSION` is 2. `_migrate` in `src/state/persistence.gd` upgrades older saves one
+`SAVE_VERSION` is 3. `_migrate` in `src/state/persistence.gd` upgrades older saves one
 version at a time, and a loaded save is immediately rewritten in the current format.
 
 | Version | Change |
 |---|---|
 | 1 | first format |
 | 2 | the gacha generator's seed and state are saved in `game` |
+| 3 | Old Thornback's rank, the boss fight tally and world hunts are saved in `sim`; numbers are written at full precision |
 
 A version 1 save loads with all its progress. It has no generator state, so it keeps a
 freshly randomised generator, exactly as before.

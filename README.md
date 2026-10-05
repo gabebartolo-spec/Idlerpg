@@ -37,7 +37,8 @@ The first quest is intentionally tiny: leave Mossgate, defeat three goblins, tra
 - concise "While you were away" report;
 - debug 10-minute-away simulation;
 - a 7-day catch-up cap, kept for now although catch-up no longer steps through every cycle;
-- saves written safely with a backup, a version migration path and saved gacha state (`docs/SAVE_AND_OFFLINE.md`).
+- saves written safely with a backup, a version migration path and saved gacha state (`docs/SAVE_AND_OFFLINE.md`);
+- Old Thornback grows a rank each time it is beaten and telegraphs a Thorn Burst; three world items counter it, two of them hunted, and the Boss screen explains a loss and what to change (`docs/BOSS_AND_WORLD_ITEMS.md`).
 
 ### Equipment slice
 - owned gear inventory;
