@@ -22,3 +22,4 @@ run_test tests/test_companions.gd
 run_test tests/test_briarfen.gd
 run_test tests/test_art.gd
 run_test tests/test_ui.gd
+run_test tests/test_economy.gd

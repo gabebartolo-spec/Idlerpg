@@ -1,0 +1,23 @@
+{
+	"about": "Inputs for the IRPG-R01 economy baseline. Everything under cohorts and income_scenarios is an assumption for analysis, not a price, an offer or a decision. See docs/ECONOMY_BASELINE.md.",
+	"seed": 20261005,
+	"days": 180,
+	"sim_hours": 720,
+	"collection_accounts": 1000,
+	"sim_accounts": 3,
+	"checkpoints": [1, 7, 30, 90, 180],
+	"windows": [[1, 1], [2, 7], [8, 30], [31, 90], [91, 180]],
+	"sim_checkpoint_hours": [1, 6, 24, 168, 336, 720],
+	"pull_pattern": ["gear", "gear", "gear", "companions", "companions", "gear", "gear", "relics", "companions", "gear", "companions", "relics"],
+	"target_item": "Crownblade",
+	"upgrade_score": {"attack": 2, "hp": 1},
+	"income_scenarios": {
+		"implemented": 0,
+		"proposed_120_per_day": 120
+	},
+	"cohorts": {
+		"free": {"purchases": []},
+		"light": {"purchases": [{"first_day": 1, "every_days": 30, "tokens": 300}]},
+		"high": {"purchases": [{"first_day": 1, "every_days": 7, "tokens": 1500}]}
+	}
+}

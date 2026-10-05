@@ -1,0 +1,4207 @@
+{
+	"catalogue": {
+		"banners": {
+			"companions": {
+				"Common": 3,
+				"Epic": 3,
+				"Legendary": 1,
+				"Rare": 3
+			},
+			"gear": {
+				"Common": 7,
+				"Epic": 7,
+				"Legendary": 4,
+				"Rare": 7
+			},
+			"relics": {
+				"Common": 3,
+				"Epic": 3,
+				"Legendary": 1,
+				"Rare": 3
+			}
+		},
+		"gold_sinks": 0,
+		"salvage_tokens": {
+			"Common": 1,
+			"Epic": 5,
+			"Legendary": 15,
+			"Rare": 2
+		},
+		"starting_tokens": 250,
+		"summon_cost": 10,
+		"talents": 12,
+		"world_drops": [
+			"Goblin Cleaver",
+			"Wolfskin Hood",
+			"Briarheart Charm"
+		]
+	},
+	"cells": {
+		"free/implemented": {
+			"collection": {
+				"accounts": 1000,
+				"checkpoints": {
+					"day_1": {
+						"companions": {
+							"mean": 4.68,
+							"p10": 3,
+							"p50": 5,
+							"p90": 6
+						},
+						"gear": {
+							"mean": 8.78,
+							"p10": 7,
+							"p50": 9,
+							"p90": 10
+						},
+						"gear_attack": {
+							"mean": 12.34,
+							"p10": 9,
+							"p50": 12,
+							"p90": 16
+						},
+						"gear_banner_complete_share": 0.0,
+						"gear_hp": {
+							"mean": 32.34,
+							"p10": 23,
+							"p50": 32,
+							"p90": 43
+						},
+						"relics": {
+							"mean": 3.11,
+							"p10": 2,
+							"p50": 3,
+							"p90": 4
+						},
+						"target_item_share": 0.034,
+						"tokens": {
+							"mean": 4.77,
+							"p10": 3,
+							"p50": 5,
+							"p90": 7
+						}
+					},
+					"day_180": {
+						"companions": {
+							"mean": 4.68,
+							"p10": 3,
+							"p50": 5,
+							"p90": 6
+						},
+						"gear": {
+							"mean": 8.78,
+							"p10": 7,
+							"p50": 9,
+							"p90": 10
+						},
+						"gear_attack": {
+							"mean": 12.34,
+							"p10": 9,
+							"p50": 12,
+							"p90": 16
+						},
+						"gear_banner_complete_share": 0.0,
+						"gear_hp": {
+							"mean": 32.34,
+							"p10": 23,
+							"p50": 32,
+							"p90": 43
+						},
+						"relics": {
+							"mean": 3.11,
+							"p10": 2,
+							"p50": 3,
+							"p90": 4
+						},
+						"target_item_share": 0.034,
+						"tokens": {
+							"mean": 4.77,
+							"p10": 3,
+							"p50": 5,
+							"p90": 7
+						}
+					},
+					"day_30": {
+						"companions": {
+							"mean": 4.68,
+							"p10": 3,
+							"p50": 5,
+							"p90": 6
+						},
+						"gear": {
+							"mean": 8.78,
+							"p10": 7,
+							"p50": 9,
+							"p90": 10
+						},
+						"gear_attack": {
+							"mean": 12.34,
+							"p10": 9,
+							"p50": 12,
+							"p90": 16
+						},
+						"gear_banner_complete_share": 0.0,
+						"gear_hp": {
+							"mean": 32.34,
+							"p10": 23,
+							"p50": 32,
+							"p90": 43
+						},
+						"relics": {
+							"mean": 3.11,
+							"p10": 2,
+							"p50": 3,
+							"p90": 4
+						},
+						"target_item_share": 0.034,
+						"tokens": {
+							"mean": 4.77,
+							"p10": 3,
+							"p50": 5,
+							"p90": 7
+						}
+					},
+					"day_7": {
+						"companions": {
+							"mean": 4.68,
+							"p10": 3,
+							"p50": 5,
+							"p90": 6
+						},
+						"gear": {
+							"mean": 8.78,
+							"p10": 7,
+							"p50": 9,
+							"p90": 10
+						},
+						"gear_attack": {
+							"mean": 12.34,
+							"p10": 9,
+							"p50": 12,
+							"p90": 16
+						},
+						"gear_banner_complete_share": 0.0,
+						"gear_hp": {
+							"mean": 32.34,
+							"p10": 23,
+							"p50": 32,
+							"p90": 43
+						},
+						"relics": {
+							"mean": 3.11,
+							"p10": 2,
+							"p50": 3,
+							"p90": 4
+						},
+						"target_item_share": 0.034,
+						"tokens": {
+							"mean": 4.77,
+							"p10": 3,
+							"p50": 5,
+							"p90": 7
+						}
+					},
+					"day_90": {
+						"companions": {
+							"mean": 4.68,
+							"p10": 3,
+							"p50": 5,
+							"p90": 6
+						},
+						"gear": {
+							"mean": 8.78,
+							"p10": 7,
+							"p50": 9,
+							"p90": 10
+						},
+						"gear_attack": {
+							"mean": 12.34,
+							"p10": 9,
+							"p50": 12,
+							"p90": 16
+						},
+						"gear_banner_complete_share": 0.0,
+						"gear_hp": {
+							"mean": 32.34,
+							"p10": 23,
+							"p50": 32,
+							"p90": 43
+						},
+						"relics": {
+							"mean": 3.11,
+							"p10": 2,
+							"p50": 3,
+							"p90": 4
+						},
+						"target_item_share": 0.034,
+						"tokens": {
+							"mean": 4.77,
+							"p10": 3,
+							"p50": 5,
+							"p90": 7
+						}
+					}
+				},
+				"token_ledger": {
+					"salvage_returned_per_token_spent": 0.0204,
+					"tokens_income": 0.0,
+					"tokens_purchased": 0.0,
+					"tokens_salvaged": 5.11,
+					"tokens_spent": 250.34,
+					"tokens_started": 250.0
+				},
+				"windows": {
+					"days_1_1": {
+						"draws_per_account_per_day": 25.03,
+						"new_item_share": 0.6617,
+						"no_effect_share": 0.1598,
+						"useful_per_account_per_day": 7.435,
+						"useful_share": 0.297
+					},
+					"days_2_7": {
+						"draws_per_account_per_day": 0.0,
+						"new_item_share": 0.0,
+						"no_effect_share": 0.0,
+						"useful_per_account_per_day": 0.0,
+						"useful_share": 0.0
+					},
+					"days_31_90": {
+						"draws_per_account_per_day": 0.0,
+						"new_item_share": 0.0,
+						"no_effect_share": 0.0,
+						"useful_per_account_per_day": 0.0,
+						"useful_share": 0.0
+					},
+					"days_8_30": {
+						"draws_per_account_per_day": 0.0,
+						"new_item_share": 0.0,
+						"no_effect_share": 0.0,
+						"useful_per_account_per_day": 0.0,
+						"useful_share": 0.0
+					},
+					"days_91_180": {
+						"draws_per_account_per_day": 0.0,
+						"new_item_share": 0.0,
+						"no_effect_share": 0.0,
+						"useful_per_account_per_day": 0.0,
+						"useful_share": 0.0
+					}
+				}
+			},
+			"progression": {
+				"accounts": 3,
+				"points": {
+					"hour_1": {
+						"attack": {
+							"max": 64.0,
+							"mean": 61.33,
+							"min": 58.0
+						},
+						"attack_not_from_level": {
+							"max": 17.0,
+							"mean": 14.0,
+							"min": 12.0
+						},
+						"deaths": {
+							"max": 0.0,
+							"mean": 0.0,
+							"min": 0.0
+						},
+						"gear_attack": {
+							"max": 12.0,
+							"mean": 11.0,
+							"min": 10.0
+						},
+						"gold": {
+							"max": 6380.0,
+							"mean": 6340.0,
+							"min": 6300.0
+						},
+						"health": {
+							"max": 299.0,
+							"mean": 285.67,
+							"min": 272.0
+						},
+						"health_not_from_level": {
+							"max": 48.0,
+							"mean": 43.0,
+							"min": 36.0
+						},
+						"level": {
+							"max": 44.0,
+							"mean": 42.33,
+							"min": 41.0
+						},
+						"quests": {
+							"max": 160.0,
+							"mean": 159.0,
+							"min": 158.0
+						},
+						"talent_points_unspent": {
+							"max": 31.0,
+							"mean": 29.33,
+							"min": 28.0
+						},
+						"talents": {
+							"max": 12.0,
+							"mean": 12.0,
+							"min": 12.0
+						},
+						"total_xp": {
+							"max": 28743.0,
+							"mean": 26763.0,
+							"min": 25545.0
+						}
+					},
+					"hour_168": {
+						"attack": {
+							"max": 605.0,
+							"mean": 585.33,
+							"min": 573.0
+						},
+						"attack_not_from_level": {
+							"max": 17.0,
+							"mean": 14.0,
+							"min": 12.0
+						},
+						"deaths": {
+							"max": 0.0,
+							"mean": 0.0,
+							"min": 0.0
+						},
+						"gear_attack": {
+							"max": 12.0,
+							"mean": 11.0,
+							"min": 10.0
+						},
+						"gold": {
+							"max": 1124900.0,
+							"mean": 1124833.33,
+							"min": 1124780.0
+						},
+						"health": {
+							"max": 3014.0,
+							"mean": 2905.67,
+							"min": 2847.0
+						},
+						"health_not_from_level": {
+							"max": 48.0,
+							"mean": 43.0,
+							"min": 36.0
+						},
+						"level": {
+							"max": 587.0,
+							"mean": 566.33,
+							"min": 556.0
+						},
+						"quests": {
+							"max": 28123.0,
+							"mean": 28121.33,
+							"min": 28120.0
+						},
+						"talent_points_unspent": {
+							"max": 574.0,
+							"mean": 553.33,
+							"min": 543.0
+						},
+						"talents": {
+							"max": 12.0,
+							"mean": 12.0,
+							"min": 12.0
+						},
+						"total_xp": {
+							"max": 5173808.0,
+							"mean": 4817623.0,
+							"min": 4639295.0
+						}
+					},
+					"hour_24": {
+						"attack": {
+							"max": 240.0,
+							"mean": 233.0,
+							"min": 227.0
+						},
+						"attack_not_from_level": {
+							"max": 17.0,
+							"mean": 14.0,
+							"min": 12.0
+						},
+						"deaths": {
+							"max": 0.0,
+							"mean": 0.0,
+							"min": 0.0
+						},
+						"gear_attack": {
+							"max": 12.0,
+							"mean": 11.0,
+							"min": 10.0
+						},
+						"gold": {
+							"max": 160460.0,
+							"mean": 160393.33,
+							"min": 160340.0
+						},
+						"health": {
+							"max": 1189.0,
+							"mean": 1144.0,
+							"min": 1117.0
+						},
+						"health_not_from_level": {
+							"max": 48.0,
+							"mean": 43.0,
+							"min": 36.0
+						},
+						"level": {
+							"max": 222.0,
+							"mean": 214.0,
+							"min": 210.0
+						},
+						"quests": {
+							"max": 4012.0,
+							"mean": 4010.33,
+							"min": 4009.0
+						},
+						"talent_points_unspent": {
+							"max": 209.0,
+							"mean": 201.0,
+							"min": 197.0
+						},
+						"talents": {
+							"max": 12.0,
+							"mean": 12.0,
+							"min": 12.0
+						},
+						"total_xp": {
+							"max": 737327.0,
+							"mean": 686579.33,
+							"min": 660960.0
+						}
+					},
+					"hour_336": {
+						"attack": {
+							"max": 849.0,
+							"mean": 820.67,
+							"min": 804.0
+						},
+						"attack_not_from_level": {
+							"max": 17.0,
+							"mean": 14.0,
+							"min": 12.0
+						},
+						"deaths": {
+							"max": 0.0,
+							"mean": 0.0,
+							"min": 0.0
+						},
+						"gear_attack": {
+							"max": 12.0,
+							"mean": 11.0,
+							"min": 10.0
+						},
+						"gold": {
+							"max": 2250060.0,
+							"mean": 2250020.0,
+							"min": 2249980.0
+						},
+						"health": {
+							"max": 4234.0,
+							"mean": 4082.33,
+							"min": 4002.0
+						},
+						"health_not_from_level": {
+							"max": 48.0,
+							"mean": 43.0,
+							"min": 36.0
+						},
+						"level": {
+							"max": 831.0,
+							"mean": 801.67,
+							"min": 787.0
+						},
+						"quests": {
+							"max": 56252.0,
+							"mean": 56251.0,
+							"min": 56250.0
+						},
+						"talent_points_unspent": {
+							"max": 818.0,
+							"mean": 788.67,
+							"min": 774.0
+						},
+						"talents": {
+							"max": 12.0,
+							"mean": 12.0,
+							"min": 12.0
+						},
+						"total_xp": {
+							"max": 10349648.0,
+							"mean": 9637184.67,
+							"min": 9280725.0
+						}
+					},
+					"hour_6": {
+						"attack": {
+							"max": 128.0,
+							"mean": 125.33,
+							"min": 121.0
+						},
+						"attack_not_from_level": {
+							"max": 17.0,
+							"mean": 14.0,
+							"min": 12.0
+						},
+						"deaths": {
+							"max": 0.0,
+							"mean": 0.0,
+							"min": 0.0
+						},
+						"gear_attack": {
+							"max": 12.0,
+							"mean": 11.0,
+							"min": 10.0
+						},
+						"gold": {
+							"max": 39900.0,
+							"mean": 39833.33,
+							"min": 39780.0
+						},
+						"health": {
+							"max": 629.0,
+							"mean": 605.67,
+							"min": 587.0
+						},
+						"health_not_from_level": {
+							"max": 48.0,
+							"mean": 43.0,
+							"min": 36.0
+						},
+						"level": {
+							"max": 110.0,
+							"mean": 106.33,
+							"min": 104.0
+						},
+						"quests": {
+							"max": 998.0,
+							"mean": 996.33,
+							"min": 995.0
+						},
+						"talent_points_unspent": {
+							"max": 97.0,
+							"mean": 93.33,
+							"min": 91.0
+						},
+						"talents": {
+							"max": 12.0,
+							"mean": 12.0,
+							"min": 12.0
+						},
+						"total_xp": {
+							"max": 182808.0,
+							"mean": 170206.33,
+							"min": 163670.0
+						}
+					},
+					"hour_720": {
+						"attack": {
+							"max": 1234.0,
+							"mean": 1192.33,
+							"min": 1169.0
+						},
+						"attack_not_from_level": {
+							"max": 17.0,
+							"mean": 14.0,
+							"min": 12.0
+						},
+						"deaths": {
+							"max": 0.0,
+							"mean": 0.0,
+							"min": 0.0
+						},
+						"gear_attack": {
+							"max": 12.0,
+							"mean": 11.0,
+							"min": 10.0
+						},
+						"gold": {
+							"max": 4821940.0,
+							"mean": 4821873.33,
+							"min": 4821820.0
+						},
+						"health": {
+							"max": 6159.0,
+							"mean": 5940.67,
+							"min": 5827.0
+						},
+						"health_not_from_level": {
+							"max": 48.0,
+							"mean": 43.0,
+							"min": 36.0
+						},
+						"level": {
+							"max": 1216.0,
+							"mean": 1173.33,
+							"min": 1152.0
+						},
+						"quests": {
+							"max": 120549.0,
+							"mean": 120547.33,
+							"min": 120546.0
+						},
+						"talent_points_unspent": {
+							"max": 1203.0,
+							"mean": 1160.33,
+							"min": 1139.0
+						},
+						"talents": {
+							"max": 12.0,
+							"mean": 12.0,
+							"min": 12.0
+						},
+						"total_xp": {
+							"max": 22180192.0,
+							"mean": 20653291.0,
+							"min": 19889625.0
+						}
+					}
+				},
+				"projection": {
+					"check_actual_level_at_last_point": 1173.33,
+					"check_predicted_level_at_last_point": 1173.9,
+					"days": {
+						"day_180": {
+							"attack": 2893.9,
+							"health": 14448.3,
+							"level": 2874.9
+						},
+						"day_90": {
+							"attack": 2052.0,
+							"health": 10238.8,
+							"level": 2033.0
+						}
+					},
+					"xp_per_hour": 28687.78
+				},
+				"seconds_to_all_talents": [
+					480.0,
+					450.0,
+					440.0
+				],
+				"seconds_to_first_boss_kill": [
+					50.0,
+					50.0,
+					50.0
+				]
+			}
+		},
+		"free/proposed_120_per_day": {
+			"collection": {
+				"accounts": 1000,
+				"checkpoints": {
+					"day_1": {
+						"companions": {
+							"mean": 5.68,
+							"p10": 4,
+							"p50": 6,
+							"p90": 7
+						},
+						"gear": {
+							"mean": 11.03,
+							"p10": 9,
+							"p50": 11,
+							"p90": 13
+						},
+						"gear_attack": {
+							"mean": 14.2,
+							"p10": 11,
+							"p50": 14,
+							"p90": 18
+						},
+						"gear_banner_complete_share": 0.0,
+						"gear_hp": {
+							"mean": 37.58,
+							"p10": 27,
+							"p50": 37,
+							"p90": 49
+						},
+						"relics": {
+							"mean": 4.01,
+							"p10": 3,
+							"p50": 4,
+							"p90": 5
+						},
+						"target_item_share": 0.049,
+						"tokens": {
+							"mean": 4.96,
+							"p10": 1,
+							"p50": 6,
+							"p90": 9
+						}
+					},
+					"day_180": {
+						"companions": {
+							"mean": 10.0,
+							"p10": 10,
+							"p50": 10,
+							"p90": 10
+						},
+						"gear": {
+							"mean": 24.98,
+							"p10": 25,
+							"p50": 25,
+							"p90": 25
+						},
+						"gear_attack": {
+							"mean": 33.95,
+							"p10": 34,
+							"p50": 34,
+							"p90": 34
+						},
+						"gear_banner_complete_share": 0.984,
+						"gear_hp": {
+							"mean": 82.9,
+							"p10": 83,
+							"p50": 83,
+							"p90": 83
+						},
+						"relics": {
+							"mean": 10.0,
+							"p10": 10,
+							"p50": 10,
+							"p90": 10
+						},
+						"target_item_share": 0.996,
+						"tokens": {
+							"mean": 4.85,
+							"p10": 1,
+							"p50": 5,
+							"p90": 9
+						}
+					},
+					"day_30": {
+						"companions": {
+							"mean": 9.96,
+							"p10": 10,
+							"p50": 10,
+							"p90": 10
+						},
+						"gear": {
+							"mean": 22.85,
+							"p10": 22,
+							"p50": 23,
+							"p90": 24
+						},
+						"gear_attack": {
+							"mean": 28.79,
+							"p10": 26,
+							"p50": 29,
+							"p90": 32
+						},
+						"gear_banner_complete_share": 0.03,
+						"gear_hp": {
+							"mean": 70.96,
+							"p10": 64,
+							"p50": 70,
+							"p90": 79
+						},
+						"relics": {
+							"mean": 9.12,
+							"p10": 8,
+							"p50": 9,
+							"p90": 10
+						},
+						"target_item_share": 0.589,
+						"tokens": {
+							"mean": 4.88,
+							"p10": 1,
+							"p50": 5,
+							"p90": 9
+						}
+					},
+					"day_7": {
+						"companions": {
+							"mean": 8.17,
+							"p10": 7,
+							"p50": 8,
+							"p90": 9
+						},
+						"gear": {
+							"mean": 17.09,
+							"p10": 15,
+							"p50": 17,
+							"p90": 19
+						},
+						"gear_attack": {
+							"mean": 20.04,
+							"p10": 16,
+							"p50": 20,
+							"p90": 24
+						},
+						"gear_banner_complete_share": 0.0,
+						"gear_hp": {
+							"mean": 51.76,
+							"p10": 43,
+							"p50": 51,
+							"p90": 62
+						},
+						"relics": {
+							"mean": 6.7,
+							"p10": 5,
+							"p50": 7,
+							"p90": 8
+						},
+						"target_item_share": 0.134,
+						"tokens": {
+							"mean": 5.17,
+							"p10": 2,
+							"p50": 5,
+							"p90": 9
+						}
+					},
+					"day_90": {
+						"companions": {
+							"mean": 10.0,
+							"p10": 10,
+							"p50": 10,
+							"p90": 10
+						},
+						"gear": {
+							"mean": 24.73,
+							"p10": 24,
+							"p50": 25,
+							"p90": 25
+						},
+						"gear_attack": {
+							"mean": 33.24,
+							"p10": 31,
+							"p50": 34,
+							"p90": 34
+						},
+						"gear_banner_complete_share": 0.738,
+						"gear_hp": {
+							"mean": 81.17,
+							"p10": 74,
+							"p50": 83,
+							"p90": 83
+						},
+						"relics": {
+							"mean": 9.99,
+							"p10": 10,
+							"p50": 10,
+							"p90": 10
+						},
+						"target_item_share": 0.938,
+						"tokens": {
+							"mean": 4.86,
+							"p10": 1,
+							"p50": 5,
+							"p90": 9
+						}
+					}
+				},
+				"token_ledger": {
+					"salvage_returned_per_token_spent": 0.0856,
+					"tokens_income": 21600.0,
+					"tokens_purchased": 0.0,
+					"tokens_salvaged": 2044.81,
+					"tokens_spent": 23889.96,
+					"tokens_started": 250.0
+				},
+				"windows": {
+					"days_1_1": {
+						"draws_per_account_per_day": 37.54,
+						"new_item_share": 0.5517,
+						"no_effect_share": 0.1598,
+						"useful_per_account_per_day": 8.95,
+						"useful_share": 0.2384
+					},
+					"days_2_7": {
+						"draws_per_account_per_day": 12.72,
+						"new_item_share": 0.1473,
+						"no_effect_share": 0.1575,
+						"useful_per_account_per_day": 0.658,
+						"useful_share": 0.0517
+					},
+					"days_31_90": {
+						"draws_per_account_per_day": 13.15,
+						"new_item_share": 0.0035,
+						"no_effect_share": 0.1669,
+						"useful_per_account_per_day": 0.0274,
+						"useful_share": 0.0021
+					},
+					"days_8_30": {
+						"draws_per_account_per_day": 13.0,
+						"new_item_share": 0.0333,
+						"no_effect_share": 0.1675,
+						"useful_per_account_per_day": 0.1981,
+						"useful_share": 0.0152
+					},
+					"days_91_180": {
+						"draws_per_account_per_day": 13.19,
+						"new_item_share": 0.0002,
+						"no_effect_share": 0.1666,
+						"useful_per_account_per_day": 0.0028,
+						"useful_share": 0.0002
+					}
+				}
+			},
+			"progression": {
+				"accounts": 3,
+				"points": {
+					"hour_1": {
+						"attack": {
+							"max": 73.0,
+							"mean": 67.67,
+							"min": 65.0
+						},
+						"attack_not_from_level": {
+							"max": 26.0,
+							"mean": 20.0,
+							"min": 16.0
+						},
+						"deaths": {
+							"max": 0.0,
+							"mean": 0.0,
+							"min": 0.0
+						},
+						"gear_attack": {
+							"max": 21.0,
+							"mean": 16.0,
+							"min": 13.0
+						},
+						"gold": {
+							"max": 6500.0,
+							"mean": 6446.67,
+							"min": 6420.0
+						},
+						"health": {
+							"max": 301.0,
+							"mean": 291.0,
+							"min": 282.0
+						},
+						"health_not_from_level": {
+							"max": 50.0,
+							"mean": 46.67,
+							"min": 41.0
+						},
+						"level": {
+							"max": 44.0,
+							"mean": 42.67,
+							"min": 42.0
+						},
+						"quests": {
+							"max": 163.0,
+							"mean": 161.67,
+							"min": 161.0
+						},
+						"talent_points_unspent": {
+							"max": 31.0,
+							"mean": 29.67,
+							"min": 29.0
+						},
+						"talents": {
+							"max": 12.0,
+							"mean": 12.0,
+							"min": 12.0
+						},
+						"total_xp": {
+							"max": 29029.0,
+							"mean": 27198.33,
+							"min": 26080.0
+						}
+					},
+					"hour_168": {
+						"attack": {
+							"max": 613.0,
+							"mean": 597.33,
+							"min": 589.0
+						},
+						"attack_not_from_level": {
+							"max": 31.0,
+							"mean": 29.33,
+							"min": 28.0
+						},
+						"deaths": {
+							"max": 0.0,
+							"mean": 0.0,
+							"min": 0.0
+						},
+						"gear_attack": {
+							"max": 25.0,
+							"mean": 24.0,
+							"min": 23.0
+						},
+						"gold": {
+							"max": 1192060.0,
+							"mean": 1147326.67,
+							"min": 1124900.0
+						},
+						"health": {
+							"max": 3013.0,
+							"mean": 2924.0,
+							"min": 2874.0
+						},
+						"health_not_from_level": {
+							"max": 97.0,
+							"mean": 78.0,
+							"min": 63.0
+						},
+						"level": {
+							"max": 577.0,
+							"mean": 563.0,
+							"min": 556.0
+						},
+						"quests": {
+							"max": 29802.0,
+							"mean": 28683.67,
+							"min": 28123.0
+						},
+						"talent_points_unspent": {
+							"max": 564.0,
+							"mean": 550.0,
+							"min": 543.0
+						},
+						"talents": {
+							"max": 12.0,
+							"mean": 12.0,
+							"min": 12.0
+						},
+						"total_xp": {
+							"max": 4993046.0,
+							"mean": 4757715.67,
+							"min": 4639850.0
+						}
+					},
+					"hour_24": {
+						"attack": {
+							"max": 243.0,
+							"mean": 239.0,
+							"min": 233.0
+						},
+						"attack_not_from_level": {
+							"max": 26.0,
+							"mean": 20.0,
+							"min": 16.0
+						},
+						"deaths": {
+							"max": 0.0,
+							"mean": 0.0,
+							"min": 0.0
+						},
+						"gear_attack": {
+							"max": 21.0,
+							"mean": 16.0,
+							"min": 13.0
+						},
+						"gold": {
+							"max": 160540.0,
+							"mean": 160486.67,
+							"min": 160460.0
+						},
+						"health": {
+							"max": 1191.0,
+							"mean": 1147.67,
+							"min": 1122.0
+						},
+						"health_not_from_level": {
+							"max": 50.0,
+							"mean": 46.67,
+							"min": 41.0
+						},
+						"level": {
+							"max": 222.0,
+							"mean": 214.0,
+							"min": 210.0
+						},
+						"quests": {
+							"max": 4014.0,
+							"mean": 4012.67,
+							"min": 4012.0
+						},
+						"talent_points_unspent": {
+							"max": 209.0,
+							"mean": 201.0,
+							"min": 197.0
+						},
+						"talents": {
+							"max": 12.0,
+							"mean": 12.0,
+							"min": 12.0
+						},
+						"total_xp": {
+							"max": 737636.0,
+							"mean": 687017.33,
+							"min": 661515.0
+						}
+					},
+					"hour_336": {
+						"attack": {
+							"max": 851.0,
+							"mean": 831.67,
+							"min": 821.0
+						},
+						"attack_not_from_level": {
+							"max": 31.0,
+							"mean": 30.33,
+							"min": 29.0
+						},
+						"deaths": {
+							"max": 0.0,
+							"mean": 0.0,
+							"min": 0.0
+						},
+						"gear_attack": {
+							"max": 26.0,
+							"mean": 25.0,
+							"min": 24.0
+						},
+						"gold": {
+							"max": 2395620.0,
+							"mean": 2298633.33,
+							"min": 2250100.0
+						},
+						"health": {
+							"max": 4203.0,
+							"mean": 4092.0,
+							"min": 4030.0
+						},
+						"health_not_from_level": {
+							"max": 97.0,
+							"mean": 79.33,
+							"min": 64.0
+						},
+						"level": {
+							"max": 815.0,
+							"mean": 796.33,
+							"min": 787.0
+						},
+						"quests": {
+							"max": 59891.0,
+							"mean": 57466.33,
+							"min": 56253.0
+						},
+						"talent_points_unspent": {
+							"max": 802.0,
+							"mean": 783.33,
+							"min": 774.0
+						},
+						"talents": {
+							"max": 12.0,
+							"mean": 12.0,
+							"min": 12.0
+						},
+						"total_xp": {
+							"max": 9957691.0,
+							"mean": 9506849.0,
+							"min": 9281240.0
+						}
+					},
+					"hour_6": {
+						"attack": {
+							"max": 136.0,
+							"mean": 131.67,
+							"min": 128.0
+						},
+						"attack_not_from_level": {
+							"max": 26.0,
+							"mean": 20.0,
+							"min": 16.0
+						},
+						"deaths": {
+							"max": 0.0,
+							"mean": 0.0,
+							"min": 0.0
+						},
+						"gear_attack": {
+							"max": 21.0,
+							"mean": 16.0,
+							"min": 13.0
+						},
+						"gold": {
+							"max": 39980.0,
+							"mean": 39926.67,
+							"min": 39900.0
+						},
+						"health": {
+							"max": 631.0,
+							"mean": 611.0,
+							"min": 597.0
+						},
+						"health_not_from_level": {
+							"max": 50.0,
+							"mean": 46.67,
+							"min": 41.0
+						},
+						"level": {
+							"max": 110.0,
+							"mean": 106.67,
+							"min": 105.0
+						},
+						"quests": {
+							"max": 1000.0,
+							"mean": 998.67,
+							"min": 998.0
+						},
+						"talent_points_unspent": {
+							"max": 97.0,
+							"mean": 93.67,
+							"min": 92.0
+						},
+						"talents": {
+							"max": 12.0,
+							"mean": 12.0,
+							"min": 12.0
+						},
+						"total_xp": {
+							"max": 183106.0,
+							"mean": 170640.67,
+							"min": 164225.0
+						}
+					},
+					"hour_720": {
+						"attack": {
+							"max": 1228.0,
+							"mean": 1214.67,
+							"min": 1206.0
+						},
+						"attack_not_from_level": {
+							"max": 38.0,
+							"mean": 34.67,
+							"min": 31.0
+						},
+						"deaths": {
+							"max": 0.0,
+							"mean": 0.0,
+							"min": 0.0
+						},
+						"gear_attack": {
+							"max": 32.0,
+							"mean": 28.67,
+							"min": 25.0
+						},
+						"gold": {
+							"max": 5146580.0,
+							"mean": 5016020.0,
+							"min": 4945100.0
+						},
+						"health": {
+							"max": 6088.0,
+							"mean": 6012.67,
+							"min": 5974.0
+						},
+						"health_not_from_level": {
+							"max": 113.0,
+							"mean": 106.67,
+							"min": 97.0
+						},
+						"level": {
+							"max": 1192.0,
+							"mean": 1175.0,
+							"min": 1166.0
+						},
+						"quests": {
+							"max": 128665.0,
+							"mean": 125401.0,
+							"min": 123628.0
+						},
+						"talent_points_unspent": {
+							"max": 1179.0,
+							"mean": 1162.0,
+							"min": 1153.0
+						},
+						"talents": {
+							"max": 12.0,
+							"mean": 12.0,
+							"min": 12.0
+						},
+						"total_xp": {
+							"max": 21305491.0,
+							"mean": 20716079.0,
+							"min": 20398095.0
+						}
+					}
+				},
+				"projection": {
+					"check_actual_level_at_last_point": 1175.0,
+					"check_predicted_level_at_last_point": 1165.6,
+					"days": {
+						"day_180": {
+							"attack": 2936.2,
+							"health": 14620.2,
+							"level": 2896.5
+						},
+						"day_90": {
+							"attack": 2085.5,
+							"health": 10366.8,
+							"level": 2045.8
+						}
+					},
+					"xp_per_hour": 29190.7
+				},
+				"seconds_to_all_talents": [
+					440.0,
+					430.0,
+					410.0
+				],
+				"seconds_to_first_boss_kill": [
+					50.0,
+					40.0,
+					50.0
+				]
+			}
+		},
+		"high/implemented": {
+			"collection": {
+				"accounts": 1000,
+				"checkpoints": {
+					"day_1": {
+						"companions": {
+							"mean": 8.97,
+							"p10": 8,
+							"p50": 9,
+							"p90": 10
+						},
+						"gear": {
+							"mean": 19.81,
+							"p10": 18,
+							"p50": 20,
+							"p90": 21
+						},
+						"gear_attack": {
+							"mean": 24.05,
+							"p10": 21,
+							"p50": 24,
+							"p90": 27
+						},
+						"gear_banner_complete_share": 0.0,
+						"gear_hp": {
+							"mean": 60.34,
+							"p10": 53,
+							"p50": 60,
+							"p90": 68
+						},
+						"relics": {
+							"mean": 7.79,
+							"p10": 6,
+							"p50": 8,
+							"p90": 9
+						},
+						"target_item_share": 0.336,
+						"tokens": {
+							"mean": 4.7,
+							"p10": 1,
+							"p50": 5,
+							"p90": 9
+						}
+					},
+					"day_180": {
+						"companions": {
+							"mean": 10.0,
+							"p10": 10,
+							"p50": 10,
+							"p90": 10
+						},
+						"gear": {
+							"mean": 25.0,
+							"p10": 25,
+							"p50": 25,
+							"p90": 25
+						},
+						"gear_attack": {
+							"mean": 34.0,
+							"p10": 34,
+							"p50": 34,
+							"p90": 34
+						},
+						"gear_banner_complete_share": 1.0,
+						"gear_hp": {
+							"mean": 83.0,
+							"p10": 83,
+							"p50": 83,
+							"p90": 83
+						},
+						"relics": {
+							"mean": 10.0,
+							"p10": 10,
+							"p50": 10,
+							"p90": 10
+						},
+						"target_item_share": 1.0,
+						"tokens": {
+							"mean": 4.8,
+							"p10": 1,
+							"p50": 5,
+							"p90": 8
+						}
+					},
+					"day_30": {
+						"companions": {
+							"mean": 10.0,
+							"p10": 10,
+							"p50": 10,
+							"p90": 10
+						},
+						"gear": {
+							"mean": 24.33,
+							"p10": 23,
+							"p50": 24,
+							"p90": 25
+						},
+						"gear_attack": {
+							"mean": 32.1,
+							"p10": 29,
+							"p50": 32,
+							"p90": 34
+						},
+						"gear_banner_complete_share": 0.442,
+						"gear_hp": {
+							"mean": 78.63,
+							"p10": 73,
+							"p50": 81,
+							"p90": 83
+						},
+						"relics": {
+							"mean": 9.95,
+							"p10": 10,
+							"p50": 10,
+							"p90": 10
+						},
+						"target_item_share": 0.837,
+						"tokens": {
+							"mean": 4.86,
+							"p10": 1,
+							"p50": 5,
+							"p90": 8
+						}
+					},
+					"day_7": {
+						"companions": {
+							"mean": 8.97,
+							"p10": 8,
+							"p50": 9,
+							"p90": 10
+						},
+						"gear": {
+							"mean": 19.81,
+							"p10": 18,
+							"p50": 20,
+							"p90": 21
+						},
+						"gear_attack": {
+							"mean": 24.05,
+							"p10": 21,
+							"p50": 24,
+							"p90": 27
+						},
+						"gear_banner_complete_share": 0.0,
+						"gear_hp": {
+							"mean": 60.34,
+							"p10": 53,
+							"p50": 60,
+							"p90": 68
+						},
+						"relics": {
+							"mean": 7.79,
+							"p10": 6,
+							"p50": 8,
+							"p90": 9
+						},
+						"target_item_share": 0.336,
+						"tokens": {
+							"mean": 4.7,
+							"p10": 1,
+							"p50": 5,
+							"p90": 9
+						}
+					},
+					"day_90": {
+						"companions": {
+							"mean": 10.0,
+							"p10": 10,
+							"p50": 10,
+							"p90": 10
+						},
+						"gear": {
+							"mean": 24.97,
+							"p10": 25,
+							"p50": 25,
+							"p90": 25
+						},
+						"gear_attack": {
+							"mean": 33.93,
+							"p10": 34,
+							"p50": 34,
+							"p90": 34
+						},
+						"gear_banner_complete_share": 0.973,
+						"gear_hp": {
+							"mean": 82.81,
+							"p10": 83,
+							"p50": 83,
+							"p90": 83
+						},
+						"relics": {
+							"mean": 10.0,
+							"p10": 10,
+							"p50": 10,
+							"p90": 10
+						},
+						"target_item_share": 0.994,
+						"tokens": {
+							"mean": 4.76,
+							"p10": 1,
+							"p50": 5,
+							"p90": 9
+						}
+					}
+				},
+				"token_ledger": {
+					"salvage_returned_per_token_spent": 0.0878,
+					"tokens_income": 0.0,
+					"tokens_purchased": 39000.0,
+					"tokens_salvaged": 3777.02,
+					"tokens_spent": 43022.22,
+					"tokens_started": 250.0
+				},
+				"windows": {
+					"days_1_1": {
+						"draws_per_account_per_day": 184.78,
+						"new_item_share": 0.1979,
+						"no_effect_share": 0.1624,
+						"useful_per_account_per_day": 14.837,
+						"useful_share": 0.0803
+					},
+					"days_2_7": {
+						"draws_per_account_per_day": 0.0,
+						"new_item_share": 0.0,
+						"no_effect_share": 0.0,
+						"useful_per_account_per_day": 0.0,
+						"useful_share": 0.0
+					},
+					"days_31_90": {
+						"draws_per_account_per_day": 21.98,
+						"new_item_share": 0.0005,
+						"no_effect_share": 0.1666,
+						"useful_per_account_per_day": 0.0106,
+						"useful_share": 0.0005
+					},
+					"days_8_30": {
+						"draws_per_account_per_day": 28.47,
+						"new_item_share": 0.0118,
+						"no_effect_share": 0.1671,
+						"useful_per_account_per_day": 0.1683,
+						"useful_share": 0.0059
+					},
+					"days_91_180": {
+						"draws_per_account_per_day": 23.82,
+						"new_item_share": 0.0,
+						"no_effect_share": 0.1667,
+						"useful_per_account_per_day": 0.0003,
+						"useful_share": 0.0
+					}
+				}
+			},
+			"progression": {
+				"accounts": 3,
+				"points": {
+					"hour_1": {
+						"attack": {
+							"max": 80.0,
+							"mean": 78.0,
+							"min": 76.0
+						},
+						"attack_not_from_level": {
+							"max": 31.0,
+							"mean": 30.33,
+							"min": 29.0
+						},
+						"deaths": {
+							"max": 0.0,
+							"mean": 0.0,
+							"min": 0.0
+						},
+						"gear_attack": {
+							"max": 26.0,
+							"mean": 25.0,
+							"min": 24.0
+						},
+						"gold": {
+							"max": 6980.0,
+							"mean": 6686.67,
+							"min": 6540.0
+						},
+						"health": {
+							"max": 348.0,
+							"mean": 323.67,
+							"min": 305.0
+						},
+						"health_not_from_level": {
+							"max": 97.0,
+							"mean": 79.33,
+							"min": 64.0
+						},
+						"level": {
+							"max": 44.0,
+							"mean": 42.67,
+							"min": 42.0
+						},
+						"quests": {
+							"max": 175.0,
+							"mean": 167.67,
+							"min": 164.0
+						},
+						"talent_points_unspent": {
+							"max": 31.0,
+							"mean": 29.67,
+							"min": 29.0
+						},
+						"talents": {
+							"max": 12.0,
+							"mean": 12.0,
+							"min": 12.0
+						},
+						"total_xp": {
+							"max": 28476.0,
+							"mean": 27192.67,
+							"min": 26521.0
+						}
+					},
+					"hour_168": {
+						"attack": {
+							"max": 611.0,
+							"mean": 597.67,
+							"min": 590.0
+						},
+						"attack_not_from_level": {
+							"max": 31.0,
+							"mean": 30.33,
+							"min": 29.0
+						},
+						"deaths": {
+							"max": 0.0,
+							"mean": 0.0,
+							"min": 0.0
+						},
+						"gear_attack": {
+							"max": 26.0,
+							"mean": 25.0,
+							"min": 24.0
+						},
+						"gold": {
+							"max": 1203380.0,
+							"mean": 1151140.0,
+							"min": 1125020.0
+						},
+						"health": {
+							"max": 3003.0,
+							"mean": 2922.0,
+							"min": 2875.0
+						},
+						"health_not_from_level": {
+							"max": 97.0,
+							"mean": 79.33,
+							"min": 64.0
+						},
+						"level": {
+							"max": 575.0,
+							"mean": 562.33,
+							"min": 556.0
+						},
+						"quests": {
+							"max": 30085.0,
+							"mean": 28779.0,
+							"min": 28126.0
+						},
+						"talent_points_unspent": {
+							"max": 562.0,
+							"mean": 549.33,
+							"min": 543.0
+						},
+						"talents": {
+							"max": 12.0,
+							"mean": 12.0,
+							"min": 12.0
+						},
+						"total_xp": {
+							"max": 4963576.0,
+							"mean": 4748089.33,
+							"min": 4640311.0
+						}
+					},
+					"hour_24": {
+						"attack": {
+							"max": 253.0,
+							"mean": 247.67,
+							"min": 244.0
+						},
+						"attack_not_from_level": {
+							"max": 31.0,
+							"mean": 30.33,
+							"min": 29.0
+						},
+						"deaths": {
+							"max": 0.0,
+							"mean": 0.0,
+							"min": 0.0
+						},
+						"gear_attack": {
+							"max": 26.0,
+							"mean": 25.0,
+							"min": 24.0
+						},
+						"gold": {
+							"max": 171780.0,
+							"mean": 164313.33,
+							"min": 160580.0
+						},
+						"health": {
+							"max": 1213.0,
+							"mean": 1172.0,
+							"min": 1145.0
+						},
+						"health_not_from_level": {
+							"max": 97.0,
+							"mean": 79.33,
+							"min": 64.0
+						},
+						"level": {
+							"max": 217.0,
+							"mean": 212.33,
+							"min": 210.0
+						},
+						"quests": {
+							"max": 4295.0,
+							"mean": 4108.33,
+							"min": 4015.0
+						},
+						"talent_points_unspent": {
+							"max": 204.0,
+							"mean": 199.33,
+							"min": 197.0
+						},
+						"talents": {
+							"max": 12.0,
+							"mean": 12.0,
+							"min": 12.0
+						},
+						"total_xp": {
+							"max": 708146.0,
+							"mean": 677366.0,
+							"min": 661936.0
+						}
+					},
+					"hour_336": {
+						"attack": {
+							"max": 850.0,
+							"mean": 843.67,
+							"min": 840.0
+						},
+						"attack_not_from_level": {
+							"max": 36.0,
+							"mean": 34.0,
+							"min": 31.0
+						},
+						"deaths": {
+							"max": 0.0,
+							"mean": 0.0,
+							"min": 0.0
+						},
+						"gear_attack": {
+							"max": 30.0,
+							"mean": 28.0,
+							"min": 25.0
+						},
+						"gold": {
+							"max": 2406940.0,
+							"mean": 2354700.0,
+							"min": 2328580.0
+						},
+						"health": {
+							"max": 4198.0,
+							"mean": 4157.67,
+							"min": 4131.0
+						},
+						"health_not_from_level": {
+							"max": 113.0,
+							"mean": 103.33,
+							"min": 97.0
+						},
+						"level": {
+							"max": 814.0,
+							"mean": 804.67,
+							"min": 800.0
+						},
+						"quests": {
+							"max": 60174.0,
+							"mean": 58868.0,
+							"min": 58215.0
+						},
+						"talent_points_unspent": {
+							"max": 801.0,
+							"mean": 791.67,
+							"min": 787.0
+						},
+						"talents": {
+							"max": 12.0,
+							"mean": 12.0,
+							"min": 12.0
+						},
+						"total_xp": {
+							"max": 9928221.0,
+							"mean": 9712711.0,
+							"min": 9604936.0
+						}
+					},
+					"hour_6": {
+						"attack": {
+							"max": 144.0,
+							"mean": 141.33,
+							"min": 139.0
+						},
+						"attack_not_from_level": {
+							"max": 31.0,
+							"mean": 30.33,
+							"min": 29.0
+						},
+						"deaths": {
+							"max": 0.0,
+							"mean": 0.0,
+							"min": 0.0
+						},
+						"gear_attack": {
+							"max": 26.0,
+							"mean": 25.0,
+							"min": 24.0
+						},
+						"gold": {
+							"max": 42820.0,
+							"mean": 40953.33,
+							"min": 40020.0
+						},
+						"health": {
+							"max": 668.0,
+							"mean": 640.33,
+							"min": 620.0
+						},
+						"health_not_from_level": {
+							"max": 97.0,
+							"mean": 79.33,
+							"min": 64.0
+						},
+						"level": {
+							"max": 108.0,
+							"mean": 106.0,
+							"min": 105.0
+						},
+						"quests": {
+							"max": 1071.0,
+							"mean": 1024.33,
+							"min": 1001.0
+						},
+						"talent_points_unspent": {
+							"max": 95.0,
+							"mean": 93.0,
+							"min": 92.0
+						},
+						"talents": {
+							"max": 12.0,
+							"mean": 12.0,
+							"min": 12.0
+						},
+						"total_xp": {
+							"max": 176226.0,
+							"mean": 168532.67,
+							"min": 164666.0
+						}
+					},
+					"hour_720": {
+						"attack": {
+							"max": 1234.0,
+							"mean": 1227.0,
+							"min": 1222.0
+						},
+						"attack_not_from_level": {
+							"max": 38.0,
+							"mean": 37.0,
+							"min": 35.0
+						},
+						"deaths": {
+							"max": 0.0,
+							"mean": 0.0,
+							"min": 0.0
+						},
+						"gear_attack": {
+							"max": 32.0,
+							"mean": 31.0,
+							"min": 29.0
+						},
+						"gold": {
+							"max": 5157900.0,
+							"mean": 5105660.0,
+							"min": 5079540.0
+						},
+						"health": {
+							"max": 6096.0,
+							"mean": 6067.0,
+							"min": 6051.0
+						},
+						"health_not_from_level": {
+							"max": 113.0,
+							"mean": 111.0,
+							"min": 110.0
+						},
+						"level": {
+							"max": 1191.0,
+							"mean": 1185.0,
+							"min": 1182.0
+						},
+						"quests": {
+							"max": 128948.0,
+							"mean": 127642.0,
+							"min": 126989.0
+						},
+						"talent_points_unspent": {
+							"max": 1178.0,
+							"mean": 1172.0,
+							"min": 1169.0
+						},
+						"talents": {
+							"max": 12.0,
+							"mean": 12.0,
+							"min": 12.0
+						},
+						"total_xp": {
+							"max": 21276021.0,
+							"mean": 21060507.67,
+							"min": 20952726.0
+						}
+					}
+				},
+				"projection": {
+					"check_actual_level_at_last_point": 1185.0,
+					"check_predicted_level_at_last_point": 1185.4,
+					"days": {
+						"day_180": {
+							"attack": 2957.4,
+							"health": 14718.8,
+							"level": 2915.4
+						},
+						"day_90": {
+							"attack": 2101.9,
+							"health": 10441.3,
+							"level": 2059.9
+						}
+					},
+					"xp_per_hour": 29551.55
+				},
+				"seconds_to_all_talents": [
+					430.0,
+					430.0,
+					400.0
+				],
+				"seconds_to_first_boss_kill": [
+					40.0,
+					40.0,
+					40.0
+				]
+			}
+		},
+		"high/proposed_120_per_day": {
+			"collection": {
+				"accounts": 1000,
+				"checkpoints": {
+					"day_1": {
+						"companions": {
+							"mean": 9.06,
+							"p10": 8,
+							"p50": 9,
+							"p90": 10
+						},
+						"gear": {
+							"mean": 20.1,
+							"p10": 18,
+							"p50": 20,
+							"p90": 22
+						},
+						"gear_attack": {
+							"mean": 24.43,
+							"p10": 21,
+							"p50": 24,
+							"p90": 27
+						},
+						"gear_banner_complete_share": 0.0,
+						"gear_hp": {
+							"mean": 61.16,
+							"p10": 54,
+							"p50": 61,
+							"p90": 69
+						},
+						"relics": {
+							"mean": 7.92,
+							"p10": 7,
+							"p50": 8,
+							"p90": 9
+						},
+						"target_item_share": 0.352,
+						"tokens": {
+							"mean": 4.88,
+							"p10": 1,
+							"p50": 5,
+							"p90": 9
+						}
+					},
+					"day_180": {
+						"companions": {
+							"mean": 10.0,
+							"p10": 10,
+							"p50": 10,
+							"p90": 10
+						},
+						"gear": {
+							"mean": 25.0,
+							"p10": 25,
+							"p50": 25,
+							"p90": 25
+						},
+						"gear_attack": {
+							"mean": 34.0,
+							"p10": 34,
+							"p50": 34,
+							"p90": 34
+						},
+						"gear_banner_complete_share": 1.0,
+						"gear_hp": {
+							"mean": 83.0,
+							"p10": 83,
+							"p50": 83,
+							"p90": 83
+						},
+						"relics": {
+							"mean": 10.0,
+							"p10": 10,
+							"p50": 10,
+							"p90": 10
+						},
+						"target_item_share": 1.0,
+						"tokens": {
+							"mean": 4.73,
+							"p10": 1,
+							"p50": 5,
+							"p90": 9
+						}
+					},
+					"day_30": {
+						"companions": {
+							"mean": 10.0,
+							"p10": 10,
+							"p50": 10,
+							"p90": 10
+						},
+						"gear": {
+							"mean": 24.75,
+							"p10": 24,
+							"p50": 25,
+							"p90": 25
+						},
+						"gear_attack": {
+							"mean": 33.31,
+							"p10": 31,
+							"p50": 34,
+							"p90": 34
+						},
+						"gear_banner_complete_share": 0.759,
+						"gear_hp": {
+							"mean": 81.3,
+							"p10": 74,
+							"p50": 83,
+							"p90": 83
+						},
+						"relics": {
+							"mean": 9.99,
+							"p10": 10,
+							"p50": 10,
+							"p90": 10
+						},
+						"target_item_share": 0.947,
+						"tokens": {
+							"mean": 4.67,
+							"p10": 1,
+							"p50": 5,
+							"p90": 8
+						}
+					},
+					"day_7": {
+						"companions": {
+							"mean": 9.82,
+							"p10": 9,
+							"p50": 10,
+							"p90": 10
+						},
+						"gear": {
+							"mean": 21.43,
+							"p10": 20,
+							"p50": 21,
+							"p90": 23
+						},
+						"gear_attack": {
+							"mean": 26.28,
+							"p10": 23,
+							"p50": 26,
+							"p90": 30
+						},
+						"gear_banner_complete_share": 0.001,
+						"gear_hp": {
+							"mean": 65.13,
+							"p10": 57,
+							"p50": 65,
+							"p90": 74
+						},
+						"relics": {
+							"mean": 8.57,
+							"p10": 7,
+							"p50": 9,
+							"p90": 10
+						},
+						"target_item_share": 0.441,
+						"tokens": {
+							"mean": 4.72,
+							"p10": 1,
+							"p50": 5,
+							"p90": 9
+						}
+					},
+					"day_90": {
+						"companions": {
+							"mean": 10.0,
+							"p10": 10,
+							"p50": 10,
+							"p90": 10
+						},
+						"gear": {
+							"mean": 25.0,
+							"p10": 25,
+							"p50": 25,
+							"p90": 25
+						},
+						"gear_attack": {
+							"mean": 33.99,
+							"p10": 34,
+							"p50": 34,
+							"p90": 34
+						},
+						"gear_banner_complete_share": 0.996,
+						"gear_hp": {
+							"mean": 82.98,
+							"p10": 83,
+							"p50": 83,
+							"p90": 83
+						},
+						"relics": {
+							"mean": 10.0,
+							"p10": 10,
+							"p50": 10,
+							"p90": 10
+						},
+						"target_item_share": 0.998,
+						"tokens": {
+							"mean": 4.77,
+							"p10": 1,
+							"p50": 5,
+							"p90": 8
+						}
+					}
+				},
+				"token_ledger": {
+					"salvage_returned_per_token_spent": 0.0888,
+					"tokens_income": 21600.0,
+					"tokens_purchased": 39000.0,
+					"tokens_salvaged": 5927.49,
+					"tokens_spent": 66772.76,
+					"tokens_started": 250.0
+				},
+				"windows": {
+					"days_1_1": {
+						"draws_per_account_per_day": 197.71,
+						"new_item_share": 0.1875,
+						"no_effect_share": 0.1622,
+						"useful_per_account_per_day": 15.041,
+						"useful_share": 0.0761
+					},
+					"days_2_7": {
+						"draws_per_account_per_day": 12.99,
+						"new_item_share": 0.0352,
+						"no_effect_share": 0.1721,
+						"useful_per_account_per_day": 0.2282,
+						"useful_share": 0.0176
+					},
+					"days_31_90": {
+						"draws_per_account_per_day": 35.18,
+						"new_item_share": 0.0001,
+						"no_effect_share": 0.1667,
+						"useful_per_account_per_day": 0.004,
+						"useful_share": 0.0001
+					},
+					"days_8_30": {
+						"draws_per_account_per_day": 41.71,
+						"new_item_share": 0.0051,
+						"no_effect_share": 0.1665,
+						"useful_per_account_per_day": 0.118,
+						"useful_share": 0.0028
+					},
+					"days_91_180": {
+						"draws_per_account_per_day": 37.02,
+						"new_item_share": 0.0,
+						"no_effect_share": 0.1667,
+						"useful_per_account_per_day": 0.0,
+						"useful_share": 0.0
+					}
+				}
+			},
+			"progression": {
+				"accounts": 3,
+				"points": {
+					"hour_1": {
+						"attack": {
+							"max": 80.0,
+							"mean": 78.0,
+							"min": 76.0
+						},
+						"attack_not_from_level": {
+							"max": 31.0,
+							"mean": 30.33,
+							"min": 29.0
+						},
+						"deaths": {
+							"max": 0.0,
+							"mean": 0.0,
+							"min": 0.0
+						},
+						"gear_attack": {
+							"max": 26.0,
+							"mean": 25.0,
+							"min": 24.0
+						},
+						"gold": {
+							"max": 6980.0,
+							"mean": 6686.67,
+							"min": 6540.0
+						},
+						"health": {
+							"max": 348.0,
+							"mean": 323.67,
+							"min": 305.0
+						},
+						"health_not_from_level": {
+							"max": 97.0,
+							"mean": 79.33,
+							"min": 64.0
+						},
+						"level": {
+							"max": 44.0,
+							"mean": 42.67,
+							"min": 42.0
+						},
+						"quests": {
+							"max": 175.0,
+							"mean": 167.67,
+							"min": 164.0
+						},
+						"talent_points_unspent": {
+							"max": 31.0,
+							"mean": 29.67,
+							"min": 29.0
+						},
+						"talents": {
+							"max": 12.0,
+							"mean": 12.0,
+							"min": 12.0
+						},
+						"total_xp": {
+							"max": 28476.0,
+							"mean": 27192.67,
+							"min": 26521.0
+						}
+					},
+					"hour_168": {
+						"attack": {
+							"max": 611.0,
+							"mean": 602.0,
+							"min": 596.0
+						},
+						"attack_not_from_level": {
+							"max": 35.0,
+							"mean": 32.67,
+							"min": 31.0
+						},
+						"deaths": {
+							"max": 0.0,
+							"mean": 0.0,
+							"min": 0.0
+						},
+						"gear_attack": {
+							"max": 29.0,
+							"mean": 26.67,
+							"min": 25.0
+						},
+						"gold": {
+							"max": 1203380.0,
+							"mean": 1158606.67,
+							"min": 1136220.0
+						},
+						"health": {
+							"max": 3003.0,
+							"mean": 2951.33,
+							"min": 2921.0
+						},
+						"health_not_from_level": {
+							"max": 104.0,
+							"mean": 98.67,
+							"min": 95.0
+						},
+						"level": {
+							"max": 575.0,
+							"mean": 564.33,
+							"min": 559.0
+						},
+						"quests": {
+							"max": 30085.0,
+							"mean": 28965.67,
+							"min": 28406.0
+						},
+						"talent_points_unspent": {
+							"max": 562.0,
+							"mean": 551.33,
+							"min": 546.0
+						},
+						"talents": {
+							"max": 12.0,
+							"mean": 12.0,
+							"min": 12.0
+						},
+						"total_xp": {
+							"max": 4963576.0,
+							"mean": 4778846.0,
+							"min": 4686451.0
+						}
+					},
+					"hour_24": {
+						"attack": {
+							"max": 253.0,
+							"mean": 247.67,
+							"min": 244.0
+						},
+						"attack_not_from_level": {
+							"max": 31.0,
+							"mean": 30.33,
+							"min": 29.0
+						},
+						"deaths": {
+							"max": 0.0,
+							"mean": 0.0,
+							"min": 0.0
+						},
+						"gear_attack": {
+							"max": 26.0,
+							"mean": 25.0,
+							"min": 24.0
+						},
+						"gold": {
+							"max": 171780.0,
+							"mean": 164313.33,
+							"min": 160580.0
+						},
+						"health": {
+							"max": 1213.0,
+							"mean": 1172.0,
+							"min": 1145.0
+						},
+						"health_not_from_level": {
+							"max": 97.0,
+							"mean": 79.33,
+							"min": 64.0
+						},
+						"level": {
+							"max": 217.0,
+							"mean": 212.33,
+							"min": 210.0
+						},
+						"quests": {
+							"max": 4295.0,
+							"mean": 4108.33,
+							"min": 4015.0
+						},
+						"talent_points_unspent": {
+							"max": 204.0,
+							"mean": 199.33,
+							"min": 197.0
+						},
+						"talents": {
+							"max": 12.0,
+							"mean": 12.0,
+							"min": 12.0
+						},
+						"total_xp": {
+							"max": 708146.0,
+							"mean": 677366.0,
+							"min": 661936.0
+						}
+					},
+					"hour_336": {
+						"attack": {
+							"max": 853.0,
+							"mean": 846.67,
+							"min": 842.0
+						},
+						"attack_not_from_level": {
+							"max": 38.0,
+							"mean": 35.67,
+							"min": 34.0
+						},
+						"deaths": {
+							"max": 0.0,
+							"mean": 0.0,
+							"min": 0.0
+						},
+						"gear_attack": {
+							"max": 32.0,
+							"mean": 29.67,
+							"min": 28.0
+						},
+						"gold": {
+							"max": 2406940.0,
+							"mean": 2362166.67,
+							"min": 2339780.0
+						},
+						"health": {
+							"max": 4207.0,
+							"mean": 4170.67,
+							"min": 4151.0
+						},
+						"health_not_from_level": {
+							"max": 113.0,
+							"mean": 109.67,
+							"min": 106.0
+						},
+						"level": {
+							"max": 814.0,
+							"mean": 806.0,
+							"min": 802.0
+						},
+						"quests": {
+							"max": 60174.0,
+							"mean": 59054.67,
+							"min": 58495.0
+						},
+						"talent_points_unspent": {
+							"max": 801.0,
+							"mean": 793.0,
+							"min": 789.0
+						},
+						"talents": {
+							"max": 12.0,
+							"mean": 12.0,
+							"min": 12.0
+						},
+						"total_xp": {
+							"max": 9928221.0,
+							"mean": 9743497.67,
+							"min": 9651136.0
+						}
+					},
+					"hour_6": {
+						"attack": {
+							"max": 144.0,
+							"mean": 141.33,
+							"min": 139.0
+						},
+						"attack_not_from_level": {
+							"max": 31.0,
+							"mean": 30.33,
+							"min": 29.0
+						},
+						"deaths": {
+							"max": 0.0,
+							"mean": 0.0,
+							"min": 0.0
+						},
+						"gear_attack": {
+							"max": 26.0,
+							"mean": 25.0,
+							"min": 24.0
+						},
+						"gold": {
+							"max": 42820.0,
+							"mean": 40953.33,
+							"min": 40020.0
+						},
+						"health": {
+							"max": 668.0,
+							"mean": 640.33,
+							"min": 620.0
+						},
+						"health_not_from_level": {
+							"max": 97.0,
+							"mean": 79.33,
+							"min": 64.0
+						},
+						"level": {
+							"max": 108.0,
+							"mean": 106.0,
+							"min": 105.0
+						},
+						"quests": {
+							"max": 1071.0,
+							"mean": 1024.33,
+							"min": 1001.0
+						},
+						"talent_points_unspent": {
+							"max": 95.0,
+							"mean": 93.0,
+							"min": 92.0
+						},
+						"talents": {
+							"max": 12.0,
+							"mean": 12.0,
+							"min": 12.0
+						},
+						"total_xp": {
+							"max": 176226.0,
+							"mean": 168532.67,
+							"min": 164666.0
+						}
+					},
+					"hour_720": {
+						"attack": {
+							"max": 1234.0,
+							"mean": 1230.0,
+							"min": 1228.0
+						},
+						"attack_not_from_level": {
+							"max": 40.0,
+							"mean": 39.33,
+							"min": 38.0
+						},
+						"deaths": {
+							"max": 0.0,
+							"mean": 0.0,
+							"min": 0.0
+						},
+						"gear_attack": {
+							"max": 34.0,
+							"mean": 33.33,
+							"min": 32.0
+						},
+						"gold": {
+							"max": 5157900.0,
+							"mean": 5113126.67,
+							"min": 5090740.0
+						},
+						"health": {
+							"max": 6096.0,
+							"mean": 6072.67,
+							"min": 6061.0
+						},
+						"health_not_from_level": {
+							"max": 115.0,
+							"mean": 113.33,
+							"min": 110.0
+						},
+						"level": {
+							"max": 1191.0,
+							"mean": 1185.67,
+							"min": 1183.0
+						},
+						"quests": {
+							"max": 128948.0,
+							"mean": 127828.67,
+							"min": 127269.0
+						},
+						"talent_points_unspent": {
+							"max": 1178.0,
+							"mean": 1172.67,
+							"min": 1170.0
+						},
+						"talents": {
+							"max": 12.0,
+							"mean": 12.0,
+							"min": 12.0
+						},
+						"total_xp": {
+							"max": 21276021.0,
+							"mean": 21091294.33,
+							"min": 20998886.0
+						}
+					}
+				},
+				"projection": {
+					"check_actual_level_at_last_point": 1185.67,
+					"check_predicted_level_at_last_point": 1186.3,
+					"days": {
+						"day_180": {
+							"attack": 2960.0,
+							"health": 14722.9,
+							"level": 2915.7
+						},
+						"day_90": {
+							"attack": 2104.7,
+							"health": 10446.1,
+							"level": 2060.4
+						}
+					},
+					"xp_per_hour": 29551.55
+				},
+				"seconds_to_all_talents": [
+					430.0,
+					430.0,
+					400.0
+				],
+				"seconds_to_first_boss_kill": [
+					40.0,
+					40.0,
+					40.0
+				]
+			}
+		},
+		"light/implemented": {
+			"collection": {
+				"accounts": 1000,
+				"checkpoints": {
+					"day_1": {
+						"companions": {
+							"mean": 6.71,
+							"p10": 5,
+							"p50": 7,
+							"p90": 8
+						},
+						"gear": {
+							"mean": 13.35,
+							"p10": 11,
+							"p50": 13,
+							"p90": 15
+						},
+						"gear_attack": {
+							"mean": 16.33,
+							"p10": 12,
+							"p50": 16,
+							"p90": 20
+						},
+						"gear_banner_complete_share": 0.0,
+						"gear_hp": {
+							"mean": 43.22,
+							"p10": 32,
+							"p50": 43,
+							"p90": 54
+						},
+						"relics": {
+							"mean": 5.05,
+							"p10": 4,
+							"p50": 5,
+							"p90": 6
+						},
+						"target_item_share": 0.069,
+						"tokens": {
+							"mean": 4.92,
+							"p10": 0,
+							"p50": 6,
+							"p90": 9
+						}
+					},
+					"day_180": {
+						"companions": {
+							"mean": 9.18,
+							"p10": 8,
+							"p50": 9,
+							"p90": 10
+						},
+						"gear": {
+							"mean": 20.48,
+							"p10": 19,
+							"p50": 21,
+							"p90": 22
+						},
+						"gear_attack": {
+							"mean": 24.97,
+							"p10": 22,
+							"p50": 25,
+							"p90": 28
+						},
+						"gear_banner_complete_share": 0.0,
+						"gear_hp": {
+							"mean": 62.22,
+							"p10": 55,
+							"p50": 62,
+							"p90": 70
+						},
+						"relics": {
+							"mean": 8.15,
+							"p10": 7,
+							"p50": 8,
+							"p90": 9
+						},
+						"target_item_share": 0.377,
+						"tokens": {
+							"mean": 4.95,
+							"p10": 1,
+							"p50": 5,
+							"p90": 9
+						}
+					},
+					"day_30": {
+						"companions": {
+							"mean": 6.71,
+							"p10": 5,
+							"p50": 7,
+							"p90": 8
+						},
+						"gear": {
+							"mean": 13.35,
+							"p10": 11,
+							"p50": 13,
+							"p90": 15
+						},
+						"gear_attack": {
+							"mean": 16.33,
+							"p10": 12,
+							"p50": 16,
+							"p90": 20
+						},
+						"gear_banner_complete_share": 0.0,
+						"gear_hp": {
+							"mean": 43.22,
+							"p10": 32,
+							"p50": 43,
+							"p90": 54
+						},
+						"relics": {
+							"mean": 5.05,
+							"p10": 4,
+							"p50": 5,
+							"p90": 6
+						},
+						"target_item_share": 0.069,
+						"tokens": {
+							"mean": 4.92,
+							"p10": 0,
+							"p50": 6,
+							"p90": 9
+						}
+					},
+					"day_7": {
+						"companions": {
+							"mean": 6.71,
+							"p10": 5,
+							"p50": 7,
+							"p90": 8
+						},
+						"gear": {
+							"mean": 13.35,
+							"p10": 11,
+							"p50": 13,
+							"p90": 15
+						},
+						"gear_attack": {
+							"mean": 16.33,
+							"p10": 12,
+							"p50": 16,
+							"p90": 20
+						},
+						"gear_banner_complete_share": 0.0,
+						"gear_hp": {
+							"mean": 43.22,
+							"p10": 32,
+							"p50": 43,
+							"p90": 54
+						},
+						"relics": {
+							"mean": 5.05,
+							"p10": 4,
+							"p50": 5,
+							"p90": 6
+						},
+						"target_item_share": 0.069,
+						"tokens": {
+							"mean": 4.92,
+							"p10": 0,
+							"p50": 6,
+							"p90": 9
+						}
+					},
+					"day_90": {
+						"companions": {
+							"mean": 8.25,
+							"p10": 7,
+							"p50": 8,
+							"p90": 9
+						},
+						"gear": {
+							"mean": 17.33,
+							"p10": 15,
+							"p50": 17,
+							"p90": 19
+						},
+						"gear_attack": {
+							"mean": 20.33,
+							"p10": 17,
+							"p50": 20,
+							"p90": 25
+						},
+						"gear_banner_complete_share": 0.0,
+						"gear_hp": {
+							"mean": 52.34,
+							"p10": 43,
+							"p50": 51,
+							"p90": 63
+						},
+						"relics": {
+							"mean": 6.94,
+							"p10": 6,
+							"p50": 7,
+							"p90": 8
+						},
+						"target_item_share": 0.141,
+						"tokens": {
+							"mean": 4.73,
+							"p10": 1,
+							"p50": 5,
+							"p90": 9
+						}
+					}
+				},
+				"token_ledger": {
+					"salvage_returned_per_token_spent": 0.0581,
+					"tokens_income": 0.0,
+					"tokens_purchased": 1800.0,
+					"tokens_salvaged": 126.11,
+					"tokens_spent": 2171.16,
+					"tokens_started": 250.0
+				},
+				"windows": {
+					"days_1_1": {
+						"draws_per_account_per_day": 56.47,
+						"new_item_share": 0.4446,
+						"no_effect_share": 0.1594,
+						"useful_per_account_per_day": 10.538,
+						"useful_share": 0.1866
+					},
+					"days_2_7": {
+						"draws_per_account_per_day": 0.0,
+						"new_item_share": 0.0,
+						"no_effect_share": 0.0,
+						"useful_per_account_per_day": 0.0,
+						"useful_share": 0.0
+					},
+					"days_31_90": {
+						"draws_per_account_per_day": 1.06,
+						"new_item_share": 0.1162,
+						"no_effect_share": 0.1709,
+						"useful_per_account_per_day": 0.0421,
+						"useful_share": 0.0396
+					},
+					"days_8_30": {
+						"draws_per_account_per_day": 0.0,
+						"new_item_share": 0.0,
+						"no_effect_share": 0.0,
+						"useful_per_account_per_day": 0.0,
+						"useful_share": 0.0
+					},
+					"days_91_180": {
+						"draws_per_account_per_day": 1.08,
+						"new_item_share": 0.0545,
+						"no_effect_share": 0.1655,
+						"useful_per_account_per_day": 0.0251,
+						"useful_share": 0.0233
+					}
+				}
+			},
+			"progression": {
+				"accounts": 3,
+				"points": {
+					"hour_1": {
+						"attack": {
+							"max": 73.0,
+							"mean": 71.0,
+							"min": 69.0
+						},
+						"attack_not_from_level": {
+							"max": 26.0,
+							"mean": 23.67,
+							"min": 22.0
+						},
+						"deaths": {
+							"max": 0.0,
+							"mean": 0.0,
+							"min": 0.0
+						},
+						"gear_attack": {
+							"max": 21.0,
+							"mean": 18.33,
+							"min": 17.0
+						},
+						"gold": {
+							"max": 6940.0,
+							"mean": 6633.33,
+							"min": 6460.0
+						},
+						"health": {
+							"max": 327.0,
+							"mean": 309.0,
+							"min": 290.0
+						},
+						"health_not_from_level": {
+							"max": 81.0,
+							"mean": 66.33,
+							"min": 49.0
+						},
+						"level": {
+							"max": 43.0,
+							"mean": 42.33,
+							"min": 42.0
+						},
+						"quests": {
+							"max": 174.0,
+							"mean": 166.33,
+							"min": 162.0
+						},
+						"talent_points_unspent": {
+							"max": 30.0,
+							"mean": 29.33,
+							"min": 29.0
+						},
+						"talents": {
+							"max": 12.0,
+							"mean": 12.0,
+							"min": 12.0
+						},
+						"total_xp": {
+							"max": 28211.0,
+							"mean": 27009.33,
+							"min": 26331.0
+						}
+					},
+					"hour_168": {
+						"attack": {
+							"max": 603.0,
+							"mean": 591.0,
+							"min": 583.0
+						},
+						"attack_not_from_level": {
+							"max": 26.0,
+							"mean": 23.67,
+							"min": 22.0
+						},
+						"deaths": {
+							"max": 0.0,
+							"mean": 0.0,
+							"min": 0.0
+						},
+						"gear_attack": {
+							"max": 21.0,
+							"mean": 18.33,
+							"min": 17.0
+						},
+						"gold": {
+							"max": 1203340.0,
+							"mean": 1151113.33,
+							"min": 1124980.0
+						},
+						"health": {
+							"max": 2987.0,
+							"mean": 2909.0,
+							"min": 2860.0
+						},
+						"health_not_from_level": {
+							"max": 81.0,
+							"mean": 66.33,
+							"min": 49.0
+						},
+						"level": {
+							"max": 575.0,
+							"mean": 562.33,
+							"min": 556.0
+						},
+						"quests": {
+							"max": 30084.0,
+							"mean": 28778.33,
+							"min": 28125.0
+						},
+						"talent_points_unspent": {
+							"max": 562.0,
+							"mean": 549.33,
+							"min": 543.0
+						},
+						"talents": {
+							"max": 12.0,
+							"mean": 12.0,
+							"min": 12.0
+						},
+						"total_xp": {
+							"max": 4963321.0,
+							"mean": 4747889.33,
+							"min": 4640096.0
+						}
+					},
+					"hour_24": {
+						"attack": {
+							"max": 245.0,
+							"mean": 241.0,
+							"min": 237.0
+						},
+						"attack_not_from_level": {
+							"max": 26.0,
+							"mean": 23.67,
+							"min": 22.0
+						},
+						"deaths": {
+							"max": 0.0,
+							"mean": 0.0,
+							"min": 0.0
+						},
+						"gear_attack": {
+							"max": 21.0,
+							"mean": 18.33,
+							"min": 17.0
+						},
+						"gold": {
+							"max": 171700.0,
+							"mean": 164246.67,
+							"min": 160500.0
+						},
+						"health": {
+							"max": 1197.0,
+							"mean": 1159.0,
+							"min": 1130.0
+						},
+						"health_not_from_level": {
+							"max": 81.0,
+							"mean": 66.33,
+							"min": 49.0
+						},
+						"level": {
+							"max": 217.0,
+							"mean": 212.33,
+							"min": 210.0
+						},
+						"quests": {
+							"max": 4293.0,
+							"mean": 4106.67,
+							"min": 4013.0
+						},
+						"talent_points_unspent": {
+							"max": 204.0,
+							"mean": 199.33,
+							"min": 197.0
+						},
+						"talents": {
+							"max": 12.0,
+							"mean": 12.0,
+							"min": 12.0
+						},
+						"total_xp": {
+							"max": 707936.0,
+							"mean": 677194.33,
+							"min": 661746.0
+						}
+					},
+					"hour_336": {
+						"attack": {
+							"max": 842.0,
+							"mean": 824.67,
+							"min": 814.0
+						},
+						"attack_not_from_level": {
+							"max": 26.0,
+							"mean": 23.67,
+							"min": 22.0
+						},
+						"deaths": {
+							"max": 0.0,
+							"mean": 0.0,
+							"min": 0.0
+						},
+						"gear_attack": {
+							"max": 21.0,
+							"mean": 18.33,
+							"min": 17.0
+						},
+						"gold": {
+							"max": 2406900.0,
+							"mean": 2302406.67,
+							"min": 2250140.0
+						},
+						"health": {
+							"max": 4182.0,
+							"mean": 4077.33,
+							"min": 4015.0
+						},
+						"health_not_from_level": {
+							"max": 81.0,
+							"mean": 66.33,
+							"min": 49.0
+						},
+						"level": {
+							"max": 814.0,
+							"mean": 796.0,
+							"min": 787.0
+						},
+						"quests": {
+							"max": 60173.0,
+							"mean": 57560.67,
+							"min": 56254.0
+						},
+						"talent_points_unspent": {
+							"max": 801.0,
+							"mean": 783.0,
+							"min": 774.0
+						},
+						"talents": {
+							"max": 12.0,
+							"mean": 12.0,
+							"min": 12.0
+						},
+						"total_xp": {
+							"max": 9928006.0,
+							"mean": 9497044.33,
+							"min": 9281511.0
+						}
+					},
+					"hour_6": {
+						"attack": {
+							"max": 136.0,
+							"mean": 134.67,
+							"min": 132.0
+						},
+						"attack_not_from_level": {
+							"max": 26.0,
+							"mean": 23.67,
+							"min": 22.0
+						},
+						"deaths": {
+							"max": 0.0,
+							"mean": 0.0,
+							"min": 0.0
+						},
+						"gear_attack": {
+							"max": 21.0,
+							"mean": 18.33,
+							"min": 17.0
+						},
+						"gold": {
+							"max": 42780.0,
+							"mean": 40913.33,
+							"min": 39980.0
+						},
+						"health": {
+							"max": 652.0,
+							"mean": 627.33,
+							"min": 605.0
+						},
+						"health_not_from_level": {
+							"max": 81.0,
+							"mean": 66.33,
+							"min": 49.0
+						},
+						"level": {
+							"max": 108.0,
+							"mean": 106.0,
+							"min": 105.0
+						},
+						"quests": {
+							"max": 1070.0,
+							"mean": 1023.33,
+							"min": 1000.0
+						},
+						"talent_points_unspent": {
+							"max": 95.0,
+							"mean": 93.0,
+							"min": 92.0
+						},
+						"talents": {
+							"max": 12.0,
+							"mean": 12.0,
+							"min": 12.0
+						},
+						"total_xp": {
+							"max": 176011.0,
+							"mean": 168357.67,
+							"min": 164471.0
+						}
+					},
+					"hour_720": {
+						"attack": {
+							"max": 1219.0,
+							"mean": 1193.67,
+							"min": 1179.0
+						},
+						"attack_not_from_level": {
+							"max": 26.0,
+							"mean": 23.67,
+							"min": 22.0
+						},
+						"deaths": {
+							"max": 0.0,
+							"mean": 0.0,
+							"min": 0.0
+						},
+						"gear_attack": {
+							"max": 21.0,
+							"mean": 18.33,
+							"min": 17.0
+						},
+						"gold": {
+							"max": 5157860.0,
+							"mean": 4933980.0,
+							"min": 4822020.0
+						},
+						"health": {
+							"max": 6067.0,
+							"mean": 5922.33,
+							"min": 5840.0
+						},
+						"health_not_from_level": {
+							"max": 81.0,
+							"mean": 66.33,
+							"min": 49.0
+						},
+						"level": {
+							"max": 1191.0,
+							"mean": 1165.0,
+							"min": 1152.0
+						},
+						"quests": {
+							"max": 128947.0,
+							"mean": 123350.0,
+							"min": 120551.0
+						},
+						"talent_points_unspent": {
+							"max": 1178.0,
+							"mean": 1152.0,
+							"min": 1139.0
+						},
+						"talents": {
+							"max": 12.0,
+							"mean": 12.0,
+							"min": 12.0
+						},
+						"total_xp": {
+							"max": 21275736.0,
+							"mean": 20352221.0,
+							"min": 19890386.0
+						}
+					}
+				},
+				"projection": {
+					"check_actual_level_at_last_point": 1165.0,
+					"check_predicted_level_at_last_point": 1165.3,
+					"days": {
+						"day_180": {
+							"attack": 2882.5,
+							"health": 14366.3,
+							"level": 2853.8
+						},
+						"day_90": {
+							"attack": 2046.7,
+							"health": 10187.7,
+							"level": 2018.1
+						}
+					},
+					"xp_per_hour": 28268.69
+				},
+				"seconds_to_all_talents": [
+					430.0,
+					430.0,
+					410.0
+				],
+				"seconds_to_first_boss_kill": [
+					50.0,
+					40.0,
+					40.0
+				]
+			}
+		},
+		"light/proposed_120_per_day": {
+			"collection": {
+				"accounts": 1000,
+				"checkpoints": {
+					"day_1": {
+						"companions": {
+							"mean": 7.16,
+							"p10": 6,
+							"p50": 7,
+							"p90": 9
+						},
+						"gear": {
+							"mean": 14.46,
+							"p10": 12,
+							"p50": 14,
+							"p90": 17
+						},
+						"gear_attack": {
+							"mean": 17.4,
+							"p10": 14,
+							"p50": 17,
+							"p90": 21
+						},
+						"gear_banner_complete_share": 0.0,
+						"gear_hp": {
+							"mean": 45.76,
+							"p10": 36,
+							"p50": 46,
+							"p90": 56
+						},
+						"relics": {
+							"mean": 5.54,
+							"p10": 4,
+							"p50": 6,
+							"p90": 7
+						},
+						"target_item_share": 0.084,
+						"tokens": {
+							"mean": 4.71,
+							"p10": 1,
+							"p50": 5,
+							"p90": 8
+						}
+					},
+					"day_180": {
+						"companions": {
+							"mean": 10.0,
+							"p10": 10,
+							"p50": 10,
+							"p90": 10
+						},
+						"gear": {
+							"mean": 24.99,
+							"p10": 25,
+							"p50": 25,
+							"p90": 25
+						},
+						"gear_attack": {
+							"mean": 33.97,
+							"p10": 34,
+							"p50": 34,
+							"p90": 34
+						},
+						"gear_banner_complete_share": 0.988,
+						"gear_hp": {
+							"mean": 82.92,
+							"p10": 83,
+							"p50": 83,
+							"p90": 83
+						},
+						"relics": {
+							"mean": 10.0,
+							"p10": 10,
+							"p50": 10,
+							"p90": 10
+						},
+						"target_item_share": 0.997,
+						"tokens": {
+							"mean": 4.93,
+							"p10": 1,
+							"p50": 5,
+							"p90": 9
+						}
+					},
+					"day_30": {
+						"companions": {
+							"mean": 9.97,
+							"p10": 10,
+							"p50": 10,
+							"p90": 10
+						},
+						"gear": {
+							"mean": 23.04,
+							"p10": 22,
+							"p50": 23,
+							"p90": 24
+						},
+						"gear_attack": {
+							"mean": 29.17,
+							"p10": 26,
+							"p50": 29,
+							"p90": 32
+						},
+						"gear_banner_complete_share": 0.052,
+						"gear_hp": {
+							"mean": 71.85,
+							"p10": 64,
+							"p50": 72,
+							"p90": 81
+						},
+						"relics": {
+							"mean": 9.2,
+							"p10": 8,
+							"p50": 9,
+							"p90": 10
+						},
+						"target_item_share": 0.613,
+						"tokens": {
+							"mean": 4.85,
+							"p10": 1,
+							"p50": 5,
+							"p90": 9
+						}
+					},
+					"day_7": {
+						"companions": {
+							"mean": 8.6,
+							"p10": 7,
+							"p50": 9,
+							"p90": 10
+						},
+						"gear": {
+							"mean": 18.37,
+							"p10": 16,
+							"p50": 18,
+							"p90": 20
+						},
+						"gear_attack": {
+							"mean": 21.47,
+							"p10": 18,
+							"p50": 21,
+							"p90": 26
+						},
+						"gear_banner_complete_share": 0.0,
+						"gear_hp": {
+							"mean": 54.75,
+							"p10": 46,
+							"p50": 54,
+							"p90": 65
+						},
+						"relics": {
+							"mean": 7.34,
+							"p10": 6,
+							"p50": 7,
+							"p90": 9
+						},
+						"target_item_share": 0.173,
+						"tokens": {
+							"mean": 5.02,
+							"p10": 2,
+							"p50": 5,
+							"p90": 9
+						}
+					},
+					"day_90": {
+						"companions": {
+							"mean": 10.0,
+							"p10": 10,
+							"p50": 10,
+							"p90": 10
+						},
+						"gear": {
+							"mean": 24.79,
+							"p10": 24,
+							"p50": 25,
+							"p90": 25
+						},
+						"gear_attack": {
+							"mean": 33.42,
+							"p10": 32,
+							"p50": 34,
+							"p90": 34
+						},
+						"gear_banner_complete_share": 0.797,
+						"gear_hp": {
+							"mean": 81.59,
+							"p10": 74,
+							"p50": 83,
+							"p90": 83
+						},
+						"relics": {
+							"mean": 10.0,
+							"p10": 10,
+							"p50": 10,
+							"p90": 10
+						},
+						"target_item_share": 0.954,
+						"tokens": {
+							"mean": 4.87,
+							"p10": 1,
+							"p50": 5,
+							"p90": 9
+						}
+					}
+				},
+				"token_ledger": {
+					"salvage_returned_per_token_spent": 0.086,
+					"tokens_income": 21600.0,
+					"tokens_purchased": 1800.0,
+					"tokens_salvaged": 2223.59,
+					"tokens_spent": 25868.66,
+					"tokens_started": 250.0
+				},
+				"windows": {
+					"days_1_1": {
+						"draws_per_account_per_day": 69.16,
+						"new_item_share": 0.3927,
+						"no_effect_share": 0.1591,
+						"useful_per_account_per_day": 11.246,
+						"useful_share": 0.1626
+					},
+					"days_2_7": {
+						"draws_per_account_per_day": 12.82,
+						"new_item_share": 0.093,
+						"no_effect_share": 0.1691,
+						"useful_per_account_per_day": 0.4127,
+						"useful_share": 0.0322
+					},
+					"days_31_90": {
+						"draws_per_account_per_day": 14.25,
+						"new_item_share": 0.003,
+						"no_effect_share": 0.1665,
+						"useful_per_account_per_day": 0.0259,
+						"useful_share": 0.0018
+					},
+					"days_8_30": {
+						"draws_per_account_per_day": 13.02,
+						"new_item_share": 0.0264,
+						"no_effect_share": 0.1663,
+						"useful_per_account_per_day": 0.169,
+						"useful_share": 0.013
+					},
+					"days_91_180": {
+						"draws_per_account_per_day": 14.29,
+						"new_item_share": 0.0002,
+						"no_effect_share": 0.1667,
+						"useful_per_account_per_day": 0.0022,
+						"useful_share": 0.0002
+					}
+				}
+			},
+			"progression": {
+				"accounts": 3,
+				"points": {
+					"hour_1": {
+						"attack": {
+							"max": 74.0,
+							"mean": 71.67,
+							"min": 69.0
+						},
+						"attack_not_from_level": {
+							"max": 27.0,
+							"mean": 24.33,
+							"min": 22.0
+						},
+						"deaths": {
+							"max": 0.0,
+							"mean": 0.0,
+							"min": 0.0
+						},
+						"gear_attack": {
+							"max": 22.0,
+							"mean": 19.0,
+							"min": 17.0
+						},
+						"gold": {
+							"max": 6940.0,
+							"mean": 6633.33,
+							"min": 6460.0
+						},
+						"health": {
+							"max": 332.0,
+							"mean": 311.67,
+							"min": 293.0
+						},
+						"health_not_from_level": {
+							"max": 86.0,
+							"mean": 69.0,
+							"min": 52.0
+						},
+						"level": {
+							"max": 43.0,
+							"mean": 42.33,
+							"min": 42.0
+						},
+						"quests": {
+							"max": 174.0,
+							"mean": 166.33,
+							"min": 162.0
+						},
+						"talent_points_unspent": {
+							"max": 30.0,
+							"mean": 29.33,
+							"min": 29.0
+						},
+						"talents": {
+							"max": 12.0,
+							"mean": 12.0,
+							"min": 12.0
+						},
+						"total_xp": {
+							"max": 28311.0,
+							"mean": 27042.67,
+							"min": 26331.0
+						}
+					},
+					"hour_168": {
+						"attack": {
+							"max": 611.0,
+							"mean": 597.33,
+							"min": 589.0
+						},
+						"attack_not_from_level": {
+							"max": 31.0,
+							"mean": 30.0,
+							"min": 28.0
+						},
+						"deaths": {
+							"max": 0.0,
+							"mean": 0.0,
+							"min": 0.0
+						},
+						"gear_attack": {
+							"max": 26.0,
+							"mean": 24.67,
+							"min": 23.0
+						},
+						"gold": {
+							"max": 1203340.0,
+							"mean": 1151113.33,
+							"min": 1124980.0
+						},
+						"health": {
+							"max": 3003.0,
+							"mean": 2921.0,
+							"min": 2875.0
+						},
+						"health_not_from_level": {
+							"max": 97.0,
+							"mean": 78.33,
+							"min": 64.0
+						},
+						"level": {
+							"max": 575.0,
+							"mean": 562.33,
+							"min": 556.0
+						},
+						"quests": {
+							"max": 30084.0,
+							"mean": 28778.33,
+							"min": 28125.0
+						},
+						"talent_points_unspent": {
+							"max": 562.0,
+							"mean": 549.33,
+							"min": 543.0
+						},
+						"talents": {
+							"max": 12.0,
+							"mean": 12.0,
+							"min": 12.0
+						},
+						"total_xp": {
+							"max": 4963371.0,
+							"mean": 4747906.0,
+							"min": 4640096.0
+						}
+					},
+					"hour_24": {
+						"attack": {
+							"max": 246.0,
+							"mean": 241.67,
+							"min": 237.0
+						},
+						"attack_not_from_level": {
+							"max": 27.0,
+							"mean": 24.33,
+							"min": 22.0
+						},
+						"deaths": {
+							"max": 0.0,
+							"mean": 0.0,
+							"min": 0.0
+						},
+						"gear_attack": {
+							"max": 22.0,
+							"mean": 19.0,
+							"min": 17.0
+						},
+						"gold": {
+							"max": 171740.0,
+							"mean": 164273.33,
+							"min": 160500.0
+						},
+						"health": {
+							"max": 1202.0,
+							"mean": 1161.67,
+							"min": 1133.0
+						},
+						"health_not_from_level": {
+							"max": 86.0,
+							"mean": 69.0,
+							"min": 52.0
+						},
+						"level": {
+							"max": 217.0,
+							"mean": 212.33,
+							"min": 210.0
+						},
+						"quests": {
+							"max": 4294.0,
+							"mean": 4107.33,
+							"min": 4013.0
+						},
+						"talent_points_unspent": {
+							"max": 204.0,
+							"mean": 199.33,
+							"min": 197.0
+						},
+						"talents": {
+							"max": 12.0,
+							"mean": 12.0,
+							"min": 12.0
+						},
+						"total_xp": {
+							"max": 707981.0,
+							"mean": 677221.0,
+							"min": 661746.0
+						}
+					},
+					"hour_336": {
+						"attack": {
+							"max": 850.0,
+							"mean": 833.0,
+							"min": 823.0
+						},
+						"attack_not_from_level": {
+							"max": 34.0,
+							"mean": 32.0,
+							"min": 31.0
+						},
+						"deaths": {
+							"max": 0.0,
+							"mean": 0.0,
+							"min": 0.0
+						},
+						"gear_attack": {
+							"max": 29.0,
+							"mean": 26.67,
+							"min": 25.0
+						},
+						"gold": {
+							"max": 2406900.0,
+							"mean": 2302406.67,
+							"min": 2250140.0
+						},
+						"health": {
+							"max": 4198.0,
+							"mean": 4095.0,
+							"min": 4039.0
+						},
+						"health_not_from_level": {
+							"max": 97.0,
+							"mean": 84.0,
+							"min": 73.0
+						},
+						"level": {
+							"max": 814.0,
+							"mean": 796.0,
+							"min": 787.0
+						},
+						"quests": {
+							"max": 60173.0,
+							"mean": 57560.67,
+							"min": 56254.0
+						},
+						"talent_points_unspent": {
+							"max": 801.0,
+							"mean": 783.0,
+							"min": 774.0
+						},
+						"talents": {
+							"max": 12.0,
+							"mean": 12.0,
+							"min": 12.0
+						},
+						"total_xp": {
+							"max": 9928016.0,
+							"mean": 9497064.33,
+							"min": 9281511.0
+						}
+					},
+					"hour_6": {
+						"attack": {
+							"max": 137.0,
+							"mean": 135.33,
+							"min": 132.0
+						},
+						"attack_not_from_level": {
+							"max": 27.0,
+							"mean": 24.33,
+							"min": 22.0
+						},
+						"deaths": {
+							"max": 0.0,
+							"mean": 0.0,
+							"min": 0.0
+						},
+						"gear_attack": {
+							"max": 22.0,
+							"mean": 19.0,
+							"min": 17.0
+						},
+						"gold": {
+							"max": 42780.0,
+							"mean": 40926.67,
+							"min": 39980.0
+						},
+						"health": {
+							"max": 657.0,
+							"mean": 630.0,
+							"min": 608.0
+						},
+						"health_not_from_level": {
+							"max": 86.0,
+							"mean": 69.0,
+							"min": 52.0
+						},
+						"level": {
+							"max": 108.0,
+							"mean": 106.0,
+							"min": 105.0
+						},
+						"quests": {
+							"max": 1070.0,
+							"mean": 1023.67,
+							"min": 1000.0
+						},
+						"talent_points_unspent": {
+							"max": 95.0,
+							"mean": 93.0,
+							"min": 92.0
+						},
+						"talents": {
+							"max": 12.0,
+							"mean": 12.0,
+							"min": 12.0
+						},
+						"total_xp": {
+							"max": 176021.0,
+							"mean": 168372.67,
+							"min": 164471.0
+						}
+					},
+					"hour_720": {
+						"attack": {
+							"max": 1227.0,
+							"mean": 1216.67,
+							"min": 1210.0
+						},
+						"attack_not_from_level": {
+							"max": 38.0,
+							"mean": 34.67,
+							"min": 31.0
+						},
+						"deaths": {
+							"max": 0.0,
+							"mean": 0.0,
+							"min": 0.0
+						},
+						"gear_attack": {
+							"max": 32.0,
+							"mean": 28.67,
+							"min": 25.0
+						},
+						"gold": {
+							"max": 5157860.0,
+							"mean": 5038460.0,
+							"min": 4978740.0
+						},
+						"health": {
+							"max": 6083.0,
+							"mean": 6022.67,
+							"min": 5991.0
+						},
+						"health_not_from_level": {
+							"max": 113.0,
+							"mean": 106.67,
+							"min": 97.0
+						},
+						"level": {
+							"max": 1191.0,
+							"mean": 1177.0,
+							"min": 1170.0
+						},
+						"quests": {
+							"max": 128947.0,
+							"mean": 125962.0,
+							"min": 124469.0
+						},
+						"talent_points_unspent": {
+							"max": 1178.0,
+							"mean": 1164.0,
+							"min": 1157.0
+						},
+						"talents": {
+							"max": 12.0,
+							"mean": 12.0,
+							"min": 12.0
+						},
+						"total_xp": {
+							"max": 21275806.0,
+							"mean": 20783244.33,
+							"min": 20536876.0
+						}
+					}
+				},
+				"projection": {
+					"check_actual_level_at_last_point": 1177.0,
+					"check_predicted_level_at_last_point": 1165.3,
+					"days": {
+						"day_180": {
+							"attack": 2945.2,
+							"health": 14665.5,
+							"level": 2905.6
+						},
+						"day_90": {
+							"attack": 2091.3,
+							"health": 10395.8,
+							"level": 2051.6
+						}
+					},
+					"xp_per_hour": 29391.09
+				},
+				"seconds_to_all_talents": [
+					430.0,
+					430.0,
+					400.0
+				],
+				"seconds_to_first_boss_kill": [
+					50.0,
+					40.0,
+					40.0
+				]
+			}
+		}
+	},
+	"inputs": {
+		"about": "Inputs for the IRPG-R01 economy baseline. Everything under cohorts and income_scenarios is an assumption for analysis, not a price, an offer or a decision. See docs/ECONOMY_BASELINE.md.",
+		"checkpoints": [
+			1.0,
+			7.0,
+			30.0,
+			90.0,
+			180.0
+		],
+		"cohorts": {
+			"free": {
+				"purchases": []
+			},
+			"high": {
+				"purchases": [
+					{
+						"every_days": 7.0,
+						"first_day": 1.0,
+						"tokens": 1500.0
+					}
+				]
+			},
+			"light": {
+				"purchases": [
+					{
+						"every_days": 30.0,
+						"first_day": 1.0,
+						"tokens": 300.0
+					}
+				]
+			}
+		},
+		"collection_accounts": 1000.0,
+		"days": 180.0,
+		"income_scenarios": {
+			"implemented": 0.0,
+			"proposed_120_per_day": 120.0
+		},
+		"pull_pattern": [
+			"gear",
+			"gear",
+			"gear",
+			"companions",
+			"companions",
+			"gear",
+			"gear",
+			"relics",
+			"companions",
+			"gear",
+			"companions",
+			"relics"
+		],
+		"seed": 20261005.0,
+		"sim_accounts": 3.0,
+		"sim_checkpoint_hours": [
+			1.0,
+			6.0,
+			24.0,
+			168.0,
+			336.0,
+			720.0
+		],
+		"sim_hours": 720.0,
+		"target_item": "Crownblade",
+		"upgrade_score": {
+			"attack": 2.0,
+			"hp": 1.0
+		},
+		"windows": [
+			[
+				1.0,
+				1.0
+			],
+			[
+				2.0,
+				7.0
+			],
+			[
+				8.0,
+				30.0
+			],
+			[
+				31.0,
+				90.0
+			],
+			[
+				91.0,
+				180.0
+			]
+		]
+	},
+	"ledger_failures": 0,
+	"power_gaps": {
+		"high/implemented": {
+			"day_180_projected": {
+				"attack_ratio": 1.022,
+				"health_ratio": 1.019
+			},
+			"day_90_projected": {
+				"attack_ratio": 1.024,
+				"health_ratio": 1.02
+			},
+			"hour_1": {
+				"attack_ratio": 1.272,
+				"health_ratio": 1.133
+			},
+			"hour_168": {
+				"attack_ratio": 1.021,
+				"health_ratio": 1.006
+			},
+			"hour_24": {
+				"attack_ratio": 1.063,
+				"health_ratio": 1.024
+			},
+			"hour_336": {
+				"attack_ratio": 1.028,
+				"health_ratio": 1.018
+			},
+			"hour_6": {
+				"attack_ratio": 1.128,
+				"health_ratio": 1.057
+			},
+			"hour_720": {
+				"attack_ratio": 1.029,
+				"health_ratio": 1.021
+			}
+		},
+		"high/proposed_120_per_day": {
+			"day_180_projected": {
+				"attack_ratio": 1.008,
+				"health_ratio": 1.007
+			},
+			"day_90_projected": {
+				"attack_ratio": 1.009,
+				"health_ratio": 1.008
+			},
+			"hour_1": {
+				"attack_ratio": 1.153,
+				"health_ratio": 1.112
+			},
+			"hour_168": {
+				"attack_ratio": 1.008,
+				"health_ratio": 1.009
+			},
+			"hour_24": {
+				"attack_ratio": 1.036,
+				"health_ratio": 1.021
+			},
+			"hour_336": {
+				"attack_ratio": 1.018,
+				"health_ratio": 1.019
+			},
+			"hour_6": {
+				"attack_ratio": 1.073,
+				"health_ratio": 1.048
+			},
+			"hour_720": {
+				"attack_ratio": 1.013,
+				"health_ratio": 1.01
+			}
+		},
+		"light/implemented": {
+			"day_180_projected": {
+				"attack_ratio": 0.996,
+				"health_ratio": 0.994
+			},
+			"day_90_projected": {
+				"attack_ratio": 0.997,
+				"health_ratio": 0.995
+			},
+			"hour_1": {
+				"attack_ratio": 1.158,
+				"health_ratio": 1.082
+			},
+			"hour_168": {
+				"attack_ratio": 1.01,
+				"health_ratio": 1.001
+			},
+			"hour_24": {
+				"attack_ratio": 1.034,
+				"health_ratio": 1.013
+			},
+			"hour_336": {
+				"attack_ratio": 1.005,
+				"health_ratio": 0.999
+			},
+			"hour_6": {
+				"attack_ratio": 1.075,
+				"health_ratio": 1.036
+			},
+			"hour_720": {
+				"attack_ratio": 1.001,
+				"health_ratio": 0.997
+			}
+		},
+		"light/proposed_120_per_day": {
+			"day_180_projected": {
+				"attack_ratio": 1.003,
+				"health_ratio": 1.003
+			},
+			"day_90_projected": {
+				"attack_ratio": 1.003,
+				"health_ratio": 1.003
+			},
+			"hour_1": {
+				"attack_ratio": 1.059,
+				"health_ratio": 1.071
+			},
+			"hour_168": {
+				"attack_ratio": 1.0,
+				"health_ratio": 0.999
+			},
+			"hour_24": {
+				"attack_ratio": 1.011,
+				"health_ratio": 1.012
+			},
+			"hour_336": {
+				"attack_ratio": 1.002,
+				"health_ratio": 1.001
+			},
+			"hour_6": {
+				"attack_ratio": 1.028,
+				"health_ratio": 1.031
+			},
+			"hour_720": {
+				"attack_ratio": 1.002,
+				"health_ratio": 1.002
+			}
+		}
+	}
+}
