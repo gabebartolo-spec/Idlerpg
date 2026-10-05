@@ -72,9 +72,9 @@ func _run() -> void:
 	_check(int(second_report.get("gold", -1)) == 0, "same offline interval cannot duplicate rewards")
 	_check(second_sim.total_kills == loaded_sim.total_kills, "reopen at same timestamp preserves advanced state exactly")
 
-	var absolute_path := ProjectSettings.globalize_path(TEST_PATH)
-	if FileAccess.file_exists(TEST_PATH):
-		DirAccess.remove_absolute(absolute_path)
+	for path in PersistenceScript.files_for(TEST_PATH):
+		if FileAccess.file_exists(path):
+			DirAccess.remove_absolute(ProjectSettings.globalize_path(path))
 
 	print("Persistence tests complete: %d failure(s)" % failures)
 	quit(failures)

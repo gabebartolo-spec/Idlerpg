@@ -1,5 +1,7 @@
 extends SceneTree
 
+const PersistenceScript = preload("res://src/state/persistence.gd")
+
 var failures: int = 0
 
 func _init() -> void:
@@ -12,10 +14,15 @@ func _check(condition: bool, message: String) -> void:
 		failures += 1
 		push_error(message)
 
+# The save and the backup files beside it, so the scene starts and ends clean.
+# A save set aside as unreadable is left alone: it is someone's lost progress.
+func _remove_saves() -> void:
+	for path in PersistenceScript.files_for():
+		if FileAccess.file_exists(path) and not path.ends_with(PersistenceScript.UNREADABLE_SUFFIX):
+			DirAccess.remove_absolute(ProjectSettings.globalize_path(path))
+
 func _run() -> void:
-	var save_path := "user://idle_rpg_save.json"
-	if FileAccess.file_exists(save_path):
-		DirAccess.remove_absolute(ProjectSettings.globalize_path(save_path))
+	_remove_saves()
 
 	var packed: PackedScene = load("res://main.tscn")
 	_check(packed != null, "main scene loads")
@@ -108,8 +115,7 @@ func _run() -> void:
 
 	instance.queue_free()
 	await process_frame
-	if FileAccess.file_exists(save_path):
-		DirAccess.remove_absolute(ProjectSettings.globalize_path(save_path))
+	_remove_saves()
 
 	print("Launch smoke tests complete: %d failure(s)" % failures)
 	quit(failures)

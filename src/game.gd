@@ -167,7 +167,11 @@ func to_save_dict() -> Dictionary:
 		"collection": collection.duplicate(true),
 		"favourites": favourites.duplicate(true),
 		"locked_items": locked_items.duplicate(true),
-		"summon_history": summon_history.duplicate(true)
+		"summon_history": summon_history.duplicate(true),
+		# The generator's position, so closing and reopening cannot reroll the next draw.
+		# Stored as text: these are 64-bit values and JSON numbers cannot hold them exactly.
+		"rng_seed": str(rng.seed),
+		"rng_state": str(rng.state)
 	}
 
 func load_save_dict(data: Dictionary) -> void:
@@ -203,6 +207,11 @@ func load_save_dict(data: Dictionary) -> void:
 			summon_history.append((raw_entry as Dictionary).duplicate(true))
 	if summon_history.size() > 50:
 		summon_history.resize(50)
+
+	# Saves from before version 2 have no generator state and keep a fresh random one.
+	if data.has("rng_seed") and data.has("rng_state"):
+		rng.seed = str(data["rng_seed"]).to_int()
+		rng.state = str(data["rng_state"]).to_int()
 
 	dev_infinite_tokens = false
 	wallet_changed.emit(gacha_tokens)

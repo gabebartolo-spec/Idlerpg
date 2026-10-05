@@ -18,6 +18,11 @@ const HERO_ATTACK_INTERVAL := 0.9
 const LOOT_TIME := 0.7
 const RECOVERY_TIME := 3.0
 const REST_TIME := 2.5
+# The simulation is resolved in steps of this many seconds when no one is watching.
+const STEP := 0.1
+# Saved values that only ever count up and never change how a quest cycle plays out,
+# except through the level and bond thresholds checked in _repeatable_cycles.
+const CYCLE_COUNTERS := ["gold", "hero_xp", "total_kills", "deaths", "quest_cycles_completed", "inventory", "companion_bond_xp"]
 
 var hero_position: Vector3 = TOWN_POSITION
 var hero_level: int = 1
@@ -72,6 +77,10 @@ var last_stand_used: bool = false
 var active_companion: String = ""
 var companion_bond_xp: Dictionary = {}
 
+# Quest cycles begun since this object was created. Not saved; catch-up uses it to find
+# the boundaries between cycles.
+var cycle_starts: int = 0
+
 func _ready() -> void:
 	if activity.is_empty():
 		_begin_quest_cycle()
@@ -98,12 +107,105 @@ func advance(delta: float) -> void:
 			if activity_timer <= 0.0:
 				_begin_quest_cycle()
 
+# Resolves `seconds` one step at a time. The reference for what catch-up must produce.
 func simulate_elapsed(seconds: float) -> void:
-	var remaining: float = max(0.0, seconds)
-	while remaining > 0.0001:
-		var step: float = min(0.1, remaining)
-		advance(step)
-		remaining -= step
+	var steps := _whole_steps(seconds)
+	for _step in steps:
+		advance(STEP)
+	_advance_remainder(seconds, steps)
+
+# Offline catch-up: the same outcome as simulate_elapsed, without stepping every cycle.
+#
+# The simulation has no randomness, so a quest cycle that starts from the same state
+# plays out the same way and takes the same number of steps. This steps through one whole
+# cycle, and if the adventurer ends it exactly as they began it apart from the counters
+# (gold, experience, kills, loot), repeats that result for as many cycles as fit before
+# something would change: a level-up, a companion bond level, or running out of time.
+# Whatever changes is then stepped through properly. Events are not emitted for repeated
+# cycles; the return report is built from the counters.
+func simulate_offline(seconds: float) -> void:
+	var total := _whole_steps(seconds)
+	var steps := total
+
+	# Finish the cycle in progress.
+	var mark := cycle_starts
+	while steps > 0 and cycle_starts == mark:
+		advance(STEP)
+		steps -= 1
+
+	while steps > 0:
+		var before := to_save_dict()
+		mark = cycle_starts
+		var length := 0
+		while steps > 0 and cycle_starts == mark:
+			advance(STEP)
+			steps -= 1
+			length += 1
+		if cycle_starts == mark:
+			break
+		var after := to_save_dict()
+		var repeats: int = mini(steps / length, _repeatable_cycles(before, after))
+		if repeats > 0:
+			_repeat_cycle(before, after, repeats)
+			steps -= repeats * length
+
+	_advance_remainder(seconds, total)
+
+func _whole_steps(seconds: float) -> int:
+	return int(floor(max(0.0, seconds) / STEP + 0.000001))
+
+func _advance_remainder(seconds: float, steps: int) -> void:
+	var remainder: float = max(0.0, seconds) - float(steps) * STEP
+	if remainder > 0.0001:
+		advance(remainder)
+
+# How many more times the cycle between two boundary snapshots is certain to repeat
+# exactly. Zero unless everything except the counters is identical at both boundaries.
+func _repeatable_cycles(before: Dictionary, after: Dictionary) -> int:
+	var shape_before := before.duplicate(true)
+	var shape_after := after.duplicate(true)
+	for key in CYCLE_COUNTERS:
+		shape_before.erase(key)
+		shape_after.erase(key)
+	if shape_before != shape_after:
+		return 0
+
+	var limit := 1 << 40
+	var xp_gain: int = int(after["hero_xp"]) - int(before["hero_xp"])
+	if xp_gain < 0:
+		return 0
+	if xp_gain > 0:
+		# Stop before the cycle in which the next level would arrive.
+		limit = mini(limit, (xp_to_next_level() - hero_xp - 1) / xp_gain)
+
+	if not active_companion.is_empty():
+		var bond_now := int(companion_bond_xp.get(active_companion, 0))
+		var bond_before := int((before["companion_bond_xp"] as Dictionary).get(active_companion, 0))
+		var bond_gain: int = bond_now - bond_before
+		# A bond level reached part-way through the measured cycle changed how it played.
+		if bond_gain < 0 or CompanionCatalogScript.bond_level_for_xp(bond_before) != CompanionCatalogScript.bond_level_for_xp(bond_now):
+			return 0
+		if bond_gain > 0:
+			for threshold in CompanionCatalogScript.BOND_THRESHOLDS:
+				if bond_now < threshold:
+					limit = mini(limit, (threshold - bond_now - 1) / bond_gain)
+					break
+	return maxi(0, limit)
+
+func _repeat_cycle(before: Dictionary, after: Dictionary, repeats: int) -> void:
+	gold += repeats * (int(after["gold"]) - int(before["gold"]))
+	hero_xp += repeats * (int(after["hero_xp"]) - int(before["hero_xp"]))
+	total_kills += repeats * (int(after["total_kills"]) - int(before["total_kills"]))
+	deaths += repeats * (int(after["deaths"]) - int(before["deaths"]))
+	quest_cycles_completed += repeats * (int(after["quest_cycles_completed"]) - int(before["quest_cycles_completed"]))
+	_repeat_counts(inventory, before["inventory"], after["inventory"], repeats)
+	_repeat_counts(companion_bond_xp, before["companion_bond_xp"], after["companion_bond_xp"], repeats)
+
+func _repeat_counts(counts: Dictionary, before: Dictionary, after: Dictionary, repeats: int) -> void:
+	for key in after:
+		var gain: int = int(after[key]) - int(before.get(key, 0))
+		if gain != 0:
+			counts[key] = int(counts.get(key, 0)) + repeats * gain
 
 func to_save_dict() -> Dictionary:
 	return {
@@ -559,6 +661,7 @@ func get_snapshot() -> Dictionary:
 	}
 
 func _begin_quest_cycle() -> void:
+	cycle_starts += 1
 	last_stand_used = false
 	goblins_killed = 0
 	wolves_killed = 0

@@ -9,8 +9,8 @@ extends SceneTree
 const GearCatalogScript = preload("res://src/data/gear_catalog.gd")
 const CompanionCatalogScript = preload("res://src/data/companion_catalog.gd")
 
-const SAVE_PATH := "user://idle_rpg_save.json"
-const BACKUP_PATH := "user://idle_rpg_save.capture_backup.json"
+const PersistenceScript = preload("res://src/state/persistence.gd")
+const ASIDE := ".capture_aside"
 
 var main: Node
 var shot: int = 0
@@ -19,10 +19,13 @@ func _init() -> void:
 	call_deferred("_run")
 
 func _run() -> void:
+	# Set the player's save and its backups aside; the scene must start from nothing.
 	var user_dir := DirAccess.open("user://")
-	var had_save := FileAccess.file_exists(SAVE_PATH)
-	if had_save:
-		user_dir.rename(SAVE_PATH, BACKUP_PATH)
+	var set_aside: Array[String] = []
+	for path in PersistenceScript.files_for():
+		if FileAccess.file_exists(path):
+			user_dir.rename(path, path + ASIDE)
+			set_aside.append(path)
 
 	main = (load("res://main.tscn") as PackedScene).instantiate()
 	root.add_child(main)
@@ -69,10 +72,11 @@ func _run() -> void:
 	_report("gacha history", main.get("gacha_panel"))
 
 	main.free()
-	if FileAccess.file_exists(SAVE_PATH):
-		user_dir.remove(SAVE_PATH)
-	if had_save:
-		user_dir.rename(BACKUP_PATH, SAVE_PATH)
+	for path in PersistenceScript.files_for():
+		if FileAccess.file_exists(path):
+			user_dir.remove(path)
+	for path in set_aside:
+		user_dir.rename(path + ASIDE, path)
 	quit()
 
 func _report(label: String, panel: Control) -> void:

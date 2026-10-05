@@ -117,13 +117,12 @@ static func _scaled_multiplier(base: float, bond_level: int) -> float:
 	var bonus := base - 1.0
 	return 1.0 + bonus * (1.0 + 0.10 * float(maxi(0, bond_level - 1)))
 
+# Bond experience needed for levels 2, 3, 4 and 5.
+const BOND_THRESHOLDS := [10, 25, 50, 100]
+
 static func bond_level_for_xp(xp: int) -> int:
-	if xp >= 100:
-		return 5
-	if xp >= 50:
-		return 4
-	if xp >= 25:
-		return 3
-	if xp >= 10:
-		return 2
-	return 1
+	var level := 1
+	for threshold in BOND_THRESHOLDS:
+		if xp >= threshold:
+			level += 1
+	return level
