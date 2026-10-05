@@ -16,6 +16,7 @@ run_test tests/test_gacha.gd
 run_test tests/test_adventurer_sim.gd
 run_test tests/test_launch.gd
 run_test tests/test_persistence.gd
+run_test tests/test_save_resilience.gd
 run_test tests/test_gear.gd
 run_test tests/test_talents.gd
 run_test tests/test_companions.gd

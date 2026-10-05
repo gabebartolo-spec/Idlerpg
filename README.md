@@ -36,7 +36,8 @@ The first quest is intentionally tiny: leave Mossgate, defeat three goblins, tra
 - duplicate-reward protection;
 - concise "While you were away" report;
 - debug 10-minute-away simulation;
-- temporary 7-day technical catch-up cap while the prototype simulator is still brute-force.
+- a 7-day catch-up cap, kept for now although catch-up no longer steps through every cycle;
+- saves written safely with a backup, a version migration path and saved gacha state (`docs/SAVE_AND_OFFLINE.md`).
 
 ### Equipment slice
 - owned gear inventory;
