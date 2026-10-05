@@ -4,11 +4,11 @@ Research date: **5 October 2026 (Australia/Sydney)**. Repository examined: `main
 
 ## Recommendation
 
-Make the living adventurer a game about **attachment, preparation, discovery and collection**. The most promising next work is giving players better reasons to choose an adventure, change a build, anticipate a reward and enjoy returning. Monetize the breadth of that experience once it works: collections, expressive cosmetics, affordable value purchases, permanent adventure tracks and eventually expansions.
+Make the living adventurer a game about **attachment, preparation, discovery and collection**. The most promising next work is giving players better reasons to choose an adventure, change a build, anticipate a reward and enjoy returning. Monetize the breadth of that experience once it works: collections, expressive cosmetics, affordable value purchases, seasonal free/paid passes with a purchased-pass archive and eventually expansions.
 
 The owner explicitly wants enjoyable play, generous free/light-spender progression, and substantial MTX/whale scope. These are compatible goals, but the compatibility must be demonstrated in the economy rather than asserted in marketing. A whale should be able to collect and customize extensively, accelerate some personal progression and fund continued development. A free player must still have viable builds, reliable upgrades and attainable aspirations.
 
-The actionable follow-through is [36 implementation tickets](RESEARCH_BACKLOG.md), connected to the existing gated phases in [the design bible](DESIGN_BIBLE.md). These are researched hypotheses to test, not claims that any copied feature will produce the same revenue. The owner's updated direction makes **real guilds, PvP, cooperative raids, global bosses and guild wars** central to the product; earlier NPC-only social scope is superseded. The first implementation should be asynchronous multiplayer, compatible with an autonomous adventurer and offline life.
+The actionable follow-through is [44 implementation tickets](RESEARCH_BACKLOG.md), connected to the existing gated phases in [the design bible](DESIGN_BIBLE.md). These are researched hypotheses to test, not claims that any copied feature will produce the same revenue. The owner's updated direction makes **real guilds, PvP, cooperative raids, global bosses and guild wars** central to the product; earlier NPC-only social scope is superseded. The first implementation should be asynchronous multiplayer, compatible with an autonomous adventurer and offline life.
 
 ## What the evidence can establish
 
@@ -154,6 +154,74 @@ For IdleRPG, the practical design model is:
 
 These are implementation hypotheses. Long sessions, many taps, retention and spending alone do not prove enjoyment. Pair behavior with questions about fun, agency, perceived fairness and obligation.
 
+## Deeper findings: generosity, contribution, expression and seasons
+
+The strongest direction is **a generous personal adventure, a useful place in a guild and a desirable cosmetic collection**. Seasonal free/paid passes connect those experiences. This revision challenges three assumptions in the initial proposal: abundant pulls need not remain interesting, small paid bonuses can compound, and cosmetic ownership alone does not make cosmetics desirable or visible. The following separates observed evidence from design interpretation and exploratory calculations.
+
+### Generosity must deliver meaningful rewards
+
+In April 2026, Supercell said broader access to Brawl Stars cosmetics had not delivered its expected engagement increase. It discussed accumulated cosmetic currency and declining excitement around new skins. This is the developer's interpretation of its game, not a controlled experiment or evidence against generosity generally. **Interpretation:** more rewards can lose value when players do not want or use them. [Supercell's cosmetic review, 1 April 2026](https://supercell.com/en/games/brawlstars/blog/news/changes-to-bling-shop-and-cosmetics/).
+
+An exploratory model of IdleRPG's current catalogs estimates the share of draws yielding a previously unowned catalog identity:
+
+| Seven-day window | Previously unowned item / all draws | Mean unique gear / companions / relics owned |
+|---|---:|---:|
+| Days 1–7 | 34.6% | 15.4 / 7.6 / 6.1 |
+| Days 24–30 | 1.8% | 22.4 / 9.9 / 8.9 |
+| Days 84–90 | 0.1% | 24.6 / 10.0 / 10.0 |
+
+**Method:** 2,000 initially empty accounts, 90 days, seed 20261005, fixed daily order of six gear, four companion and two relic draws. These 12 daily draws are a proposed earning scenario, not measured player income. Catalog counts from `src/game.gd` at the research baseline are 25 gear (7/7/7/4 by rarity) and 10 companions and 10 relics (3/3/3/1 each). Model rarity weights are Common 68%, Rare 22%, Epic 9%, Legendary 1%; the 90th consecutive non-Legendary sequence guarantees Legendary, and any Legendary resets that banner's counter. Items are sampled uniformly within rarity; each banner tracks its own ownership and pity. Each table window contains 84 draws per account; mean novelty is averaged across accounts.
+
+**Limits:** excludes introductory draws, purchases, duplicate conversion, actual reward-source pacing, salvage loops and combat utility. Owned sets never shrink. The Python sampling generator reproduces rarity rules statistically; it does not reproduce Godot's random sequence. This measures **collection novelty, not enjoyment or upgrade usefulness**. It is neither a forecast of retention nor a proposal to keep the exact catalog/rates indefinitely. The reproduction listing at the end of this report specifies the implementation.
+
+**Roadmap consequence:** R01/R10/R11 separately measure useful upgrades, selected-item progress, new viable builds and desirable cosmetic pursuits at saturation. Adding continually stronger items merely to preserve novelty would create a power-creep problem. Generosity remains a product commitment; useful outcomes are the validation target.
+
+### Free players need mechanical contributions that matter
+
+Supercell described Clan Capital as a way for members to feel valuable despite differences in personal progression. Its rules preserve damage between attacks, allowing one member's work to help the next. This is a useful design precedent, not proof that IdleRPG will retain players through the same mechanic. [Developer rationale](https://supercell.com/en/games/clashofclans/blog/community/clashofclans-present-and-future-2/), [Clan Capital rules](https://support.supercell.com/clash-of-clans/en/articles/what-is-the-clan-capital-3.html).
+
+A July 2026 Whiteout Survival study interviewed 11 players and found recognition could involve organization and relationships alongside spending. Its small selected qualitative sample cannot establish prevalence, causal effects or what excluded/former players would say. **Interpretation:** contribution and recognition need not collapse into a spending ladder, but free players should not have to become unpaid administrators to be valued. [Study and methods](https://arxiv.org/html/2607.25574v1).
+
+R18/R31/R34 therefore define **damage, protection, preparation and objective completion** as mechanical routes to contribution. A free player should choose an enjoyable build/action, see what it changed, and receive recognition in the recap. Role-removal trials ask whether the outcome changes without that player's help. Participation rewards, persistent progress and mixed-cohort viability are checked separately from top-damage rankings. R32's global boss should retain the same principle.
+
+### Cosmetics serve attachment, expression and patronage
+
+Interviews with 32 League of Legends players identified enjoyment and social motivations, including purchases meant to support the developer. These findings support several possible motivations, not a guarantee that cosmetic-only monetization will sustain an idle RPG. [Marder and colleagues, 2019](https://research.hanken.fi/en/publications/the-avatars-new-clothes-understanding-why-players-purchase-non-fu/).
+
+Riot acknowledged in February 2025 that some seasonal skins missed expectations and reduced their quantity to improve quality. **Interpretation:** coherent themes, recognizable execution and player attachment merit testing ahead of catalog volume. [Riot's February 2025 changes](https://www.leagueoflegends.com/en-sg/news/dev/dev-hextech-chests-getting-champs-more/).
+
+Build three complementary families:
+
+| Family | Prototype examples | Engagement/spending hypothesis |
+|---|---|---|
+| Earned achievement | Boss trophies, profession outfits, collection appearances, veteran titles | Memorable accomplishment and free-player prestige |
+| Paid expression | Themed outfits, companion skins, poses and restrained animations | Desired style, character attachment and developer support |
+| Social expression | Guild banners, hall decorations and celebration effects | Shared identity and a visible audience |
+
+Free cosmetics need attractive designs of their own; premium value comes from desirable artistry and variety. Permanent appearance ownership survives selling functional gear and changes no combat stats (R36). Earned pursuits (R37), dyes/presets with free switching (R38), profiles, preparation lineups and readable raid recaps/replays (R39) turn ownership into actual expression. Observe phone-scale recognition, previews, equip frequency and use; ask whether someone wants to wear an item, rather than counting unlocks as enjoyment. Large cosmetic spending depends on sustainable art quality and production capacity; model that cost as well as sales.
+
+### Seasons can stay exciting without losing purchases
+
+Halo permits completing purchased passes after their active season, with retroactive paid reward eligibility. It normally uses one equipped pass; our proposed current-plus-one-archive progression is an adaptation. Guild Wars 2 keeps older seasonal cosmetics in an earned legacy catalog; its Wizard's Vault has no paid reward tier and is a precedent for reward longevity, not pass monetization. Both are PC/console design analogues, not mobile revenue evidence. [Halo's pass rules](https://support.halowaypoint.com/hc/en-us/articles/4408373413268-Halo-Infinite-Battle-Pass-Free-to-Play-FAQ), [ArenaNet's legacy rewards](https://help.guildwars2.com/hc/en-us/articles/19617357502867-Secrets-of-the-Obscure-Wizard-s-Vault).
+
+**Chosen product direction:** replace the initial permanent-pass-only proposal with seasonal free/paid tracks and an archive. One current season and one selectable archived purchased pass advance through ordinary eligible autonomous play. Purchased passes remain completable; weekly objectives bank, obsolete objectives receive evergreen equivalents, and earned rewards deliver automatically. Late purchase grants previously earned paid rewards once. Rollover preserves ownership/progress; unearned older free cosmetics retain a published earned route through the legacy catalog.
+
+R24 owns those mechanics; R40 authors the first cohesive theme; R42 serves returners and older free rewards. Paid tracks emphasize cosmetics; essential counters and multiplayer access remain free. R41 adds explicit cosmetic/pass gifting only after trusted identity, billing and ownership exist. Fixed contents, recipient eligibility, duplicate ownership, failed delivery and refund reconciliation must be clear; gifts grant no war score. Season length, prices, XP and reward counts remain prototype assumptions. No completion forecast is treated as a player obligation.
+
+### Paid acceleration must be evaluated over time
+
+An earning boost can become combat power through earlier gear, boss access, better drops and further reinvestment. Several individually small benefits can stack. A +25% cap on one source is a prototype input; it does not establish a +25% power ceiling, and “no direct stats” does not establish competitive neutrality.
+
+R01/R23/R43 compare complete free/light/high-spend configurations at 30/90/180 days, with specified purchases, pass contents, boost expiry, selected-item acquisition and feedback loops. Report useful-reward frequency, power-gap trajectories, accessible counters, role distribution and reachable opponents, with sensitivity to unlucky free paths. Normalized ranked rules exclude paid combat advantages; progression competition discloses its differences and needs measured bounds. The exact acceptable gap remains unresolved until simulation and implemented-mode playtests demonstrate useful free participation.
+
+### Multiplayer must function with few players
+
+Illustratively, 1,000 daily players averaging ten minutes of play contribute 10,000 player-minutes: **10,000 / 1,440 ≈ 6.9 average concurrent players**. This is arithmetic under the stated scenario, not a forecast of launch population, peaks or matchmaking wait. Regions and several live queues would subdivide that availability.
+
+IdleMMO already uses scheduled guild raids with enrollment and automatic starts, offering a direct genre precedent for asynchronous participation. Its rules should not be copied wholesale; our design still needs predictable no-show handling and offline participation. [IdleMMO raid documentation](https://wiki.idle-mmo.com/guilds/raids).
+
+R43 simulates sparse activity, time zones, guild sizes, shared pools and queue splits before R33/R34 competition. R31 ships one small human raid first. Honest NPC practice supports learning when population is sparse; it must remain visibly separate from human multiplayer. Reports flag unmatched players and unusable roles instead of making arbitrary population promises.
+
 ## Multiplayer: belonging, rivalry and spending without making people disposable
 
 The commercial relevance is strongest in Whiteout Survival, Last War, MONOPOLY GO! and the Supercell portfolio. Their social systems give players an audience, a shared objective and a reason to prepare. This is a mechanism hypothesis supported by feature observation, not evidence that guilds alone caused their revenue. IdleRPG should make a player think “my guild needs my build,” alongside “my adventurer found something good.”
@@ -190,14 +258,14 @@ The current 1% base Legendary rate, 9% Epic, 22% Rare, 68% Common and 90 hard pi
 |---|---|---|---|
 | Free | Campaign rewards, earned draws, world exclusives, earned outfits | Complete base experience | Never require purchase to rescue a stuck core build |
 | Light spender | Starter keepsake; one permanent supporter purchase; inexpensive outfit | Tangible identity and straightforward value | Core automation and reporting stay free |
-| Regular spender | Permanent adventure volume; optional cosmetic membership; themed bundles | Continued collection and varied adventures | Paid entitlements never depend on daily claims |
+| Regular spender | Seasonal paid pass with archive; optional cosmetic membership; themed bundles | Cohesive rewards, expression and continued collection | Purchased passes remain completable; no daily claim requirement |
 | Collector / whale | Premium cosmetic suites, companion variants, mount skins later, banner bundles, optional personal acceleration, guild celebration gifts | Breadth, visible prestige, faster collection and generosity to friends | Normalized ranked arena; bounded progression competition; no compulsory spend gate |
 
 Test a price ladder of approximately **US$2.99, $4.99, $9.99, $19.99, $49.99 and $99.99** in a mock store before live billing. These are proposed design anchors, not current competitor price claims; use localized platform prices at release. Large bundles must add genuinely desirable content/value, not simply larger numbers of unwanted duplicates. Catalog breadth and sustainable art production are the primary constraints on cosmetic whale spending.
 
-Paid pulls and bounded personal acceleration are viable candidate options, not prohibited. However, they require free acquisition of gameplay identities, upper bounds on paid progression effects, protection for world loot, and a reason to continue after completing a banner. Prototype boosts should improve earning breadth rather than raise boss combat stats directly; first test a non-stacking maximum +25% on a specified earning source. Final limits remain open until simulation/playtests justify them.
+Paid pulls and bounded personal acceleration are viable candidate options, not prohibited. However, they require free acquisition of gameplay identities, upper bounds on paid progression effects, protection for world loot, and a reason to continue after completing a banner. Prototype boosts should improve earning breadth rather than raise boss combat stats directly; first test a non-stacking maximum +25% on a specified earning source. Final limits remain open until 30/90/180-day complete-cohort simulations and playtests justify them; indirect combat advantage and reinvestment must be measured.
 
-Real guilds, inspectable profiles, raid replays and war results give cosmetics a social audience. Build on-character previews, earned raid trophies, guild hall displays and optional patron celebrations. Do not assume cosmetics alone will sustain the business: collection breadth, permanent content tracks and bounded progression purchases diversify revenue. Spending may improve PvE progression and the separate progression arena; that tradeoff must be explicit. Paid advantages do not enter the normalized ranked arena. Matchmaking, accessible counters and contribution floors must be tested before progression competition launches.
+Real guilds, inspectable profiles, raid replays and war results give cosmetics a social audience. Build on-character previews, earned raid trophies, guild hall displays and optional patron celebrations. Do not assume cosmetics alone will sustain the business: collection breadth, archived seasonal passes, future content expansions and bounded progression purchases diversify revenue. Spending may improve PvE progression and the separate progression arena; that tradeoff must be explicit. Paid advantages do not enter the normalized ranked arena. Matchmaking, accessible counters and contribution floors must be tested before progression competition launches.
 
 Avoid selling friction the game created: basic inventory filters, free loadouts, readable offline reports or essential build tools. Optional rewarded ads, if tested, cannot become the assumed free-player income floor. No forced interstitials during watching, returns or combat.
 
@@ -209,7 +277,7 @@ Start with cohort evidence and a small controlled launch. No paid acquisition sc
 
 ## Priority and validation
 
-1. Preserve the phone verification gate; current `VERIFY` statuses do not mean Android testing is complete.
+1. Preserve the phone verification gate. The owner reports on 5 October that the current Android build runs very smoothly but gear scrolling cannot return upward after scrolling down; device/build details are unspecified. R00 prioritizes bespoke portrait UI design and scroll repair, then a phone retest. This report is partial evidence, not a completed verification gate.
 2. Establish the economy/fun baseline and efficient, robust offline simulation.
 3. Improve attachment and player agency using the existing two zones.
 4. Make builds, relics, targeted collection and earning meaningful.
@@ -219,11 +287,57 @@ Start with cohort evidence and a small controlled launch. No paid acquisition sc
 8. Prototype desirable paid offerings, then build trustworthy live commerce.
 9. Add global bosses, PvP and wars in that order only when population, moderation and fairness tests justify them.
 
-Initial playtest: recruit 8–12 people who play idle/RPG games with a mix of free and paying habits, observe the first session, then run a seven-day diary/interview. This is formative research, not statistical proof. Ask why they returned, what choice mattered, what felt tedious, whether they would return without a reward, and whether any purchase seemed good value. Record build choices, meaningful upgrades, stuck intervals, return-report actions and voluntary watching.
+Initial playtest: recruit 8–12 people who play idle/RPG games with a mix of free and paying habits, observe the first session, then run a seven-day diary/interview. This is formative research, not statistical proof. Ask why they returned, what choice mattered, what felt tedious, whether they would return without a reward, and whether any purchase seemed good value. Record build choices, meaningful upgrades, stuck intervals, return-report actions, cosmetic desirability/actual use, pass value/completion, voluntary social participation and perceived obligation. Pair these with refunds and spending concentration; distinguish “I want that reward” from “I feel required to finish.”
 
 Prototype stop signals: non-spenders cannot find a viable boss counter; opening a report creates more sorting than interest; a player feels pressured to attend; a new system adds taps without meaningful choices; buyers exhaust content immediately; a paid item makes all world rewards irrelevant. Fix those before multiplying features.
 
 GameRefinery's June 2026 report describes a large MONOPOLY GO! collaboration without a meaningful revenue improvement; its July/August report describes purchase-gated event milestones. These are reminders that novelty is not automatically a business win and monetization can reshape the activity itself. [June analysis](https://www.gamerefinery.com/mobile-game-market-review-june-2026/), [July/August analysis](https://www.gamerefinery.com/mobile-game-market-review-july-august-2026/).
+
+## Reproducing the exploratory novelty calculation
+
+This standalone Python listing is research methodology only; it adds no game API and changes no game behavior. Python 3.14 was used for the reported run. Catalog order is gear, companions, relics. The RNG is seeded once for all sequential accounts.
+
+```python
+import random
+import statistics
+
+rng = random.Random(20261005)
+sizes = [[7, 7, 7, 4], [3, 3, 3, 1], [3, 3, 3, 1]]
+daily = [6, 4, 2]
+observations = {day: [] for day in [7, 30, 90]}
+
+for account in range(2000):
+    owned = [set(), set(), set()]
+    pity = [0, 0, 0]
+    new_by_day = []
+    for day in range(1, 91):
+        new = 0
+        for banner, count in enumerate(daily):
+            for draw in range(count):
+                roll = rng.random()
+                tier = (3 if pity[banner] >= 89 or roll < 0.01
+                        else 2 if roll < 0.10
+                        else 1 if roll < 0.32 else 0)
+                pity[banner] = 0 if tier == 3 else pity[banner] + 1
+                item = (tier, rng.randrange(sizes[banner][tier]))
+                if item not in owned[banner]:
+                    new += 1
+                    owned[banner].add(item)
+        new_by_day.append(new)
+        if day in observations:
+            observations[day].append(
+                (sum(new_by_day[-7:]) / 84,
+                 *(len(items) for items in owned))
+            )
+
+for day, samples in observations.items():
+    novelty = round(100 * statistics.mean(s[0] for s in samples), 1)
+    uniques = [round(float(statistics.mean(s[i] for s in samples)), 1)
+               for i in [1, 2, 3]]
+    print(day, novelty, uniques)
+```
+
+Expected output: `7 34.6 [15.4, 7.6, 6.1]`, `30 1.8 [22.4, 9.9, 8.9]`, `90 0.1 [24.6, 10.0, 10.0]`. R01/R43 must replace simplified ownership-only modeling with implemented economy/usefulness and complete spending cohorts before tuning or fairness decisions.
 
 ## Explicit limits and unresolved decisions
 
