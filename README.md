@@ -107,6 +107,8 @@ See `docs/ART_PIPELINE.md`.
 
 Read `docs/DESIGN_BIBLE.md` for product/roadmap decisions and `docs/ART_STYLE_GUIDE.md` for the locked visual language.
 
+The [mobile genre/player research](docs/MOBILE_GENRE_RESEARCH.md) and [research-backed build backlog](docs/RESEARCH_BACKLOG.md) add 44 scoped tickets for Claude, including generous useful free progression, earned/paid cosmetics, seasonal passes with an archive, optional spending and real guilds, raids, global bosses, PvP and guild wars. Multiplayer is a future direction, not a currently implemented feature. The owner's Android test reports smooth performance and a gear-menu scroll blocker; bespoke portrait UI design and scroll repair are the first verification priority.
+
 The central rule is:
 
 > The simulation is the game; 3D is its window.

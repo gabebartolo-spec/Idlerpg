@@ -4,8 +4,12 @@
 
 **Engine:** Godot 4.7.2  
 **Primary platform:** Android portrait  
-**Status:** pre-production / clean-slate prototype  
+**Status:** implemented P0–P7 prototype; Android verification remains gated
 **Source of truth:** this document defines the intended product unless a newer explicit decision supersedes it.
+
+**5 October 2026 product update:** real guilds, PvP, cooperative raids, global bosses and guild wars are central future pillars. Generous free/light-spender progression and enjoyable play must coexist with deep optional spending. Read [the market/player research](MOBILE_GENRE_RESEARCH.md) and [44 scoped implementation tickets](RESEARCH_BACKLOG.md). Earned/paid cosmetics and seasonal free/paid passes with a purchased-pass archive are substantial engagement systems. NPC practice parties remain useful; they do not fulfill the real multiplayer commitment.
+
+**Android evidence, 5 October 2026:** the owner reports the current build runs very smoothly, but the gear menu cannot scroll back upward after scrolling down. Exact device/OS/build SHA and a fix retest are not recorded. R00 now prioritizes bespoke portrait UI design and scroll repair before further expansion; the overall verification gate remains open.
 
 ---
 
@@ -99,7 +103,7 @@ The fantasy should borrow the satisfying structure of a theme-park MMO:
 - raids;
 - long-term endgame progression.
 
-But the game is **not an MMO**. Other adventurers can be simulated NPCs. There is no need to solve networking, matchmaking or synchronous social systems for the core game.
+The first solo slice remains small. The product direction now includes **real multiplayer**, starting with asynchronous guild projects and raids, then global bosses, PvP and guild wars. Players prepare; adventurers fight autonomously. Enrolled players can contribute while away. No manual combat or mandatory live attendance. NPC practice parties must be labeled. Trusted multiplayer requires accounts, server-owned progression, matchmaking and moderation before public launch; see R28–R35.
 
 ## 1.5 Gacha should be exciting and abundant
 
@@ -115,7 +119,7 @@ Potential banner families:
 
 The prototype should favour **lots of pulls and lots of experimentation**. The fun is collection, surprise, build discovery and visible character change.
 
-Do not begin with a predatory economy. Monetisation is a later product decision. The prototype must first prove that pulling is fun when test currency is effectively unlimited.
+Free/light spenders must get useful builds, generous earned pulls and a bounded path to selected collection items. Optional purchases can offer visible cosmetics, collection breadth, archived seasonal passes and bounded progression advantages. Abundant pulls must still yield useful upgrades, selected-item progress, viable builds or desirable cosmetics when catalogs saturate; raw novelty is not a measure of enjoyment. Compare complete free/light/high-spend outcomes over 30/90/180 days, including stacked benefits and reinvestment, before claiming resulting power gaps are bounded. Normalized ranked PvP excludes paid power; a separate progression arena must disclose power differences. Exact rates, prices and caps remain prototype hypotheses. Unlimited debug currency never enters trusted multiplayer state. The research backlog separates mock offers from verified live billing.
 
 ## 1.6 Management should matter
 
@@ -146,6 +150,22 @@ A longer session can involve:
 - pulling gacha;
 - preparing for a boss/dungeon.
 
+## 1.7 Cosmetics are a substantial engagement system
+
+Support three complementary families: earned achievement (boss trophies, profession outfits, collection appearances and veteran titles), paid expression (themed outfits, companion appearances, poses and animations), and social expression (guild banners, hall decorations and restrained celebration effects). Free designs must be attractive in their own right; premium appeal comes from desirable artistry and variety.
+
+Appearance ownership is permanent and separate from functional gear: selling/salvaging gear does not remove an unlocked look. Cosmetics and dyes never change combat stats, raid outcomes or war score. Switching owned looks is free; saved fashion presets are independent of combat loadouts. Profiles, raid preparation and replay/recap displays provide an audience while preserving role/telegraph readability and reduced-motion choices. See R21/R36–R39. Validate phone-scale recognition, preview accuracy, actual equip/use, persistence and performance before expanding the catalog.
+
+## 1.8 Seasonal passes preserve purchased progress
+
+The chosen direction replaces permanent-pass-only scope with **seasonal free/paid tracks and an archive** (R24). One current season and one selectable archived purchased pass can advance through ordinary eligible autonomous play. Purchased passes remain completable indefinitely; late purchase grants already-earned paid rewards once. Weekly objectives bank, obsolete objectives receive evergreen equivalents and earned rewards deliver automatically. Season rollover preserves ownership, progress and delivery history; server-time/offline reconciliation must avoid dropped or duplicate rewards.
+
+Paid rewards emphasize cosmetics. Essential combat counters and multiplayer access stay free. Older free cosmetics retain a published earned path in the legacy catalog; they do not become paid-only after the season ends. R40 authors the first cohesive season, R42 handles returners/legacy pursuits, and R41 adds cosmetic/pass gifting only after trusted billing and identity. Duplicate ownership, delivery failure, restoration and refunds require explicit behavior. Duration, prices, XP, tier/reward counts and completion forecasts are prototype assumptions.
+
+## 1.9 Bespoke portrait management UI
+
+Build a coherent UI for this adventurer rather than adding more generic drawers. R00 starts with gear browsing, comparison/equipping, clear navigation and readable hierarchy. Vertical swipes must work in both directions across long lists, with predictable control/scroll ownership; related talents and collection menus need the same audit. Keep important actions reachable and make returning to the watch view simple. Review screen designs, implement the focused flow, then retest real touch interaction and suspend/resume on Android. Smooth frame performance does not close the separate usability gate.
+
 ---
 
 # 2. Explicit non-goals
@@ -161,9 +181,9 @@ Do **not** build these early:
 - dozens of zones before one zone feels alive;
 - hundreds of items before gear decisions are interesting;
 - a fully simulated open world;
-- real multiplayer;
-- guild chat;
-- PvP;
+- public multiplayer before server authority, recovery and operating readiness;
+- unmoderated free-text/global chat;
+- PvP before counterplay, matchmaking and fairness testing;
 - elaborate crafting trees;
 - housing;
 - hunger/thirst/toilet chores;
@@ -828,6 +848,8 @@ NPC adventurers can create MMO texture:
 
 Their behaviour should be deterministic enough to understand but varied enough to create stories.
 
+These are practice allies. Real cooperative raids use committed human-player builds, server-resolved outcomes and useful support contributions (R31). Do not disguise NPCs as humans or count simulated parties as completed multiplayer.
+
 ## 15.3 Raids
 
 Raids are endgame build checks and spectacle.
@@ -1341,20 +1363,11 @@ Acceptance:
 
 ---
 
-## IRPG-P10 — Guild and social simulation
+## IRPG-P10 — Real guilds and asynchronous cooperation
 
-**Goal:** create the feeling of belonging to an MMO community.
+**Goal:** belong to a real player community while retaining autonomous offline play.
 
-Possible scope:
-- simulated guild roster;
-- NPC guildmates with roles/progression;
-- guild objectives;
-- asynchronous-feeling activity feed;
-- party invitations/events generated by simulation.
-
-Do not imply these are real human players.
-
-No networking required.
+Build R18 after R28/R29/R30: real membership, roles, shared project, inspectable profiles and structured activity feed. Preserve earned personal rewards on leaving. Test concurrent membership and contribution with separate accounts. R31 supplies the first human cooperative raid. NPC practice remains separate. Guild wars follow only after matchmaking and operations are proven (R34/R35).
 
 ---
 
@@ -1370,7 +1383,7 @@ Build:
 - long-term progression;
 - repeatable endgame goals.
 
-Only begin when dungeon simulation is proven.
+Only begin when dungeon simulation and the first real cooperative raid are proven. R20 defines a two-boss endgame chapter; R32/R33/R34 cover global bosses, PvP and wars with independent population/fairness gates.
 
 ---
 
@@ -1396,12 +1409,13 @@ Do not confuse content volume with finished quality.
 
 Do these in order:
 
-1. Keep the linear stack PR #5 → #6 → #7 → #8 → #9 green in Godot 4.7.2 CI.
+1. Verify current main (research baseline e029a16), including the merged P3–P7 and later art work, in Godot 4.7.2 CI. The earlier PR #5–#9 merge stack has landed.
 2. Phone-test the combined management/watch loop plus Briarfen: equipment, talents, gacha collection, companions, zone readability and Old Thornback.
 3. Validate touch targets, drawer height, follower/boss silhouettes, real suspend/resume and whether the second quest is understandable without micromanagement.
 4. Fix mobile/core-loop blockers before adding another content system.
-5. Merge in dependency order: P3, P4, P5, P6, P7; retarget and re-verify each exact head as its base lands.
-6. After that gate, the next roadmap item is **IRPG-P8**: one passive profession with one optional minigame. Fishing remains the default candidate.
+5. Use [RESEARCH_BACKLOG.md](RESEARCH_BACKLOG.md) as the detailed build queue: R00 → R01 → R02 → R03 → R04, then build/collection foundations. Start online architecture R28 after R02; server authority R29 precedes trusted multiplayer.
+6. P8 fishing remains the first profession (R15), followed by practice dungeon R16. The social sequence is real guild project → cooperative raid → global boss → PvP → guild war, gated by dependencies and evidence. R18/R31/R34 must demonstrate free/developing players' damage, protection, preparation and objective contributions through mechanical play and explanatory recaps.
+7. Cosmetic ownership R36 precedes wardrobe commerce. Earned pursuits, free fashion switching and social visibility precede a larger catalog. R24/R40/R42 build the seasonal/archive loop after its server/event prerequisites; R43 tests sparse populations and long-term power gaps before progression competition.
 
 Do not respond to a mediocre phone test by piling on more zones, classes, currencies or content. Fix the little-adventurer loop first.
 
@@ -1419,8 +1433,14 @@ Do not respond to a mediocre phone test by piling on more zones, classes, curren
 - No manual combat.
 - Management through gear/talents/collection.
 - Optional active minigames.
-- MMO-like structure without requiring real multiplayer.
-- Gacha is a major progression/collection pillar.
+- Real guilds, PvP, cooperative raids, global bosses and guild wars; asynchronous first, after trust/operating foundations.
+- Generous useful F2P/light-spender play with optional deep collection, prestige and bounded progression spending.
+- Normalized ranked PvP excludes paid power; progression competition is separately labeled and tested.
+- Gacha is a major progression/collection pillar; validate useful rewards at collection saturation.
+- Earned achievement, paid expression and social cosmetics have permanent appearance ownership and no combat effects.
+- Seasonal free/paid passes with an archive: purchased progress remains completable, earned rewards deliver automatically, and older free cosmetics retain an earned return path.
+- Free players have enjoyable mechanical contribution roles; guild administration is not their required route to usefulness.
+- Bespoke Android management UI and gear scroll repair precede further content expansion.
 - Debug builds have effectively unlimited gacha resources.
 - Simulation is authoritative; 3D presentation never creates separate outcomes.
 - Offline progression is core, not an afterthought.
@@ -1432,13 +1452,13 @@ Do not prematurely lock:
 - final class roster;
 - final setting/title;
 - exact gacha rates;
-- monetisation;
+- exact monetisation prices, offer contents and progression caps;
 - final pity model;
 - exact offline cap;
 - final death penalty;
 - exact stat formula;
 - final profession list;
-- real online/social features;
+- backend provider, guild sizes, event windows and final matchmaking parameters;
 - final art identity.
 
 Resolve these with prototypes and evidence, not because a roadmap needs every blank filled.

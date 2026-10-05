@@ -1,0 +1,254 @@
+# IdleRPG research-backed build backlog
+
+Updated 5 October 2026. Evidence and commercial comparisons: [MOBILE_GENRE_RESEARCH.md](MOBILE_GENRE_RESEARCH.md). Product rules and phase verification: [DESIGN_BIBLE.md](DESIGN_BIBLE.md). All **44 IRPG-R00–R43** items below are proposed; documentation does not mark gameplay as complete. R00 has partial owner-reported Android evidence below and remains open.
+
+## Product agreement
+
+One persistent, autonomous adventurer remains the emotional center. Real guilds, PvP, cooperative raids, global bosses and guild wars are now a committed product direction, superseding NPC-only social plans. Start asynchronously so players can contribute while the app is closed. F2P/light spenders get useful roles, attainable builds and generous collection progress. Larger spenders get collection depth, visible prestige and bounded progression advantages. Attractive earned cosmetics, paid expression and social display are substantial engagement systems. Seasonal free/paid tracks retain purchased passes in an archive; older free cosmetics retain an earned return path. Normalized ranked competition has no paid power advantage; progression competition explicitly permits differences and must control them. No paid war points, forced attendance, destructive looting or purchased protection.
+
+These are hypotheses to validate, not a directive to copy every successful game's features. Do not add five concurrent multiplayer queues to a small population. Priority A means foundations/next slices, B means validated expansion, C means population/commerce-dependent. S/M/L/XL are relative scope, not delivery estimates. Dependencies are mandatory; priority alone never overrides them.
+
+## Queue and dependencies
+
+| ID | Build | Priority / size | Depends on |
+|---|---|---|---|
+| R00 | Bespoke mobile UI, scroll repair and Android verification | A / M | Current P0–P7 implementation |
+| R01 | Economy and enjoyment baseline | A / M | R00 |
+| R02 | Save/offline resilience and efficiency | A / L | R00 |
+| R03 | Adventurer chronicle and return highlights | A / M | R02 |
+| R04 | Three-goal adventure board | A / M | R03 |
+| R05 | Player-selected autonomous policies | A / M | R04 |
+| R06 | Free named build loadouts | A / M | R02 |
+| R07 | Equipable relics with useful effects | A / M | R06 |
+| R08 | Boss counters and defeat explanations | A / M | R05, R07 |
+| R09 | World item effects and target farming | B / L | R08 |
+| R10 | Duplicate protection and selected-item path | A / M | R01, R02 |
+| R11 | Generous earned-draw economy | A / M | R01, R10 |
+| R12 | Discoveries and permanent collection journal | B / M | R03, R09 |
+| R13 | Adventurer identity and visible keepsakes | B / M | R03 |
+| R14 | Companion role balance and bond moments | B / M | R08 |
+| R15 | Fishing profession and optional minigame (P8) | B / L | R05, R11 |
+| R16 | One practice dungeon and party roles (P9) | B / L | R08, R14 |
+| R17 | One short expedition with route choices | B / L | R05, R09 |
+| R18 | Real guild membership and shared project (P10) | B / L | R13, R28, R29, R30 |
+| R19 | Rotating contracts without attendance pressure | B / M | R04, R11, R35 |
+| R20 | Two-boss endgame raid chapter (P11) | C / L | R09, R31 |
+| R21 | Cosmetic wardrobe and desirability prototype | B / M | R13, R36 |
+| R22 | Mock store and price/value tests | B / M | R01, R11, R21 |
+| R23 | Paid collection bundles and boost bounds | C / M | R10, R11, R22, R29, R43 |
+| R24 | Seasonal free/paid passes and archive | C / L | R19, R22, R36 |
+| R25 | Verified Android billing and entitlements | C / XL | R22, R29, R35 |
+| R26 | Enjoyment, fairness and commerce telemetry | A / M | R01 |
+| R27 | Audio, accessibility and Android performance | B / L | R00, R03 |
+| R28 | Online architecture/account prototype | A / L | R02 |
+| R29 | Server-owned progression and economy | A / XL | R01, R28 |
+| R30 | Friends, profiles and safe social interaction | B / L | R13, R28 |
+| R31 | Three-player asynchronous cooperative raid | B / XL | R16, R18, R29 |
+| R32 | Community global boss | C / L | R31, R35 |
+| R33 | Snapshot PvP: normalized then progression | C / XL | R08, R29, R30, R35, R43 |
+| R34 | Asynchronous guild war pilot | C / XL | R18, R31, R33, R35, R43 |
+| R35 | Live event operations and reward audit tools | B / L | R26, R29 |
+| R36 | Permanent appearance unlocks | B / M | R02, R13 |
+| R37 | Earned cosmetic pursuits | B / M | R09, R12, R15, R21, R36 |
+| R38 | Dyes and saved fashion presets | B / M | R21, R36 |
+| R39 | Social cosmetic showcase | B / M | R21, R30, R31 |
+| R40 | First themed season | C / L | R24, R35, R37, R38 |
+| R41 | Cosmetic and pass gifting | C / L | R24, R25, R30, R36 |
+| R42 | Returning-player and legacy rewards | C / M | R24, R37, R40 |
+| R43 | Population and progression simulations | A / L | R01, R08, R26 |
+
+## Claude execution contract
+
+Read the bible, this backlog, research and applicable repository instructions. Pick **one** ready ticket; inspect current code before choosing files. Suggested paths below are starting points, not mandates. Preserve simulation/presentation separation, autonomous combat, portrait usability and save compatibility. New data catalogs should be small and deterministic. Do not expand `src/main.gd` with another monolithic subsystem when a focused module fits.
+
+For each ticket: implement the smallest playable slice; document its rules; add meaningful tests for changed simulation, persistence, network or economy behavior; run required CI checks and `git diff --check`; describe remaining Android/device checks honestly. Changes affecting watches/offline outcomes need parity checks. Server tickets need multi-client integration, concurrency/retry tests and a local runnable environment. Mocks are useful but do not prove real multiplayer. Never provision paid infrastructure or enable live purchases just to close a prototype ticket.
+
+Definition of done: acceptance below demonstrated, no free-player regression, documented save/API migration where needed, appropriate tests passing, and a reviewable PR. Phone-dependent phases remain VERIFY until actual device evidence exists. Add an implementation/verification note here rather than silently changing the meaning of DONE.
+
+Copyable prompt: “Implement IRPG-RXX from docs/RESEARCH_BACKLOG.md. Read docs/DESIGN_BIBLE.md and docs/MOBILE_GENRE_RESEARCH.md first. Verify dependencies against the current checkout. Complete only this ticket's playable slice and acceptance criteria, run appropriate checks, and open a PR explaining player benefit, validation and remaining device checks. If a dependency is missing, identify it and implement no dependent shortcut.”
+
+Recommended first sequence: R00 → R01 → R02 → R03 → R04. R06/R10 can follow; R28 begins the online foundation after R02. R26 instrumentation supports subsequent playtests. R29 precedes all trusted online progression. After R16/R18, ship **one real cooperative raid** before world bosses, PvP or wars. The eventual multiplayer order is guild project → raid → global boss → arena → wars.
+
+## Ticket cards
+
+### IRPG-R00 — Bespoke mobile UI, scroll repair and Android verification
+
+**Payoff:** make the existing adventurer pleasant to manage on a phone. **Scope:** design bespoke portrait management flows before further expansion; first reproduce the gear menu's inability to scroll back upward after scrolling down, then audit talents, collection and other drawers for the same input/layout fault. Produce reviewable screen designs for gear browsing, comparing/equipping, filters and returning to the watch view; implement the smallest coherent flow and repair scroll ownership, nested gestures and touch interception as investigation warrants. **Start:** `src/main.gd`, UI/drawer components, art style guide and device checklist in bible. **Accept:** upward/downward swipes work throughout gear lists; equip/comparison controls remain reachable; opening, closing and reopening preserves a useful position; clear navigation and readable hierarchy match the game's identity; test long inventories and overlapping touch controls. **Validate:** current CI, relevant input/layout checks and actual phone retest including suspend/resume, equipment, talents, collection, companion, Briarfen and offline report. Record device/OS/build SHA, screenshots and observations. **Evidence:** owner reports on 5 October 2026 that the current Android build runs very smoothly but gear scrolling cannot return upward; exact build/device details and fix retest are not recorded. This is partial verification, not gate completion. **Exclude:** new content systems, monetization or claiming headless checks prove touch usability.
+
+### IRPG-R01 — Establish economy and fun baselines
+
+**Payoff:** avoid tuning progression by intuition. **Scope:** reproducible seeded 1/7/30-day economy baseline and 90/180-day sensitivity projections for explicitly defined free/light/high-spend cohorts. Track sources/sinks, useful upgrades, unowned-item frequency, selected-item progress, new viable builds, boss walls and collection saturation. Include average/unlucky sequences and cumulative boost, extra-draw, drop-access and reinvestment effects; R43 expands the initial harness into population/contribution analysis. **Start:** `src/game.gd`, simulation/catalogs and a focused economy report tool. **Accept:** checked-in inputs/results distinguish novelty from usefulness; complete catalogs have a meaningful non-inflationary reward path; source caps are not presented as proof of bounded resulting combat power; report power-gap trajectories at 30/90/180 days and sensitivity to proposed rates. **Validate:** seeded reproducibility, ledger invariants and 8–12 formative seven-day playtests when recruitable; record unmet player research separately. **Exclude:** changing every rate, endless stronger items to solve saturation or treating small samples/model predictions as proof of enjoyment.
+
+### IRPG-R02 — Harden saves and offline catch-up
+
+**Payoff:** trustworthy returns without a long frozen screen. **Scope:** versioned migration, atomic save/backup recovery, saved random state, explicit failure handling and more efficient catch-up preserving outcomes. Inspect current 0.1-second stepping at seven-day cap before optimizing. **Start:** `src/state/persistence.gd`, `src/game.gd`, `src/sim/adventurer_sim.gd`. **Accept:** existing version-1 save loads; corrupted/truncated saves recover visibly; repeated reload cannot replay rewards; clock rollback is handled; seven-day catch-up meets a measured device budget. **Validate:** seeded watched/offline parity, interruption, migration and duplicate-reward tests. **Exclude:** trusting these saves as online competitive state.
+
+### IRPG-R03 — Chronicle and return highlights
+
+**Payoff:** remember an adventurer's life rather than skim counters. **Scope:** persistent bounded events with stable IDs: first kill, first boss victory, useful gear, close defeat and companion bond. Return report selects three meaningful highlights and links to relevant management. **Start:** sim events, persistence, report UI. **Accept:** highlights survive reload, never fabricate events or repeat NEW rewards, and preserve aggregate totals; present no more than one report overlay. **Validate:** long catch-up, no-event return and phone readability. **Exclude:** generated dialogue service or endless logs.
+
+### IRPG-R04 — Three-goal adventure board
+
+**Payoff:** know what to work toward. **Scope:** three visible goals: immediate build improvement, next boss and long collection pursuit. Offer one player-selected tracked goal with honest requirement/progress and relevant navigation. **Start:** new goal catalog/controller, existing sim/UI. **Accept:** goals derive from real state, completed rewards grant once, unattainable goals offer a route, and offline completion appears in R03. **Validate:** new/returning/endgame accounts and reload. **Exclude:** mandatory daily checklist, extra currency or streak.
+
+### IRPG-R05 — Autonomous adventure policies
+
+**Payoff:** meaningful management while the hero acts independently. **Scope:** choose safe farming, push progression or targeted hunt; rules control existing activity selection and return thresholds. **Start:** sim decision logic, save schema, goals UI. **Accept:** each policy has a clear tradeoff, displayed destination/reason and consistent offline behavior; never locks the hero permanently into a death loop. **Validate:** same-seed policy comparisons and invalid-policy recovery. **Exclude:** manual combat commands or new pathfinding system.
+
+### IRPG-R06 — Free named build loadouts
+
+**Payoff:** experiment without repetitive swapping. **Scope:** three free named loadouts containing talents, equipment and active companion; preview missing pieces and apply atomically. **Start:** gear/talent/companion APIs, persistence, focused loadout UI. **Accept:** valid owned choices only, no duplication, no partial change on failure, safe fallback if an item was sold. **Validate:** respec, sale, reload and offline parity. **Exclude:** paid slots and infinite presets.
+
+### IRPG-R07 — Make relic collection playable
+
+**Payoff:** collected relics change a build. **Scope:** one relic slot and three readable effects drawn from the existing relic banner, with accessible free alternatives. **Start:** `src/game.gd`, new relic catalog, sim modifiers. **Accept:** owned relic selection saves; effect has measurable outcomes; one lower-rarity option wins a defined niche; unequipping removes the entire effect. **Validate:** stacking boundaries, parity and displayed-vs-applied stats. **Exclude:** multiple relic slots or a second upgrade currency.
+
+### IRPG-R08 — Boss counters and useful loss explanations
+
+**Payoff:** defeat teaches a next action. **Scope:** add one telegraphed boss mechanic and at least two free build counters; explain recent failure via actual battle events and suggest obtainable changes. **Start:** sim combat, enemy data, report/goal UI. **Accept:** a baseline free build can win with preparation under documented assumptions; suggestions never require a paid draw; counters remain autonomous. **Validate:** seeded counter/non-counter trials, unlucky F2P path and equal watched/offline outcomes. **Exclude:** reaction tapping or mandatory premium companion.
+
+### IRPG-R09 — World item effects and target farming
+
+**Payoff:** world loot retains value alongside gacha. **Scope:** three world-earned effects and two targeted drop goals in existing zones; define bounded bad-luck progress separate from purchasable collections. **Start:** gear catalog, loot/sim, policies. **Accept:** each item has a useful niche, drop/source information is accurate, selling/reacquiring cannot farm first-discovery rewards, and premium items do not strictly replace all world rewards. **Validate:** source/sink and long-run drop distributions. **Exclude:** affix explosion or new zone.
+
+### IRPG-R10 — Duplicate protection and selected-item route
+
+**Payoff:** a generous draw feels useful even late in a collection. **Scope:** publish duplicate conversion rules and a bounded route to one selected missing item independent of rarity pity. Evaluate incomplete and saturated catalogs separately; provide useful selected-item/build progress or an optional cosmetic pursuit after functional collection completion. Prototype existing tokens/fragments only if needed. **Start:** `src/game.gd`, collection UI, persistence and R01 harness. **Accept:** expected/maximum costs visible before drawing, pity/selection saves, saturated rewards have an explained purpose, and duplicate conversion cannot fund a profitable draw loop. No endlessly increasing duplicate combat ranks. **Validate:** worst luck, complete banner, restart/multi-pull boundaries, and 30/90/180-day free/light/high-spend simulations of useful outcomes and resulting power gaps. **Exclude:** inventing new currencies or power creep merely to keep draws relevant.
+
+### IRPG-R11 — Generous earned draws
+
+**Payoff:** free and light-spending players see meaningful progress. **Scope:** test 100–150 tokens per ordinary simulated day (10–15 current-cost draws), with capped earning buckets independent of check-in frequency. Preserve attainable world rewards; examine whether saturated draws advance a desired item, viable build or cosmetic rather than merely filling a reward animation. All quantities are prototype assumptions. **Start:** rewards, R01 harness and return report. **Accept:** no quest-frequency exploit; comparable watched/offline income; an unlucky free player can direct progress toward a useful reward; report novelty, usefulness and saturation separately at 1/7/30/90/180 days. Compare complete spending cohorts and demonstrate free boss counters remain attainable. **Validate:** long catch-up, source/sink simulations, reward-recognition sessions and player diaries; do not equate pull volume with enjoyment. **Exclude:** forced ads, attendance streaks or continually stronger items.
+
+### IRPG-R12 — Discovery and permanent journal
+
+**Payoff:** long-term goals beyond bigger stats. **Scope:** one journal volume containing existing enemies, locations, world items and three small discoveries. **Start:** new discovery catalog, sim events, journal UI. **Accept:** discoveries are authored and reproducible, permanent entries never reset with events, rewards grant once and unearned entries show useful clues. **Validate:** migration, repeated kills and return highlights. **Exclude:** hundreds of collectibles or random-generated lore.
+
+### IRPG-R13 — Identity and keepsakes
+
+**Payoff:** care about this particular adventurer. **Scope:** name, a small appearance selection, two earned titles and first-boss keepsake; surface identity in report and watch view. **Start:** persistence, character presentation, identity UI. **Accept:** selection previews accurately, changes preserve progression, earned prestige differs visibly from paid appearance, future public names can be moderated. **Validate:** older saves, long names and phone silhouette. **Exclude:** copying another game's art or full character creator.
+
+### IRPG-R14 — Companion roles and bond moments
+
+**Payoff:** choose a companion for a reason. **Scope:** rebalance three existing companions into damage, protection and support niches; one bond vignette/visual cue per selected companion. **Start:** companion catalog, sim bond/modifiers, chronicle. **Accept:** at least one common/rare companion is useful in a specific encounter; no universal premium winner; bond growth works offline and moments trigger once. **Validate:** role comparisons, switch behavior and duplicate ownership. **Exclude:** roster combat or mandatory daily pet care.
+
+### IRPG-R15 — Fishing slice / P8
+
+**Payoff:** peaceful variety and useful preparation. **Scope:** one fishing spot, three catches, passive activity plus optional short minigame; catches prepare one dungeon consumable. **Start:** new profession catalog, sim activity, bounded minigame UI. **Accept:** passive-only players obtain all functional preparation; active play offers modest optional upside; stopping/reloading cannot duplicate catches. **Validate:** offline parity, interruption and real phone controls. **Exclude:** other professions or energy purchases.
+
+### IRPG-R16 — Practice dungeon / P9
+
+**Payoff:** learn cooperative build roles safely. **Scope:** three rooms, one boss and two explicitly labeled NPC practice allies; preparation and recap show tank/support/damage contributions. **Start:** focused encounter/party module, sim and presentation. **Accept:** one persistent hero retains identity, roles change success, rewards settle once, practice is available without human matchmaking. **Validate:** wipe/retry/reload, role trials and parity. **Exclude:** pretending NPCs are real people; this does not complete multiplayer.
+
+### IRPG-R17 — Short route-choice expedition
+
+**Payoff:** occasional adventure surprises with a real decision. **Scope:** one five-node expedition with two preselected routes, six authored encounters and a final reward; auto-resolve while away. **Start:** new expedition catalog/controller and policies. **Accept:** routes have legible risk/reward; selection saves; return tells a coherent sequence; free retries use time/preparation rather than paid rescue. **Validate:** deterministic replay, abort and reward settlement. **Exclude:** infinite procedural campaign or required live choices.
+
+### IRPG-R18 — Real guilds and one project / P10
+
+**Payoff:** developing and veteran adventurers both help their community. **Scope:** create/join/leave a real guild, leader transfer, capped roster and one shared project. Define damage, protection, preparation and objective contributions using existing autonomous systems; prototype each role's task and recap with shared/personal rewards. **Start:** R28/R29 service modules and guild UI. **Accept:** separate accounts affect the same server project; permissions enforced; free/developing players measurably advance objectives through mechanical play; recap names the contribution without ranking only damage or spending. Membership changes cannot duplicate rewards; earned personal ownership survives leaving; no requirement to organize others to be useful. **Validate:** mixed free/light/high-spend role trials, low-power contribution sensitivity, concurrent joins/leaves, leader inactivity, restart and sparse population. **Exclude:** NPC-only guild completion, guild trading, war or unpaid administration as the free-player role.
+
+### IRPG-R19 — Low-pressure rotating contracts
+
+**Payoff:** varied goals without another chore list. **Scope:** one rotating contract family lasting several days, with banked catch-up progress and permanent core rewards available elsewhere. **Start:** goals/catalog, server event configuration for online grants. **Accept:** missed sessions do not lose owned rewards, late entrants have a usable path, no purchased milestone gate, visible server event bounds. **Validate:** timezone, expiration, delayed sync and authoring mistakes. **Exclude:** overlapping launch events or compulsive attendance rewards.
+
+### IRPG-R20 — Endgame raid chapter / P11
+
+**Payoff:** an aspirational shared victory. **Scope:** expand proven R31 to a two-boss chapter with contrasting counters, raid-specific world loot and a guild trophy. **Start:** encounter catalogs and raid service. **Accept:** free builds cover every necessary role; one paid damage build cannot bypass all mechanics; weekly-style reward limits are explicit and duplicate-safe; failure preserves useful progress. **Validate:** mixed spend cohorts and role compositions. **Exclude:** huge raid roster, uncapped stat escalation or synchronous attendance gate.
+
+### IRPG-R21 — Cosmetic wardrobe and desirability prototype
+
+**Payoff:** players want an appearance and enjoy wearing it. **Scope:** a small authored wardrobe prototype spanning earned achievement, paid personal expression and social expression, using R36 permanent ownership. Include attractive free designs, themed outfit/companion previews and a guild decoration concept; prototype phone-scale equip and collection browsing before expanding art inventory. **Start:** art pipeline, presentation, wardrobe catalog and R26 events; public showcase follows in R39. **Accept:** appearances have no combat effects; world/portrait preview matches equipped assets; free designs are desirable in their own right; silhouettes and fight readability survive effects. Observe which rewards players want, choose and actually equip; record reasons and production cost. **Validate:** phone-scale recognition, accessibility, equip frequency, preview accuracy, persistence/loadout interactions, frame/memory cost and observed free/light/collector sessions. **Exclude:** quantity targets presented as engagement evidence or premium quality obtained by deliberately degrading free art.
+
+### IRPG-R22 — Mock shop and value research
+
+**Payoff:** learn what players happily buy. **Scope:** clearly labeled no-charge prototype with starter keepsake, supporter offer, cosmetic suite and collector bundle at proposed localized-equivalent price anchors; disclose exact contents. **Start:** offer catalog and isolated shop UI. **Accept:** no real payment path or fake discounts/countdowns; player understands value before choosing; free path remains visible; collect preference/reasons rather than interpreting clicks as revenue. **Validate:** free/light/collector interviews and incomplete-collection edge cases. **Exclude:** real-money launch.
+
+### IRPG-R23 — Bound paid collection and acceleration
+
+**Payoff:** spending supports collection without erasing the adventure. **Scope:** model banner bundles and one non-stacking earning boost, initially testing +25% on a specified source; that input cap is a prototype assumption, not a proven power-gap cap. Include pass rewards and every concurrent entitlement in complete cohort configurations. **Start:** R01/R43 reports, server economy catalog and mock shop. **Accept:** compare free/light/high-spend 30/90/180-day useful progression and resulting power, including faster boss access, better drops and reinvestment; preserve useful free roles/world loot and publish competitive exclusions. Buyers retain desirable goals. **Validate:** stacked-benefit and feedback-loop sensitivity, boost expiry, offline accrual, refunds and normalized arena exclusion. **Exclude:** live purchases before R25, paid war attempts or declaring an earning boost combat-neutral.
+
+### IRPG-R24 — Seasonal free/paid passes and archive
+
+**Payoff:** seasonal excitement and light-spender value with recoverable progress. **Scope:** one current season with free/paid reward tracks plus one selectable archived purchased pass. Ordinary eligible autonomous activity advances the current season and selected archive; bank weekly objectives, use evergreen equivalents for obsolete objectives and automatically deliver earned rewards. Paid rewards emphasize cosmetics. **Start:** R19 objectives, R35 event configuration, R36 ownership and server entitlement/progress ledgers. **Accept:** late purchase delivers already-earned paid rewards once; purchased passes remain completable indefinitely; rollover preserves paid ownership, progress, claimed/earned rewards and archive selection. Define the ended free track's handling explicitly: earned rewards deliver automatically and remaining free cosmetics return through R42's earned legacy catalog. Essential counters and multiplayer access remain free. Show reward contents and completion assumptions before purchase, with no daily claim requirement. **Validate:** buy-before/after completion, current-plus-archive progression, switching archives, season boundary, banked objectives, offline accrual spanning rollover, obsolete-objective mapping, delayed/duplicate delivery, device restoration and refunded/revoked entitlement. Server time splits progress across eligible periods; refunds follow R25's documented ownership policy without removing unrelated earned rewards. **Exclude:** permanent-pass-only design, seasonal deletion of paid progress, paid-exclusive essential counters or live billing before R25.
+
+### IRPG-R25 — Android billing and purchase trust
+
+**Payoff:** receive what was paid for reliably. **Scope:** test-track Google Play purchases; backend verifies purchase tokens, idempotently grants/acknowledges, restores ownership and processes refund/revocation notifications. Use current official billing guidance at implementation time. **Start:** Godot Android billing integration chosen in ADR, server entitlement ledger. **Accept:** pending payment grants nothing; retries/device changes cannot double-grant; valid paid ownership restores; support audit identifies an order without leaking credentials. **Validate:** license test purchases, pending/cancel/refund, network interruption and duplicate notifications. **Exclude:** production billing without release/operating readiness.
+
+### IRPG-R26 — Measure enjoyment and fairness
+
+**Payoff:** distinguish wanted rewards and voluntary play from obligation. **Scope:** versioned events for choices, upgrades, boss results, useful/saturated rewards, cosmetic preview/equip/use, pass progress/completion/archive use, offers and social contribution. Pair aggregate behavior with observed sessions and enjoyment/value/obligation questions; minimal anonymous local exports precede remote analytics. **Start:** dedicated telemetry adapter and cohort reports. **Accept:** explicitly defined free/light/high-spend cohorts; cosmetic ownership is separated from actual use, and voluntary participation from reported pressure. Report pass completion/value, enjoyment, refunds, revenue and spend concentration together. No raw names/chat or payment credentials collected; disable/export behavior documented; sampling does not alter simulation. **Validate:** event counts, denominator/window definitions, schema migrations, reconnect duplicates and interview interpretation; archive users are not classified as failed current-season completion automatically. **Exclude:** equating session length, reward collection, pass completion or spending alone with enjoyment.
+
+### IRPG-R27 — Mobile delight and performance
+
+**Payoff:** pleasant watching and usable management. **Scope:** small audio/animation feedback pass, independent sound controls, reduced motion, readable text, accessible contrasts and measured Android performance. **Start:** world/UI/audio modules. **Accept:** disabled effects do not change outcomes; target device frame/loading/memory budgets recorded; long return responsive; touch targets tested. **Validate:** sustained device play, suspend/resume and low-power scenario. **Exclude:** adding systems to mask weak presentation.
+
+### IRPG-R28 — Online architecture and accounts
+
+**Payoff:** recover an adventurer and connect safely. **Scope:** short architecture decision comparing suitable backend approaches, offline policy, hosting cost, account linking/recovery and deploy/rollback; runnable local account + authenticated profile prototype. **Start:** new `server/` and `src/services/` boundaries, chosen after inspection. **Accept:** separate clients share authenticated profile state; one cannot read/write another's private state; guest recovery/link conflicts handled; no credentials embedded. Explicitly decide legacy-save migration and compatible sim versioning. **Validate:** token expiry/reconnect, multi-device and local service setup. **Exclude:** provider lock-in without comparison or trusting uploaded local stats.
+
+### IRPG-R29 — Server-owned online progression/economy
+
+**Payoff:** protect multiplayer and purchase value. **Scope:** authoritative reward/inventory ledger, server clock, versioned deterministic encounter resolution and bounded offline accrual reconciliation. Debug/local sandbox state stays outside trusted rankings. Preserve legacy ownership through a documented fair migration rather than silently discarding it. **Start:** service economy/simulation modules and client sync. **Accept:** forged stats/time/reward claims rejected; two devices cannot spend the same balance; retry IDs grant once; interrupted offline sync has clear recovery; migration separates unverifiable legacy competitive power. **Validate:** concurrency, replay, tampering, rollback, reconciliation and ledger invariants. **Exclude:** client-authoritative PvP or purchased currency.
+
+### IRPG-R30 — Profiles, friends and safe communication
+
+**Payoff:** recognize guildmates and their builds. **Scope:** public profile with optional title/cosmetics, friend invite, inspectable role/loadout and structured guild messages. Include name validation, rate limits, block/report and a moderator review path. **Start:** profile/social services and dedicated client UI. **Accept:** block/report persists, private data inaccessible, abuse evidence minimal/access-controlled, muted users cannot bypass limits; actual human/NPC identities distinguishable. **Validate:** permissions, abusive names, duplicate invites and two-account blocking. **Exclude:** free-text/global chat until staffed moderation and escalation exist.
+
+### IRPG-R31 — First real cooperative raid
+
+**Payoff:** a free support adventurer can help friends win. **Scope:** three human players, one boss, proposed 24–48-hour preparation window, committed loadouts and server-resolved automatic fight. Define damage, protection, preparation and objective roles; allow one build to cover multiple roles. Carry useful progress across attempts where encounter design supports it and explain the rules. **Start:** R16 encounter module, guild/raid services and role recap. **Accept:** enrolled offline members participate; mixed free/light/high-spend compositions win under documented assumptions; removing a developing player's protection/preparation/objective contribution measurably changes the outcome. Recaps explain useful help without only praising damage/last hit; rewards recognize those roles. Roster freezes prevent swapping exploits and retries settle once. **Validate:** three-client run, counterfactual role trials, low-power contribution distribution, late join, kick/leave, no-show handling, version mismatch and failure. **Exclude:** simulated humans, manual combat, paid revival or making free players useful only as organizers.
+
+### IRPG-R32 — Global boss pilot
+
+**Payoff:** the whole community defeats something larger. **Scope:** one shared event ID, health fixed from pre-event population estimate, server-validated role contributions, personal milestones and community reward. **Start:** event/raid services and progress UI. **Accept:** contributions aggregate across accounts; last hit gives no exclusive essential reward; low population can progress; failed event still pays personal milestones; no timezone-exclusive attendance. **Validate:** concurrent lethal submissions, late arrival, outage recovery and sparse/high population simulations. **Exclude:** selling final-hit advantage or live spawn camping.
+
+### IRPG-R33 — Two-rule-set snapshot PvP
+
+**Payoff:** strategic rivalry and a place to show progression. **Scope:** first ship normalized arena using equal combat budgets and an accessible free ruleset roster; only then feature-flag separately labeled progression arena with power bands. Freeze server snapshots; resolve autonomous matches/replays. **Start:** authoritative encounter/matchmaking services and arena UI. **Accept:** paid boosts cannot enter normalized stats/choices; losses explain counters; progression power gaps and wait times measured; fixed free attempt budget; no hidden spend matching. **Validate:** mirrored fairness, snapshot tampering, smurfs, queue scarcity and spend-cohort win rates. **Exclude:** real-time controls, paid ranked retries or claiming power bands alone ensure fairness.
+
+### IRPG-R34 — Guild war pilot
+
+**Payoff:** a shared plan with meaningful roles across progression levels. **Scope:** two opt-in small guild rosters, asynchronous windows, three objectives supporting damage, protection, preparation and objective completion; strength/activity/results matching and fixed free attempts. **Start:** guild/matchmaking/event services and R43 scarcity/gap reports. **Accept:** developing free characters measurably affect an objective, with recorded mixed-cohort examples and contribution recaps; support/preparation has playable decisions and recognition. Locks prevent guild hopping; purchases grant no score/attempts; roles remain useful under stacked-benefit sensitivity; owned gear cannot be lost. **Validate:** role removal/composition trials, mismatched power/activity, sparse queues, absent members, collusion and duplicate settlement. Record when no fair opponent exists and offer honest practice rather than fake humans. **Exclude:** administrative labor as a substitute for gameplay, territorial destruction or massive cross-server wars.
+
+### IRPG-R35 — Event operations and reward audits
+
+**Payoff:** fair events survive mistakes and outages. **Scope:** versioned event configuration, server timers, dry-run validation, reward preview, scheduled enable/disable, audit history and a small operator compensation/reconciliation tool with permissions. **Start:** service admin tools; deployment/runbook docs. **Accept:** config cannot silently change active ranked rules; rollback/outage handling explicit; compensation idempotent; audit traces every competitive/paid grant; moderation escalation owner identified before public social launch. **Validate:** malformed configs, event boundary, rollback, duplicate compensation and unauthorized admin. **Exclude:** open client admin endpoints or five simultaneous live events.
+
+### IRPG-R36 — Permanent appearance unlocks
+
+**Payoff:** collected looks remain yours after gear changes. **Scope:** appearance catalog and versioned ownership/equip records separate from functional inventory and combat loadouts; first-acquisition unlock rules and entitlement provenance. **Start:** R02 persistence, R13 identity, gear collection and presentation. **Accept:** selling, salvaging or replacing gear preserves unlocked appearances; equipping an appearance changes no combat field; old saves migrate safely; paid restoration merges ownership without overwriting earned unlocks. **Validate:** sell/reacquire, repeated grants, reload/migration, cross-device merge fixtures, stat invariance and phone preview accuracy. **Exclude:** new combat gear, live purchases, dye system or assuming every gear asset is already cosmetic-ready.
+
+### IRPG-R37 — Earned cosmetic pursuits
+
+**Payoff:** free achievement has desirable visible rewards. **Scope:** one boss trophy/appearance, one profession outfit and one collection reward, each with explicit acquisition clues, progress and permanent ownership. Choose small content quantities after art review; these examples are prototype assumptions. **Start:** R09 loot, R12 journal, R15 fishing, R36 unlock catalog and R21 art direction. **Accept:** all three are obtainable through free ordinary autonomous play; progress survives selling items, event rollover and leaving guilds; no repeated first-discovery exploit. Players can inspect the acquisition route before earning, and the actual reward matches the preview. **Validate:** unlucky free path, repeated grants, persistence, phone-scale recognition, desirability sessions and post-unlock equip/use. **Exclude:** purchasable achievement titles or infinite cosmetic grind justified only by engagement metrics.
+
+### IRPG-R38 — Dyes and saved fashion presets
+
+**Payoff:** personalize and switch outfits without repeating purchases. **Scope:** a small free dye palette, compatible appearance slots and saved fashion presets independent of combat loadouts; optional premium palette concepts in the mock store only. **Start:** R21 wardrobe, R36 ownership and material/presentation pipeline. **Accept:** switching owned looks/dyes is free; presets survive reload and gear sale; incompatible/locked slots explain their state; preview and world match under supported lighting. Color changes preserve enemy/team identification and accessible contrast. **Validate:** rapid switching, ownership revocation fixtures, device restoration, phone-scale comparisons, equip frequency and material/frame/memory budgets. **Exclude:** paying per recolor, dye combat stats or unrestricted material editing.
+
+### IRPG-R39 — Social cosmetic showcase
+
+**Payoff:** personal and guild expression has an audience. **Scope:** inspectable profiles, raid preparation lineup and replay/recap appearances; one guild banner/hall display and a restrained celebration effect. Record an appearance snapshot for historical recaps rather than changing old replays whenever someone changes outfits. **Start:** R21 assets, R30 profiles and R31 preparation/replays. **Accept:** phone-scale looks are recognizable without obscuring roles, telegraphs or results; inspection/effects can be skipped or reduced; earned and paid expression coexist; profile data stays within public permissions. Cosmetic assets never affect combat resolution or war score. **Validate:** two/three-client inspection, snapshot persistence, missing-asset fallbacks, preview accuracy, reduced motion, actual equip/use and device performance. **Exclude:** shop overlays in combat, forced celebration viewing or a cosmetic popularity ranking.
+
+### IRPG-R40 — First themed season
+
+**Payoff:** a coherent adventure theme worth playing and wearing. **Scope:** one small art-reviewed seasonal set connecting attractive free rewards, paid variants, companion expression and ordinary adventure/profession/guild objectives. Use R24's current/archive mechanics and R35 configuration; set duration, tier count, XP and prices as labeled prototype assumptions. **Start:** season catalog, R37/R38 rewards and objective authoring tools. **Accept:** free track has desirable finished art; paid track emphasizes expression; solo autonomous play can complete essential progression without mandatory PvP, guild attendance or purchases. Shared objectives offer alternatives; weekly catch-up is banked, preview assets match rewards and all earned rewards deliver automatically. **Validate:** late entrant, free/light/high-spend completion models, offline/rollover/restoration, duplicate grants, phone visibility/performance and observed “want this” versus “must finish” sessions. **Exclude:** multiple concurrent seasons or launching live payments without R25 and operating readiness.
+
+### IRPG-R41 — Cosmetic and pass gifting
+
+**Payoff:** celebrate friends and support the game through expression. **Scope:** gifting of fixed-content cosmetics and a specified paid season pass between eligible accounts; preview recipient eligibility and exact contents before payment. Mock first, then R25 test purchases with server gift/order/entitlement records. **Start:** R30 identity/privacy, R36 ownership, R24 pass entitlements and R25 billing. **Accept:** already-owned or pending gifts cannot be charged as a duplicate; sender/recipient receive intelligible delivery status; retries/offline recipients receive once. Wrong-recipient prevention and documented refund/revocation reconciliation handle delivered, undelivered and partially progressed passes; permanent unrelated earned rewards are preserved. Gifts add no war score, attempts, combat stats or required guild benefit. **Validate:** duplicate ownership/racing gifts, payment pending/failure, delayed delivery, account restore, refund before/after redemption and blocked-recipient policy. **Exclude:** tradable inventory, cash balances, randomized gifts or paid guild pressure mechanics.
+
+### IRPG-R42 — Returning-player and legacy rewards
+
+**Payoff:** return to unfinished adventures and attainable older looks. **Scope:** a concise return screen offering purchased-pass resumption, archive selection and an earned legacy catalog for older free cosmetics, with visible sources/costs and saved targeted progress. **Start:** R24 archive, R37 earned ownership and R40 season data; use prior-season fixtures. **Accept:** ended purchased passes remain completable through evergreen activity; selecting an archive preserves all others' progress. Older free cosmetics return through a published earned route, not a paid-only conversion; returning players keep ownership and find their chosen goal without a chore backlog. **Validate:** multi-season absence, expired objectives, offline season boundaries, late purchase, restoration, duplicate delivery, phone navigation and return-session enjoyment. **Exclude:** punitive returner prices, an extra attendance streak or erasing unfinished purchases.
+
+### IRPG-R43 — Population and progression simulations
+
+**Payoff:** know whether multiplayer and generosity work at launch scale. **Scope:** expand R01's reproducible harness into 30/90/180-day free/light/high-spend cohorts with documented spend schedules, entitlement stacking and reinvestment. Simulate launch-like sparse daily activity, time zones, guild sizes, queue splits and shared pools; distinguish average concurrency from peak assumptions. **Start:** R01 economy, R08 role/counter fixtures and R26 measurement definitions. **Accept:** report collection saturation/useful-reward frequency, power-gap trajectories, role contribution distribution, reachable opponents, unmatched share and wait distributions. Compare hypothetical normalized/progression rules separately; demonstrate free damage/protection/preparation/objective paths and explicitly flag scenarios that fail. Population/price/content inputs are assumptions with sensitivity ranges; no claimed player retention from simulated accounts. **Validate:** seeded repeatability, zero/very sparse activity, extreme spending, unlucky free draws, stacked boosts, feedback loops and conservation/ledger checks; check real raid/PvP/war outcomes again in their tickets. **Exclude:** building production matchmaking, fake human opponents, prescribing an arbitrary launch population or claiming simulations establish enjoyment.
+
+## Playtest/release gates
+
+Begin with observed sessions and seven-day diaries; later use cohorts large enough for the question. Record why players return, voluntary watching/social participation, meaningful choices, useful-reward frequency, chore burden, attainable free counters and perceived purchase value. Observe whether a player wants a cosmetic or feels obliged to finish; record desirability and actual equip/use, pass value/completion, archive use, refunds and spending concentration. Set numerical launch thresholds only after baseline data; do not invent industry benchmarks.
+
+Before each social mode, test at launch-like low population: can a newcomer find a guild/opponent, contribute while offline, understand a loss and earn useful progress? Before paid power, compare complete free/light/high-spend progression at 30/90/180 days, including stacked benefits and reinvestment, then measure role contribution and match outcomes in implemented modes. Pause expansion if free players become spectators, guild membership feels compulsory, support roles go unrewarded, purchased progress exhausts goals, or match queues split the population. Before live billing, verify entitlement recovery, support/moderation capacity and actual cohort contribution after fees/refunds/hosting/content/acquisition costs.
