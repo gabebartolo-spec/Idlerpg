@@ -81,7 +81,8 @@ class Part:
     def _soften(self, made, bevel):
         """Chamfer every edge of the shape just made."""
         if bevel > 0.0:
-            edges = list({edge for vert in made for edge in vert.link_edges})
+            # dict, not set: a stable order keeps the mesh identical from run to run
+            edges = list(dict.fromkeys(edge for vert in made for edge in vert.link_edges))
             bmesh.ops.bevel(self.bm, geom=edges, offset=bevel, segments=1, profile=0.5, affect="EDGES")
 
     def box(self, size, at, colour, rot=(0, 0, 0), taper=1.0, bevel=0.0):

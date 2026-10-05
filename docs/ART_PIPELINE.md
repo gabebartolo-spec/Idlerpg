@@ -10,12 +10,26 @@ tools/art/models/*.py  ->  validate  ->  assets/models/**.glb     ->  ArtCatalog
 ```
 
 ```sh
-scripts/build_art.sh                     # everything
-scripts/build_art.sh --only iron_sword   # just these models, manifest untouched
+scripts/build_art.sh                     # whatever changed since the last build
+scripts/build_art.sh --only iron_sword   # these models, even if unchanged
+scripts/build_art.sh --force             # everything
 ```
 
 Needs Blender (built with 5.2). Set `BLENDER_BIN` if it is not on the path or in the default
 install folder. The outputs are committed, so the game, the tests and CI do not need Blender.
+
+## Only changed models are rebuilt
+
+Renders are not byte-identical from run to run, so the build never re-exports or re-renders
+a model whose inputs have not changed. Each model gets a fingerprint of its shape, colours,
+part layout and render settings; the fingerprints are committed in `art/build_state.json`.
+A model is rebuilt when its fingerprint changes or one of its output files is missing, and
+a review sheet is redrawn only when one of its models was rebuilt.
+
+Editing `tools/art/build.py` or `tools/art/lowpoly.py` changes every fingerprint, so the
+next build redoes everything. Commit `art/build_state.json` with the outputs it describes.
+`--adopt` records the outputs on disk as current without rebuilding; it exists for setting
+this up on outputs you already trust, not for everyday use.
 
 ## What a build does
 

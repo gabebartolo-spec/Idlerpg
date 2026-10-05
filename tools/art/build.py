@@ -1,16 +1,19 @@
 """Build the game's 3D art: validate every model, export GLBs, render gear icons and
 review sheets, and write the manifest the game reads.
 
-Run through scripts/build_art.sh (Blender, headless). `-- --only id [id ...]` rebuilds
-just those models and leaves the manifest and review sheets alone.
+Run through scripts/build_art.sh (Blender, headless). A model is exported and rendered
+again only when its fingerprint changes (see model_digest); fingerprints are kept in
+art/build_state.json. `--only id [id ...]` rebuilds those models regardless, `--force`
+rebuilds everything.
 """
 
 import argparse
+import hashlib
+import json
 import math
 import os
 import re
 import sys
-import tempfile
 
 import bpy
 import numpy as np
@@ -20,12 +23,15 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(os.path.dirname(HERE))
 sys.path.insert(0, HERE)
 
-from lowpoly import material_name  # noqa: E402
+from lowpoly import COLOUR_LAYER, material_name  # noqa: E402
 from models import BUDGETS, MODELS  # noqa: E402
+from palette import GLOWS  # noqa: E402
 
 MODEL_DIR = os.path.join(ROOT, "assets", "models")
 ICON_DIR = os.path.join(ROOT, "assets", "icons")
 REVIEW_DIR = os.path.join(ROOT, "art", "review")
+STATE = os.path.join(ROOT, "art", "build_state.json")
+THUMB_DIR = os.path.join(ROOT, "art", ".cache", "thumbs")
 MANIFEST = os.path.join(ROOT, "src", "data", "art_manifest.gd")
 GEAR_CATALOG = os.path.join(ROOT, "src", "data", "gear_catalog.gd")
 COMPANION_CATALOG = os.path.join(ROOT, "src", "data", "companion_catalog.gd")
@@ -255,8 +261,13 @@ def write_manifest(built):
         if spec.companion is not None:
             lines.append('\t"%s": {"model": "%s", "icon": "%s"},' % (spec.companion, spec.id, res_path(icon_path(spec))))
     lines += ["}", ""]
+    text = "\n".join(lines)
+    if os.path.exists(MANIFEST):
+        with open(MANIFEST, encoding="utf-8", newline="") as handle:
+            if handle.read().replace("\r\n", "\n") == text:
+                return
     with open(MANIFEST, "w", encoding="utf-8", newline="\n") as handle:
-        handle.write("\n".join(lines))
+        handle.write(text)
 
 
 def model_path(spec):
@@ -265,6 +276,15 @@ def model_path(spec):
 
 def icon_path(spec):
     return os.path.join(ICON_DIR, spec.id + ".png")
+
+
+def thumb_path(spec):
+    """Labelled thumbnail for the review sheet. A local cache, not committed."""
+    return os.path.join(THUMB_DIR, spec.id + ".png")
+
+
+def sheet_path(category):
+    return os.path.join(REVIEW_DIR, category + "s.png")
 
 
 def remove_stale(folder, extension, keep):
@@ -278,15 +298,62 @@ def remove_stale(folder, extension, keep):
                     os.remove(path + ".import")
 
 
+def has_icon(spec):
+    return spec.item is not None or spec.companion is not None
+
+
+def tools_digest():
+    """Changes whenever the build itself changes, which makes every model rebuild."""
+    digest = hashlib.sha256()
+    for name in ("build.py", "lowpoly.py"):
+        with open(os.path.join(HERE, name), "rb") as handle:
+            digest.update(handle.read().replace(b"\r\n", b"\n"))
+    return digest.hexdigest()
+
+
+def model_digest(spec, objects, tools):
+    """Fingerprint of everything a model's outputs depend on: its shape, colours, part
+    layout and how it is rendered. Unchanged fingerprint, unchanged outputs."""
+    digest = hashlib.sha256()
+    digest.update(repr((tools, spec.category, spec.item, spec.companion, VIEWS[spec.category], ICON_SIZE, sorted(GLOWS.items()))).encode())
+    for obj in objects.values():
+        digest.update(repr((
+            obj.name, obj.parent.name if obj.parent else None, obj.type,
+            [round(c, 5) + 0.0 for c in obj.location], [round(c, 5) + 0.0 for c in obj.rotation_euler],
+        )).encode())
+        if obj.type != "MESH":
+            continue
+        # Faces as a sorted set of (corner positions, colour, material): the same shape gives
+        # the same fingerprint even when Blender numbers its vertices differently.
+        mesh = obj.data
+        colours = mesh.color_attributes[COLOUR_LAYER].data
+        faces = []
+        for polygon in mesh.polygons:
+            corners = [tuple(round(c, 4) + 0.0 for c in mesh.vertices[index].co) for index in polygon.vertices]
+            first = corners.index(min(corners))
+            colour = tuple(round(c, 4) for c in colours[polygon.loop_start].color)
+            faces.append((corners[first:] + corners[:first], colour, mesh.materials[polygon.material_index].name))
+        digest.update(repr(sorted(faces)).encode())
+    return digest.hexdigest()
+
+
+def load_state():
+    if not os.path.exists(STATE):
+        return {}
+    with open(STATE, encoding="utf-8") as handle:
+        return json.load(handle)
+
+
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--only", nargs="*", default=[])
+    parser.add_argument("--only", nargs="*", default=[], help="rebuild these models even if unchanged")
+    parser.add_argument("--force", action="store_true", help="rebuild every model")
+    parser.add_argument("--adopt", action="store_true", help="record the existing outputs as current without rebuilding them")
     args = parser.parse_args(sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else [])
 
     unknown = [model_id for model_id in args.only if model_id not in MODELS]
     if unknown:
         sys.exit("Unknown model: " + ", ".join(unknown))
-    specs = [spec for spec in MODELS.values() if not args.only or spec.id in args.only]
 
     gear = gear_items()
     failures = []
@@ -301,24 +368,27 @@ def main():
             failures.append('companion "%s" has no model' % name)
 
     setup_scene()
-    thumbs = tempfile.mkdtemp(prefix="idlerpg_art_")
+    old_state = load_state()
+    tools = tools_digest()
+
+    # Pass 1: build every model's geometry (fast) to validate it and see which have changed.
     built = []
-    sheets = {}
-    for spec in specs:
+    state = {}
+    stale = set()
+    for spec in MODELS.values():
         clear_scene()
         objects, info, errors = build_model(spec, gear, companions)
         failures += ["%s: %s" % (spec.id, error) for error in errors]
-        print("%-10s %-16s %4d tris  %.2f x %.2f x %.2f m%s" % (
-            spec.category, spec.id, info["tris"], info["size"].x, info["size"].y, info["size"].z,
-            "  FAIL" if errors else ""))
         if errors:
+            print("%-10s %-18s FAIL" % (spec.category, spec.id))
             continue
-        export_glb(objects, model_path(spec))
-        if spec.item is not None or spec.companion is not None:
-            render(objects, spec.category, icon_path(spec))
-        thumb = os.path.join(thumbs, spec.id + ".png")
-        render(objects, spec.category, thumb, label="%s  %d" % (spec.id, info["tris"]))
-        sheets.setdefault(spec.category, []).append(thumb)
+        state[spec.id] = model_digest(spec, objects, tools)
+        outputs = [model_path(spec)] + ([icon_path(spec)] if has_icon(spec) else [])
+        present = all(os.path.exists(path) for path in outputs)
+        if args.adopt and present:
+            pass
+        elif args.force or spec.id in args.only or old_state.get(spec.id) != state[spec.id] or not present:
+            stale.add(spec.id)
         built.append((spec, info))
 
     if failures:
@@ -327,13 +397,40 @@ def main():
             print("  - " + failure)
         sys.exit(1)
 
-    if not args.only:
-        for category, paths in sheets.items():
-            contact_sheet(paths, os.path.join(REVIEW_DIR, category + "s.png"))
-        write_manifest(built)
-        remove_stale(MODEL_DIR, ".glb", {model_path(spec) for spec, _ in built})
-        remove_stale(ICON_DIR, ".png", {icon_path(spec) for spec, _ in built if spec.item is not None or spec.companion is not None})
-    print("\nArt build OK: %d models, %d triangles in total." % (len(built), sum(info["tris"] for _, info in built)))
+    # A review sheet is redrawn only when one of its models changed.
+    categories = {}
+    for spec, info in built:
+        categories.setdefault(spec.category, []).append((spec, info))
+    dirty = {spec.category for spec, _ in built if spec.id in stale}
+    if not args.adopt:
+        dirty |= {category for category in categories if not os.path.exists(sheet_path(category))}
+
+    # Pass 2: export and render only what is out of date.
+    for spec, info in built:
+        thumb = thumb_path(spec)
+        need_thumb = spec.category in dirty and (spec.id in stale or not os.path.exists(thumb))
+        if spec.id not in stale and not need_thumb:
+            continue
+        clear_scene()
+        objects, _info, _errors = build_model(spec, gear, companions)
+        if spec.id in stale:
+            print("rebuilt    %-10s %-18s %4d tris" % (spec.category, spec.id, info["tris"]))
+            export_glb(objects, model_path(spec))
+            if has_icon(spec):
+                render(objects, spec.category, icon_path(spec))
+        render(objects, spec.category, thumb, label="%s  %d" % (spec.id, info["tris"]))
+
+    for category in sorted(dirty):
+        contact_sheet([thumb_path(spec) for spec, _ in categories[category]], sheet_path(category))
+    write_manifest(built)
+    remove_stale(MODEL_DIR, ".glb", {model_path(spec) for spec, _ in built})
+    remove_stale(ICON_DIR, ".png", {icon_path(spec) for spec, _ in built if has_icon(spec)})
+    with open(STATE, "w", encoding="utf-8", newline="\n") as handle:
+        json.dump(state, handle, indent="\t", sort_keys=True)
+        handle.write("\n")
+
+    print("\nArt build OK: %d models, %d triangles in total. %d rebuilt, %d unchanged." % (
+        len(built), sum(info["tris"] for _, info in built), len(stale), len(built) - len(stale)))
 
 
 main()

@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Rebuild the game's 3D art with Blender. See docs/ART_PIPELINE.md.
-#   scripts/build_art.sh                    everything
-#   scripts/build_art.sh --only iron_sword  just these models
+#   scripts/build_art.sh                    whatever changed since the last build
+#   scripts/build_art.sh --only iron_sword  these models, even if unchanged
+#   scripts/build_art.sh --force            everything
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
