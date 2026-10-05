@@ -213,11 +213,14 @@ def frost_ranger():
     head.box((0.42 * s, 0.07 * s, 0.07 * s), (0, -0.17 * s, 1.67 * s), "fur_light", bevel=0.02)
     x, y, z = _held(p["arm_l"], s, side=1)
     arm = p["arm_l"]
+    # Recurve bow held upright at the side: belly forward, limbs sweeping back to the string.
+    x += 0.09
+    arm.box((0.07, 0.08, 0.2), (x, y - 0.06, z), "leather_dark", bevel=0.015)
     for sign in (1, -1):
-        arm.box((0.05, 0.05, 0.3 * s), (x, y - 0.06 - 0.02 * sign * sign, z + 0.17 * s * sign), "fur_light", rot=(-12 * sign, 0, 0))
-        arm.box((0.05, 0.05, 0.3 * s), (x, y + 0.01, z + 0.44 * s * sign), "fur_light", rot=(22 * sign, 0, 0))
-        arm.box((0.06, 0.06, 0.05), (x, y - 0.04, z + 0.31 * s * sign), "moon")
-    arm.box((0.012, 0.012, 1.14 * s), (x, y + 0.07, z), "cloth_cream")
+        arm.box((0.06, 0.055, 0.26), (x, y - 0.045, z + 0.2 * sign), "white", rot=(-10 * sign, 0, 0))
+        arm.box((0.055, 0.05, 0.24), (x, y + 0.02, z + 0.41 * sign), "white", rot=(-26 * sign, 0, 0))
+        arm.box((0.05, 0.045, 0.14), (x, y + 0.1, z + 0.55 * sign), "moon", rot=(-48 * sign, 0, 0))
+    arm.box((0.014, 0.014, 1.16), (x, y + 0.15, z), "cloth_cream")
     return list(p.values())
 
 
