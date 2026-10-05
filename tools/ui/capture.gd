@@ -1,13 +1,11 @@
 extends SceneTree
 
 # Management UI review: runs the real main scene with a full inventory and saves
-# screenshots of the gear screen and the other drawers, and reports any drawer that does
-# not fit on screen. Needs a window, so run it without --headless:
+# screenshots of the gear, talent and gacha sheets. Needs a window, so run it without --headless:
 #   godot --path . -s res://tools/ui/capture.gd
 # Writes art/review/ui_*.png. Moves the player's save aside while it runs.
 
 const GearCatalogScript = preload("res://src/data/gear_catalog.gd")
-const CompanionCatalogScript = preload("res://src/data/companion_catalog.gd")
 
 const PersistenceScript = preload("res://src/state/persistence.gd")
 const ASIDE := ".capture_aside"
@@ -56,20 +54,29 @@ func _run() -> void:
 	gear.set_slot_filter("")
 	main.call("_toggle_equipment")
 
+	sim.hero_level = 4
+	var talents: Control = main.get("talent_panel")
 	main.call("_toggle_talents")
 	await _snap("talents")
-	_report("talents", main.get("talent_panel"))
+	talents.unlock("heavy_hand")
+	talents.select("sharpened_edge")
+	await _snap("talents_selected")
 	main.call("_toggle_talents")
 
+	var gacha: Control = main.get("gacha_panel")
 	main.call("_toggle_gacha")
+	main.call("_summon", 10)
 	await _snap("gacha_summon")
-	_report("gacha summon", main.get("gacha_panel"))
+	main.call("_select_banner", "companions")
 	main.call("_show_gacha_mode", "collection")
+	gacha.select_item(str(game.recent_summons(40)[0].get("name", "")))
+	for item_name in game.collection_items("companions"):
+		if game.collection_count("companions", item_name) > 0:
+			gacha.select_item(item_name)
+			break
 	await _snap("gacha_collection")
-	_report("gacha collection", main.get("gacha_panel"))
 	main.call("_show_gacha_mode", "history")
 	await _snap("gacha_history")
-	_report("gacha history", main.get("gacha_panel"))
 
 	main.free()
 	for path in PersistenceScript.files_for():
@@ -78,12 +85,6 @@ func _run() -> void:
 	for path in set_aside:
 		user_dir.rename(path + ASIDE, path)
 	quit()
-
-func _report(label: String, panel: Control) -> void:
-	var view := root.get_visible_rect()
-	var rect := panel.get_global_rect()
-	print("%-17s %s  top %d  bottom %d of %d" % [
-		label, "fits" if view.encloses(rect) else "DOES NOT FIT", rect.position.y, rect.end.y, view.size.y])
 
 func _snap(label: String) -> void:
 	for frame in 20:

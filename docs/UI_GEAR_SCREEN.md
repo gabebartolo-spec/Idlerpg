@@ -1,7 +1,7 @@
-# Gear screen and touch rules (IRPG-R00)
+# Management screens and touch rules (IRPG-R00)
 
-The first bespoke management screen. It replaces the generic gear drawer, and sets the touch
-rules the other management screens should follow.
+Gear, talents and gacha are bespoke sheets built on one frame and one set of touch rules.
+The gear screen came first and is described in most detail; talents and gacha follow it.
 
 **Status:** implemented and passing synthetic-touch tests. **Not yet verified on a phone.**
 The Android retest in the checklist at the end is what closes R00.
@@ -25,7 +25,7 @@ Rather than tune behaviour that cannot be tested off-device, the list no longer 
 
 ## Touch rules
 
-Implemented in `src/ui/touch_list.gd`, used by the gear screen and the gacha collection list.
+Implemented in `src/ui/touch_list.gd`, used by every list on the gear, talent and gacha sheets.
 
 1. **The list owns every touch that starts inside it.** Rows and the buttons in them never
    receive input themselves, so nothing can intercept a swipe part-way.
@@ -84,30 +84,49 @@ action and the current selection.
 Screenshots from the real scene: `art/review/ui_1_gear_browse.png` to
 `ui_4_gear_filtered.png`. Regenerate with `godot --path . -s res://tools/ui/capture.gd`.
 
-## Audit of the other drawers
+## Talents and gacha
 
-| Drawer | Scrolling | Fits on screen | Left as is |
-|---|---|---|---|
-| Talents | none needed (four talents per branch) | yes | 54 px rows, old styling |
-| Gacha summon | none | yes | 31 px buttons |
-| Gacha collection | list moved to the touch-owned list | yes | 180 px window, 56 px rows |
-| Gacha history | text scrolls itself | yes | not touch-tested |
+Both use the same sheet frame (`src/ui/sheet.gd`): world above, title and Back in the
+header, a touch-owned list in the middle, and the selection's details and actions pinned
+underneath.
 
-Two general fixes came out of the audit:
+**Talents** (`src/ui/talent_screen.gd`)
 
-- The four bottom buttons (Gear, Talents, Gacha, Dev) are now 80 px tall. They were 31 px.
-- A drawer taller than its slot now grows up the screen. Before, it would have grown off the
-  bottom edge.
+- Three branch tabs, then that branch's talents as rows: name, what it does, and its state
+  (Learned, Can learn, Needs another talent, No points).
+- Tapping a row only selects it. **Learn** on the pinned bar spends the point. The old
+  drawer spent a point the moment a talent was tapped, which a stray touch could trigger.
+- **Reset talents** sits beside Learn and gives every point back.
 
-Talents and gacha keep their old look and small buttons. They should move to the same sheet
-pattern, but that is a larger change than R00's "smallest coherent flow".
+**Gacha** (`src/ui/gacha_screen.gd`)
+
+- Two rows of tabs: the view (Summon, Collection, History) and the banner (Gear, Companions,
+  Relics). The banner applies to summoning and the collection.
+- **Summon:** a results list, and Summon x1 and x10 pinned with their token cost. A pull
+  shows its totals and then each new, epic or legendary result as a row.
+- **Collection:** what you own first, then what is still to find, dimmed and not
+  selectable. Pinned: the selection's details, **Travel together / Rest companion** for
+  companions, **Favourite** and **Lock**.
+- **History:** the last 40 summons from every banner as a scrolling list; the banner tabs
+  are hidden here.
+
+Screenshots: `art/review/ui_5_talents.png` to `ui_9_gacha_history.png`.
+
+## What is still a plain drawer
+
+- The **Dev** drawer (debug builds only) keeps its small default buttons.
+- The **While you were away** report keeps its old panel. Its two buttons are default size.
+
+Two general fixes from the first audit remain: the four bottom buttons are 80 px tall, and
+a drawer taller than its slot grows up the screen, not off the bottom edge.
 
 ## Tests
 
-`tests/test_ui.gd`, part of `scripts/run_tests.sh`, drives the list and the gear screen with
+`tests/test_ui.gd`, part of `scripts/run_tests.sh`, drives the list and all three sheets with
 synthetic touches: scrolling down and back up, from the very end of the list, taps against
 swipes, position kept across rebuilds and reopening, the slot filter, equipping, locked gear,
-and that every action stays on screen at touch size.
+selecting a talent without spending, Learn and Reset, summoning, the collection and history
+views, companions, and that every action stays on screen at touch size.
 
 These prove the logic and the layout. They do not prove how it feels under a thumb.
 
@@ -123,6 +142,8 @@ Record device, Android version and build commit with the results.
 - [ ] Slot strip: nine targets across are wide enough to hit reliably.
 - [ ] Text is readable at arm's length: item names, the change column, the pinned comparison.
 - [ ] Closing and reopening the sheet returns to the same place.
-- [ ] Gacha collection list scrolls both ways.
-- [ ] Talents, summon and history drawers are usable despite their small buttons.
-- [ ] Suspend and resume with the gear sheet open.
+- [ ] Talents: tapping a row never spends a point; Learn and Reset are comfortable to hit.
+- [ ] Gacha: the two tab rows are easy to tell apart; summon results, collection and history
+      lists all scroll both ways.
+- [ ] Collection: about two rows are visible between the tabs and the pinned bar. Is that enough?
+- [ ] Suspend and resume with each sheet open.
