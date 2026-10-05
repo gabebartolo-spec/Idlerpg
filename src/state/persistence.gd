@@ -115,6 +115,7 @@ static func _build_report(before: Dictionary, after: Dictionary, elapsed_actual:
 		"quests": max(0, int(after.get("quests", 0)) - int(before.get("quests", 0))),
 		"kills": max(0, int(after.get("total_kills", 0)) - int(before.get("total_kills", 0))),
 		"levels": max(0, int(after.get("level", 1)) - int(before.get("level", 1))),
+		"talent_points": max(0, int(after.get("talent_points", 0)) - int(before.get("talent_points", 0))),
 		"deaths": max(0, int(after.get("deaths", 0)) - int(before.get("deaths", 0))),
 		"gold": max(0, int(after.get("gold", 0)) - int(before.get("gold", 0))),
 		"loot": loot_delta,
