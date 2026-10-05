@@ -265,14 +265,6 @@ func _build_briarfen() -> void:
 	_add_prop("briar_thorn", lair + Vector3(-1.7, 0.0, -1.5), 60.0, 1.1)
 	_add_prop("bone_pile", lair + Vector3(-1.6, 0.0, 0.2), 120.0)
 
-	var marker := Label3D.new()
-	marker.text = "Briarfen"
-	marker.position = sim.BRIARFEN_POSITION + Vector3(0.0, 1.8, 0.0)
-	marker.font_size = 30
-	marker.outline_size = 7
-	marker.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-	world.add_child(marker)
-
 func _build_hero() -> Node3D:
 	var hero: Node3D = CharacterVisualScript.new()
 	hero.name = "Adventurer"
