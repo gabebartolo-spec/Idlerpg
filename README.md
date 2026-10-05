@@ -52,13 +52,17 @@ The first quest is intentionally tiny: leave Mossgate, defeat three goblins, tra
 - talent procs are visible while watching;
 - no active combat buttons.
 
-### Gacha foundation
-- Gear Cache;
-- Companion Pact;
-- Relic Vault;
+### Gacha collection
+- Gear Cache, Companion Pact and Relic Vault;
 - 1x and 10x pulls;
-- simple Legendary pity;
-- one token wallet.
+- visible hard Legendary pity;
+- persistent NEW/copy tracking;
+- per-banner collection counts;
+- recent summon history;
+- favourites and locks;
+- locked gear is protected from sell/salvage;
+- one token wallet;
+- no automatic junk-currency conversion for companion/relic duplicates before those systems exist.
 
 Debug/editor builds expose:
 - **Infinite gacha tokens**
@@ -113,7 +117,8 @@ Current targeted tests cover:
 - insufficient funds;
 - debug infinite-token pulls;
 - 100-pull stress usage;
-- hard pity;
+- hard pity and visible pity reset;
+- collection NEW/copy tracking, history cap, favourites/locks and persistence;
 - autonomous quest completion;
 - travel/combat/quest events;
 - loot, XP and level-up;

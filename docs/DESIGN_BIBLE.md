@@ -1214,13 +1214,14 @@ Acceptance:
 
 ## IRPG-P5 — Gacha collection layer
 
+**Status:** `VERIFY` — PR #7 adds persistent Gear / Companion / Relic collections, NEW/copy tracking, visible hard pity, capped summon history, favourites/locks, locked-gear disposal protection and compact Summon / Collection / History views. Android pull/collection usability remains to validate.  
 **Goal:** turn the prototype gacha into a real long-term collection system.
 
 Build:
 - polished summon reveal;
 - banner history;
 - visible pity;
-- duplicate conversion;
+- duplicate handling;
 - Gear / Companion / Relic collection pages;
 - “new” and favourites/lock;
 - expanded dev tools;
@@ -1232,6 +1233,15 @@ Acceptance:
 - collection management remains usable on phone;
 - the system has one understandable gacha currency;
 - no monetisation requirement is needed to make the loop work.
+
+**Implementation (PR #7):**
+- Every pull records banner, rarity, NEW state and copy number.
+- Hard Legendary pity is visible as pulls remaining and resets visibly after a Legendary.
+- Summon history keeps the latest 50 pulls; the UI shows the latest 12.
+- Collection state, favourites, locks, history and pity all persist.
+- Gear duplicates remain real inventory and already have value through P3 sell/salvage; a locked gear item cannot be sold or salvaged through the player UI.
+- Companion/relic duplicates are counted rather than prematurely converted into a new resource; their gameplay value belongs with the companion/relic systems.
+- No new currency or monetisation layer was introduced.
 
 ---
 
@@ -1366,11 +1376,12 @@ Do not confuse content volume with finished quality.
 
 Do these in order:
 
-1. Keep PR #5 and dependent PR #6 green in Godot 4.7.2 CI.
-2. Phone-test P3 equipment and P4 talents together: drawer readability, touch targets, visible gear, talent spending/respec and whether Slayer/Warden/Trailblazer actually feel different while watching.
-3. Fix mobile/core-loop blockers only.
-4. Merge P3 before P4, then retarget/verify P4 against updated main.
-5. Do not begin P5 collection polish until the management loop is pleasant on the phone.
+1. Keep the linear stack PR #5 → #6 → #7 green in Godot 4.7.2 CI.
+2. Phone-test the combined management loop: equipment, talents and gacha collection/history/pity.
+3. Validate touch targets, drawer height, watch-mode readability and that pulls feel quick rather than menu-heavy.
+4. Fix mobile/core-loop blockers before adding more content breadth.
+5. Merge in dependency order: P3, then P4, then P5; retarget and re-verify each exact head as its base lands.
+6. Only then begin **IRPG-P6** companions on a fresh branch from the updated line.
 
 Do not respond to a mediocre phone test by piling on more zones, classes, currencies or content. Fix the little-adventurer loop first.
 
