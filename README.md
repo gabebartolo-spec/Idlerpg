@@ -21,6 +21,15 @@ The authoritative simulation owns what happens. The 3D world visualises it. Ther
 
 The first quest is intentionally tiny: leave Mossgate, defeat three goblins, travel to the wolves, defeat two, return to town, collect the reward, rest, then head out again.
 
+### World expansion
+- **Briarfen** is the first additional zone after the opening Greenway errand;
+- new Briarling enemy family;
+- named boss **Old Thornback**;
+- second autonomous quest chain;
+- guaranteed world-only Rare **Briarheart Charm** boss reward;
+- distinct darker wet terrain, thorn props and boss hollow;
+- expanded quest/death/recovery state persists and resolves offline.
+
 ### Offline continuity
 - authoritative save/restore;
 - same-simulation offline catch-up;
@@ -140,6 +149,7 @@ Current targeted tests cover:
 - talent prerequisites, point spending, respec and persistence;
 - Slayer/Warden/Trailblazer simulation effects;
 - companion activation, passives, bond progression and persistence;
+- Briarfen progression, Briarlings, Old Thornback, boss reward and save/load;
 - real main-scene launch smoke coverage including collection, talents and visible companion activation;
 - every art model loads, and every gear item and companion has a model and icon.
 

@@ -47,6 +47,10 @@ func _run() -> void:
 	sim.set_active_companion(COMPANIONS[2])
 	await _snap("wolf_fight")
 	await _closeup("wolf_fight_gear")
+	await _until(sim, "briarling")
+	await _snap("briarling_fight")
+	await _until(sim, "thornback")
+	await _snap("thornback_fight")
 
 	main.free()
 	if FileAccess.file_exists(SAVE_PATH):

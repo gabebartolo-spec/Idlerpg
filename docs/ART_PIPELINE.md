@@ -72,6 +72,13 @@ The build fails if a companion has no model, and renders an icon for each one. P
 one body (`_person`) and differ by headgear, what they carry and a colour family; winged
 companions name their wings `wing_l` and `wing_r` and the game flaps them.
 
+## Zones
+
+A zone keeps its enemies, boss, reward and props together in one file, as
+`tools/art/models/briarfen.py` does, with a small prop vocabulary and its own colours added
+to the palette. An enemy's model id must match the simulation's enemy kind (`briarling`,
+`thornback`), because the game loads the enemy model by that name.
+
 ## Adding a model
 
 Add a builder to the right file in `tools/art/models/` and rebuild:

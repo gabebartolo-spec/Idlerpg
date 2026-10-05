@@ -12,6 +12,8 @@ const CharacterVisualScript = preload("res://src/view/character_visual.gd")
 const ACTIVITY_POSES := {"travelling": "walk", "returning": "walk", "fighting": "attack", "recovering": "down"}
 const GEAR_SLOTS := ["weapon", "offhand", "head", "chest", "legs", "hands", "feet", "accessory"]
 const HOVERING_COMPANIONS := ["Torch Sprite", "Clockwork Raven"]
+# How far away an enemy stands, relative to an ordinary one.
+const ENEMY_REACH := {"thornback": 1.8}
 
 var game: Node
 var sim: Node
@@ -171,13 +173,14 @@ func _build_world() -> void:
 	_build_goblin_camp()
 	_build_wolf_den()
 	_build_horizon()
+	_build_briarfen()
 
 	var trees := [
 		Vector3(-6.8, 0.0, -2.5),
 		Vector3(-3.2, 0.0, -4.5),
 		Vector3(0.2, 0.0, 3.9),
 		Vector3(3.1, 0.0, 3.6),
-		Vector3(6.7, 0.0, 2.1),
+		Vector3(12.5, 0.0, -7.0),
 		Vector3(6.9, 0.0, -5.2),
 		Vector3(-1.0, 0.0, -6.1)
 	]
@@ -186,7 +189,7 @@ func _build_world() -> void:
 	_add_prop("bush", Vector3(-1.6, 0.0, 3.4), 20.0)
 	_add_prop("bush", Vector3(4.4, 0.0, 1.2), 140.0)
 	_add_prop("rock_small", Vector3(-2.4, 0.0, -2.6), 60.0)
-	_add_prop("rock_small", Vector3(8.2, 0.0, -1.4), 200.0)
+	_add_prop("rock_small", Vector3(12.6, 0.0, 1.6), 200.0)
 
 	hero_visual = _build_hero()
 	world.add_child(hero_visual)
@@ -238,6 +241,38 @@ func _build_horizon() -> void:
 		var spot := view.rotated(rng.randf_range(-1.4, 1.4)) * rng.randf_range(16.0, 50.0)
 		_add_prop("tree_oak" if index % 3 == 0 else "tree_pine", Vector3(spot.x, 0.0, spot.y), rng.randf_range(0.0, 360.0), rng.randf_range(0.9, 1.6))
 
+func _build_briarfen() -> void:
+	var fen: Vector3 = sim.BRIARFEN_POSITION
+	var lair: Vector3 = sim.THORNBACK_POSITION
+	_add_box(fen + Vector3(0.0, 0.03, 0.0), Vector3(5.2, 0.10, 5.0), Color(0.20, 0.29, 0.25))
+	_add_box(lair + Vector3(0.0, 0.04, 0.0), Vector3(4.0, 0.12, 3.6), Color(0.24, 0.25, 0.21))
+
+	var thorns := [
+		Vector3(-1.8, 0.0, -1.5),
+		Vector3(-0.8, 0.0, 1.7),
+		Vector3(1.5, 0.0, 1.3),
+		Vector3(1.9, 0.0, -1.1)
+	]
+	for index in thorns.size():
+		_add_prop("briar_thorn", fen + thorns[index], index * 95.0, 0.85 + 0.1 * (index % 3))
+	_add_prop("dead_tree", fen + Vector3(-2.3, 0.0, -2.3), 20.0)
+	_add_prop("dead_tree", fen + Vector3(2.9, 0.0, -2.6), 150.0, 0.8)
+	_add_prop("bog_pool", fen + Vector3(0.9, 0.06, -1.7), 0.0)
+	_add_prop("briar_bush", fen + Vector3(2.4, 0.0, 0.4), 40.0)
+	_add_prop("briar_bush", fen + Vector3(-2.4, 0.0, 0.5), 200.0, 0.85)
+
+	_add_prop("thornback_hollow", lair + Vector3(2.9, 0.0, -3.2), -15.0)
+	_add_prop("briar_thorn", lair + Vector3(-1.7, 0.0, -1.5), 60.0, 1.1)
+	_add_prop("bone_pile", lair + Vector3(-1.6, 0.0, 0.2), 120.0)
+
+	var marker := Label3D.new()
+	marker.text = "Briarfen"
+	marker.position = sim.BRIARFEN_POSITION + Vector3(0.0, 1.8, 0.0)
+	marker.font_size = 30
+	marker.outline_size = 7
+	marker.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	world.add_child(marker)
+
 func _build_hero() -> Node3D:
 	var hero: Node3D = CharacterVisualScript.new()
 	hero.name = "Adventurer"
@@ -259,7 +294,7 @@ func _build_hero() -> Node3D:
 
 func _sync_world(delta: float) -> void:
 	var fighting: bool = sim.activity == "fighting" and not sim.enemy_kind.is_empty()
-	var enemy_position: Vector3 = sim.hero_position + Vector3(1.15, 0.0, -0.45)
+	var enemy_position: Vector3 = sim.hero_position + Vector3(1.15, 0.0, -0.45) * float(ENEMY_REACH.get(sim.enemy_kind, 1.0))
 
 	if fighting:
 		hero_visual.face(enemy_position - sim.hero_position)
