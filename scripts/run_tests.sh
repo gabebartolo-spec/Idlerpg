@@ -25,3 +25,4 @@ run_test tests/test_boss.gd
 run_test tests/test_hunts.gd
 run_test tests/test_art.gd
 run_test tests/test_ui.gd
+run_test tests/test_economy.gd

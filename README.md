@@ -156,6 +156,7 @@ Current targeted tests cover:
 - Briarfen progression, Briarlings, Old Thornback, boss reward and save/load;
 - real main-scene launch smoke coverage including collection, talents and visible companion activation;
 - every art model loads, and every gear item and companion has a model and icon;
-- management UI under synthetic touches: lists scroll both ways, swipes never press, gear actions stay on screen.
+- management UI under synthetic touches: lists scroll both ways, swipes never press, gear actions stay on screen;
+- the economy baseline tool: seeded reproducibility and balanced token and gold ledgers.
 
 Godot 4.7.2 CI must be green on the exact branch head. Android portrait validation is still required for watchability, touch UX and real suspend/resume behaviour.
