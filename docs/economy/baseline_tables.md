@@ -130,39 +130,39 @@ New = an item not owned before. Useful = it was equipped as an upgrade or became
 | free/implemented | 1 h | 42 | 61 | 286 | 11 | 159 | 6340 | 0 | 12 |
 | free/implemented | 6 h | 106 | 125 | 606 | 11 | 996 | 39833 | 0 | 12 |
 | free/implemented | day 1 | 214 | 233 | 1144 | 11 | 4010 | 160393 | 0 | 12 |
-| free/implemented | day 7 | 566 | 585 | 2906 | 11 | 28121 | 1124833 | 0 | 12 |
-| free/implemented | day 14 | 802 | 821 | 4082 | 11 | 56251 | 2250020 | 0 | 12 |
-| free/implemented | day 30 | 1173 | 1192 | 5941 | 11 | 120547 | 4821873 | 0 | 12 |
+| free/implemented | day 7 | 566 | 585 | 2906 | 11 | 28122 | 1124847 | 0 | 12 |
+| free/implemented | day 14 | 802 | 821 | 4082 | 11 | 56252 | 2250060 | 0 | 12 |
+| free/implemented | day 30 | 1173 | 1192 | 5941 | 11 | 120550 | 4821967 | 0 | 12 |
 | light/implemented | 1 h | 42 | 71 | 309 | 18 | 166 | 6633 | 0 | 12 |
-| light/implemented | 6 h | 106 | 135 | 627 | 18 | 1023 | 40913 | 0 | 12 |
-| light/implemented | day 1 | 212 | 241 | 1159 | 18 | 4107 | 164247 | 0 | 12 |
+| light/implemented | 6 h | 106 | 135 | 627 | 18 | 1024 | 40927 | 0 | 12 |
+| light/implemented | day 1 | 212 | 241 | 1159 | 18 | 4107 | 164260 | 0 | 12 |
 | light/implemented | day 7 | 562 | 591 | 2909 | 18 | 28778 | 1151113 | 0 | 12 |
-| light/implemented | day 14 | 796 | 825 | 4077 | 18 | 57561 | 2302407 | 0 | 12 |
-| light/implemented | day 30 | 1165 | 1194 | 5922 | 18 | 123350 | 4933980 | 0 | 12 |
+| light/implemented | day 14 | 796 | 825 | 4077 | 18 | 57562 | 2302447 | 0 | 12 |
+| light/implemented | day 30 | 1165 | 1194 | 5922 | 18 | 123352 | 4934073 | 0 | 12 |
 | high/implemented | 1 h | 43 | 78 | 324 | 25 | 168 | 6687 | 0 | 12 |
 | high/implemented | 6 h | 106 | 141 | 640 | 25 | 1024 | 40953 | 0 | 12 |
 | high/implemented | day 1 | 212 | 248 | 1172 | 25 | 4108 | 164313 | 0 | 12 |
-| high/implemented | day 7 | 562 | 598 | 2922 | 25 | 28779 | 1151140 | 0 | 12 |
-| high/implemented | day 14 | 805 | 844 | 4158 | 28 | 58868 | 2354700 | 0 | 12 |
-| high/implemented | day 30 | 1185 | 1227 | 6067 | 31 | 127642 | 5105660 | 0 | 12 |
+| high/implemented | day 7 | 562 | 598 | 2922 | 25 | 28780 | 1151180 | 0 | 12 |
+| high/implemented | day 14 | 805 | 844 | 4158 | 28 | 58869 | 2354740 | 0 | 12 |
+| high/implemented | day 30 | 1185 | 1227 | 6067 | 31 | 127645 | 5105793 | 0 | 12 |
 | free/proposed_120_per_day | 1 h | 43 | 68 | 291 | 16 | 162 | 6447 | 0 | 12 |
-| free/proposed_120_per_day | 6 h | 107 | 132 | 611 | 16 | 999 | 39927 | 0 | 12 |
+| free/proposed_120_per_day | 6 h | 107 | 132 | 611 | 16 | 999 | 39940 | 0 | 12 |
 | free/proposed_120_per_day | day 1 | 214 | 239 | 1148 | 16 | 4013 | 160487 | 0 | 12 |
-| free/proposed_120_per_day | day 7 | 563 | 597 | 2924 | 24 | 28684 | 1147327 | 0 | 12 |
-| free/proposed_120_per_day | day 14 | 796 | 832 | 4092 | 25 | 57466 | 2298633 | 0 | 12 |
-| free/proposed_120_per_day | day 30 | 1175 | 1215 | 6013 | 29 | 125401 | 5016020 | 0 | 12 |
+| free/proposed_120_per_day | day 7 | 563 | 597 | 2924 | 24 | 28684 | 1147353 | 0 | 12 |
+| free/proposed_120_per_day | day 14 | 796 | 832 | 4092 | 25 | 57467 | 2298673 | 0 | 12 |
+| free/proposed_120_per_day | day 30 | 1175 | 1215 | 6013 | 29 | 125404 | 5016140 | 0 | 12 |
 | light/proposed_120_per_day | 1 h | 42 | 72 | 312 | 19 | 166 | 6633 | 0 | 12 |
 | light/proposed_120_per_day | 6 h | 106 | 135 | 630 | 19 | 1024 | 40927 | 0 | 12 |
-| light/proposed_120_per_day | day 1 | 212 | 242 | 1162 | 19 | 4107 | 164273 | 0 | 12 |
-| light/proposed_120_per_day | day 7 | 562 | 597 | 2921 | 25 | 28778 | 1151113 | 0 | 12 |
-| light/proposed_120_per_day | day 14 | 796 | 833 | 4095 | 27 | 57561 | 2302407 | 0 | 12 |
-| light/proposed_120_per_day | day 30 | 1177 | 1217 | 6023 | 29 | 125962 | 5038460 | 0 | 12 |
+| light/proposed_120_per_day | day 1 | 212 | 242 | 1162 | 19 | 4108 | 164287 | 0 | 12 |
+| light/proposed_120_per_day | day 7 | 562 | 597 | 2921 | 25 | 28779 | 1151127 | 0 | 12 |
+| light/proposed_120_per_day | day 14 | 796 | 833 | 4095 | 27 | 57562 | 2302460 | 0 | 12 |
+| light/proposed_120_per_day | day 30 | 1177 | 1217 | 6023 | 29 | 125965 | 5038580 | 0 | 12 |
 | high/proposed_120_per_day | 1 h | 43 | 78 | 324 | 25 | 168 | 6687 | 0 | 12 |
 | high/proposed_120_per_day | 6 h | 106 | 141 | 640 | 25 | 1024 | 40953 | 0 | 12 |
 | high/proposed_120_per_day | day 1 | 212 | 248 | 1172 | 25 | 4108 | 164313 | 0 | 12 |
-| high/proposed_120_per_day | day 7 | 564 | 602 | 2951 | 27 | 28966 | 1158607 | 0 | 12 |
-| high/proposed_120_per_day | day 14 | 806 | 847 | 4171 | 30 | 59055 | 2362167 | 0 | 12 |
-| high/proposed_120_per_day | day 30 | 1186 | 1230 | 6073 | 33 | 127829 | 5113127 | 0 | 12 |
+| high/proposed_120_per_day | day 7 | 564 | 602 | 2951 | 27 | 28966 | 1158633 | 0 | 12 |
+| high/proposed_120_per_day | day 14 | 806 | 847 | 4171 | 30 | 59056 | 2362207 | 0 | 12 |
+| high/proposed_120_per_day | day 30 | 1186 | 1230 | 6073 | 33 | 127832 | 5113260 | 0 | 12 |
 
 ## Progression milestones (seconds of play, one value per simulated account)
 
@@ -182,15 +182,15 @@ Experience is extrapolated at the last simulated rate. The check column predicts
 | Cell | Experience per hour | Check: predicted vs actual level | Day | Level | Attack | Health |
 |---|---:|---|---:|---:|---:|---:|
 | free/implemented | 28688 | 1173.9 vs 1173.3 | 90 | 2033 | 2052 | 10239 |
-| free/implemented | 28688 | 1173.9 vs 1173.3 | 180 | 2875 | 2894 | 14448 |
+| free/implemented | 28688 | 1173.9 vs 1173.3 | 180 | 2875 | 2894 | 14449 |
 | light/implemented | 28269 | 1165.3 vs 1165.0 | 90 | 2018 | 2047 | 10188 |
-| light/implemented | 28269 | 1165.3 vs 1165.0 | 180 | 2854 | 2883 | 14366 |
+| light/implemented | 28269 | 1165.3 vs 1165.0 | 180 | 2854 | 2883 | 14367 |
 | high/implemented | 29552 | 1185.4 vs 1185.0 | 90 | 2060 | 2102 | 10441 |
 | high/implemented | 29552 | 1185.4 vs 1185.0 | 180 | 2915 | 2957 | 14719 |
 | free/proposed_120_per_day | 29191 | 1165.6 vs 1175.0 | 90 | 2046 | 2086 | 10367 |
 | free/proposed_120_per_day | 29191 | 1165.6 vs 1175.0 | 180 | 2897 | 2936 | 14620 |
-| light/proposed_120_per_day | 29391 | 1165.3 vs 1177.0 | 90 | 2052 | 2091 | 10396 |
-| light/proposed_120_per_day | 29391 | 1165.3 vs 1177.0 | 180 | 2906 | 2945 | 14666 |
+| light/proposed_120_per_day | 29392 | 1165.3 vs 1177.0 | 90 | 2052 | 2091 | 10396 |
+| light/proposed_120_per_day | 29392 | 1165.3 vs 1177.0 | 180 | 2906 | 2945 | 14666 |
 | high/proposed_120_per_day | 29552 | 1186.3 vs 1185.7 | 90 | 2060 | 2105 | 10446 |
 | high/proposed_120_per_day | 29552 | 1186.3 vs 1185.7 | 180 | 2916 | 2960 | 14723 |
 
