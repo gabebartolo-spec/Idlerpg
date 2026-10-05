@@ -20,6 +20,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(os.path.dirname(HERE))
 sys.path.insert(0, HERE)
 
+from lowpoly import material_name  # noqa: E402
 from models import BUDGETS, MODELS  # noqa: E402
 
 MODEL_DIR = os.path.join(ROOT, "assets", "models")
@@ -86,7 +87,7 @@ def build_model(spec, gear):
         errors.append("duplicate part names")
 
     points = [point for part in parts for point in part.points]
-    colours = {colour for part in parts for colour in part.colours}
+    materials = {material_name(colour) for part in parts for colour in part.colours}
     objects = {}
     for part in parts:
         part.finish(objects)
@@ -106,8 +107,8 @@ def build_model(spec, gear):
         errors.append("%d triangles, budget %d" % (tris, max_tris))
     if max(size) > max_size:
         errors.append("%.2f m across, limit %.2f" % (max(size), max_size))
-    if len(colours) > max_materials:
-        errors.append("%d materials, limit %d" % (len(colours), max_materials))
+    if len(materials) > max_materials:
+        errors.append("%d materials, limit %d" % (len(materials), max_materials))
     if spec.category in ("prop", "character", "backdrop") and not -0.01 <= low.z <= 0.05:
         errors.append("does not sit on the ground (lowest point %.2f)" % low.z)
     if spec.category == "weapon" and not all(low[i] <= 0.0 <= high[i] for i in range(3)):

@@ -30,14 +30,22 @@ install folder. The outputs are committed, so the game, the tests and CI do not 
 
 | Category | Triangles | Largest dimension | Materials | Also |
 |---|---|---|---|---|
-| weapon | 250 | 1.8 m | 5 | origin on the grip |
-| armour | 250 | 1.0 m | 5 | |
-| prop | 500 | 5.0 m | 6 | sits on the ground |
-| character | 800 | 2.0 m | 8 | sits on the ground |
+| weapon | 300 | 2.0 m | 3 | origin on the grip |
+| armour | 400 | 1.0 m | 3 | |
+| prop | 500 | 5.0 m | 3 | sits on the ground |
+| character | 1500 | 2.0 m | 3 | sits on the ground |
 | backdrop | 300 | 45 m | 3 | sits on the ground |
 
 Budgets live in `tools/art/models/__init__.py`. Colours come only from `tools/art/palette.py`;
 change a colour there and every model that uses it changes on the next build.
+
+Colours are stored per face, so a model needs one matte material however many colours it
+uses. Only the glow colours (`GLOWS` in the palette) get a material of their own. In the game
+`ArtCatalog` swaps every model's matte surface for one shared material.
+
+The look follows `docs/ART_STYLE_GUIDE.md`: a hero about 5.5 heads tall, tapered and
+bevelled forms, oversized weapons, an enemy silhouette rule per family, and buildings with
+steep roofs and thick beams. New models should be checked against it.
 
 ## Conventions
 
@@ -69,8 +77,8 @@ def bronze_axe():
     return [part]
 ```
 
-`Part` offers `box`, `cyl` (cylinders and cones), `ball` (icospheres, rocks) and `prism`
-(extruded outlines); see `tools/art/lowpoly.py`. A gear item added to
+`Part` offers `box` (with `taper` and `bevel`), `cyl` (cylinders and cones), `ball`
+(icospheres, rocks) and `prism` (extruded outlines); see `tools/art/lowpoly.py`. A gear item added to
 `src/data/gear_catalog.gd` without a model fails both the art build and `tests/test_art.gd`.
 
 ## In the game
