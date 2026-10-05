@@ -15,3 +15,6 @@ __pycache__/
 
 # Exported builds
 build/
+
+# Art build thumbnail cache
+art/.cache/
