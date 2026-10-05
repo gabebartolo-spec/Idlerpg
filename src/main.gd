@@ -4,6 +4,7 @@ const GameStateScript = preload("res://src/game.gd")
 const AdventurerSimScript = preload("res://src/sim/adventurer_sim.gd")
 const PersistenceScript = preload("res://src/state/persistence.gd")
 const GearCatalogScript = preload("res://src/data/gear_catalog.gd")
+const TalentCatalogScript = preload("res://src/data/talent_catalog.gd")
 const ArtCatalogScript = preload("res://src/data/art_catalog.gd")
 const CharacterVisualScript = preload("res://src/view/character_visual.gd")
 
@@ -18,6 +19,7 @@ var hero_visual: Node3D
 var enemy_visual: Node3D
 var camera: Camera3D
 var weapon_visual: Node3D
+var talent_proc_visual: MeshInstance3D
 var rendered_enemy_kind: String = ""
 
 var hero_label: Label
@@ -39,9 +41,16 @@ var gear_action_row: HBoxContainer
 var equip_gear_button: Button
 var sell_gear_button: Button
 var salvage_gear_button: Button
+var talent_panel: VBoxContainer
+var talent_button: Button
+var talent_points_label: Label
+var talent_list: VBoxContainer
+var selected_talent_branch: String = "slayer"
+var talent_proc_pulse: float = 0.0
 var dev_panel: VBoxContainer
 var return_panel: PanelContainer
 var return_label: Label
+var return_talent_button: Button
 var pending_return_report: Dictionary = {}
 var autosave_clock: float = 0.0
 
@@ -64,6 +73,7 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	sim.advance(delta)
+	talent_proc_pulse = max(0.0, talent_proc_pulse - delta)
 	_sync_world(delta)
 	_refresh_sim_ui()
 
@@ -209,6 +219,18 @@ func _build_hero() -> Node3D:
 	hero.name = "Adventurer"
 	hero.setup("hero")
 	weapon_visual = hero.attach_point("weapon")
+
+	# Talent proc effect: a ring that pulses on the ground under the adventurer.
+	talent_proc_visual = MeshInstance3D.new()
+	talent_proc_visual.name = "TalentProc"
+	var proc_mesh := CylinderMesh.new()
+	proc_mesh.top_radius = 0.72
+	proc_mesh.bottom_radius = 0.72
+	proc_mesh.height = 0.035
+	talent_proc_visual.mesh = proc_mesh
+	talent_proc_visual.position = Vector3(0.0, 0.025, 0.0)
+	talent_proc_visual.visible = false
+	hero.add_child(talent_proc_visual)
 	return hero
 
 func _sync_world(delta: float) -> void:
@@ -221,6 +243,13 @@ func _sync_world(delta: float) -> void:
 		hero_visual.face(sim.hero_position - hero_visual.position)
 	hero_visual.position = sim.hero_position
 	hero_visual.set_state(str(ACTIVITY_POSES.get(sim.activity, "idle")))
+	var pulse_scale: float = 1.06 if talent_proc_pulse > 0.0 else 1.0
+	hero_visual.scale = Vector3.ONE * pulse_scale
+	if talent_proc_visual != null:
+		talent_proc_visual.visible = talent_proc_pulse > 0.0
+		if talent_proc_visual.visible:
+			var progress: float = 1.0 - clampf(talent_proc_pulse / 0.28, 0.0, 1.0)
+			talent_proc_visual.scale = Vector3.ONE * (0.85 + progress * 0.45)
 	_sync_equipment_visual()
 
 	if fighting:
@@ -346,6 +375,12 @@ func _build_ui() -> void:
 	return_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	return_column.add_child(return_label)
 
+	return_talent_button = Button.new()
+	return_talent_button.text = "Spend talent point"
+	return_talent_button.visible = false
+	return_talent_button.pressed.connect(_open_talents_from_return)
+	return_column.add_child(return_talent_button)
+
 	var return_close := Button.new()
 	return_close.text = "Back to the adventure"
 	return_close.pressed.connect(_close_return_report)
@@ -361,6 +396,12 @@ func _build_ui() -> void:
 	equipment_button.pressed.connect(_toggle_equipment)
 	actions.add_child(equipment_button)
 
+	talent_button = Button.new()
+	talent_button.text = "Talents"
+	talent_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	talent_button.pressed.connect(_toggle_talents)
+	actions.add_child(talent_button)
+
 	var gacha_button := Button.new()
 	gacha_button.text = "Gacha"
 	gacha_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -369,7 +410,7 @@ func _build_ui() -> void:
 
 	if game.dev_tools_available():
 		var dev_button := Button.new()
-		dev_button.text = "Dev tools"
+		dev_button.text = "Dev"
 		dev_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		dev_button.pressed.connect(_toggle_dev_tools)
 		actions.add_child(dev_button)
@@ -379,6 +420,12 @@ func _build_ui() -> void:
 	equipment_panel.add_theme_constant_override("separation", 6)
 	bottom_column.add_child(equipment_panel)
 	_build_equipment_panel(equipment_panel)
+
+	talent_panel = VBoxContainer.new()
+	talent_panel.visible = false
+	talent_panel.add_theme_constant_override("separation", 6)
+	bottom_column.add_child(talent_panel)
+	_build_talent_panel(talent_panel)
 
 	gacha_panel = VBoxContainer.new()
 	gacha_panel.visible = false
@@ -563,6 +610,84 @@ func _salvage_selected_gear() -> void:
 	_rebuild_equipment_panel()
 	_save_now()
 
+func _build_talent_panel(parent: VBoxContainer) -> void:
+	var title := Label.new()
+	title.text = "%s talents" % TalentCatalogScript.CLASS_NAME
+	title.add_theme_font_size_override("font_size", 20)
+	parent.add_child(title)
+
+	talent_points_label = Label.new()
+	parent.add_child(talent_points_label)
+
+	var branches := HBoxContainer.new()
+	branches.add_theme_constant_override("separation", 6)
+	parent.add_child(branches)
+	for branch_id in TalentCatalogScript.branch_ids():
+		var button := Button.new()
+		button.text = TalentCatalogScript.branch_label(branch_id)
+		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		button.pressed.connect(_select_talent_branch.bind(branch_id))
+		branches.add_child(button)
+
+	talent_list = VBoxContainer.new()
+	talent_list.add_theme_constant_override("separation", 5)
+	parent.add_child(talent_list)
+
+	var reset := Button.new()
+	reset.text = "Reset talents"
+	reset.pressed.connect(_reset_talents)
+	parent.add_child(reset)
+
+	_rebuild_talent_panel()
+
+func _select_talent_branch(branch_id: String) -> void:
+	selected_talent_branch = branch_id
+	_rebuild_talent_panel()
+
+func _rebuild_talent_panel() -> void:
+	if talent_points_label == null or talent_list == null:
+		return
+
+	talent_points_label.text = "%d point%s available\nBuild: %s\nViewing %s" % [
+		sim.talent_points_available(),
+		"" if sim.talent_points_available() == 1 else "s",
+		sim.build_summary(),
+		TalentCatalogScript.branch_label(selected_talent_branch)
+	]
+
+	for child in talent_list.get_children():
+		child.queue_free()
+
+	for talent_id in TalentCatalogScript.nodes_for_branch(selected_talent_branch):
+		var button := Button.new()
+		var unlocked: bool = sim.has_talent(talent_id)
+		var requirement: String = TalentCatalogScript.requirement(talent_id)
+		var prefix := "✓" if unlocked else "○"
+		button.text = "%s %s\n%s" % [
+			prefix,
+			TalentCatalogScript.talent_name(talent_id),
+			TalentCatalogScript.description(talent_id)
+		]
+		button.custom_minimum_size = Vector2(0.0, 54.0)
+		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		button.disabled = unlocked or not sim.can_unlock_talent(talent_id)
+		if not unlocked and not requirement.is_empty() and not sim.has_talent(requirement):
+			button.tooltip_text = "Requires %s" % TalentCatalogScript.talent_name(requirement)
+		button.pressed.connect(_unlock_talent.bind(talent_id))
+		talent_list.add_child(button)
+
+func _unlock_talent(talent_id: String) -> void:
+	if sim.unlock_talent(talent_id):
+		_rebuild_talent_panel()
+		_rebuild_equipment_panel()
+		_save_now()
+
+func _reset_talents() -> void:
+	sim.reset_talents()
+	_rebuild_talent_panel()
+	_rebuild_equipment_panel()
+	_save_now()
+
 func _build_gacha_panel(parent: VBoxContainer) -> void:
 	token_label = Label.new()
 	token_label.add_theme_font_size_override("font_size", 18)
@@ -639,6 +764,17 @@ func _toggle_equipment() -> void:
 	equipment_panel.visible = not equipment_panel.visible
 	if equipment_panel.visible:
 		_rebuild_equipment_panel()
+	talent_panel.visible = false
+	gacha_panel.visible = false
+	return_panel.visible = false
+	if dev_panel != null:
+		dev_panel.visible = false
+
+func _toggle_talents() -> void:
+	talent_panel.visible = not talent_panel.visible
+	if talent_panel.visible:
+		_rebuild_talent_panel()
+	equipment_panel.visible = false
 	gacha_panel.visible = false
 	return_panel.visible = false
 	if dev_panel != null:
@@ -647,6 +783,7 @@ func _toggle_equipment() -> void:
 func _toggle_gacha() -> void:
 	gacha_panel.visible = not gacha_panel.visible
 	equipment_panel.visible = false
+	talent_panel.visible = false
 	return_panel.visible = false
 	if dev_panel != null:
 		dev_panel.visible = false
@@ -657,6 +794,7 @@ func _toggle_dev_tools() -> void:
 	dev_panel.visible = not dev_panel.visible
 	gacha_panel.visible = false
 	equipment_panel.visible = false
+	talent_panel.visible = false
 	return_panel.visible = false
 
 func _set_infinite_tokens(enabled: bool) -> void:
@@ -690,11 +828,26 @@ func _show_return_report(report: Dictionary) -> void:
 	if return_panel == null or return_label == null:
 		return
 	return_label.text = _format_return_report(report)
+	if return_talent_button != null:
+		var earned_points: int = int(report.get("talent_points", 0))
+		return_talent_button.visible = earned_points > 0 and sim.talent_points_available() > 0
+		return_talent_button.text = "Spend talent point" if sim.talent_points_available() == 1 else "Spend talent points"
 	return_panel.visible = true
 	gacha_panel.visible = false
 	equipment_panel.visible = false
+	talent_panel.visible = false
 	if dev_panel != null:
 		dev_panel.visible = false
+
+func _open_talents_from_return() -> void:
+	if return_panel != null:
+		return_panel.visible = false
+	talent_panel.visible = true
+	equipment_panel.visible = false
+	gacha_panel.visible = false
+	if dev_panel != null:
+		dev_panel.visible = false
+	_rebuild_talent_panel()
 
 func _close_return_report() -> void:
 	if return_panel != null:
@@ -708,6 +861,7 @@ func _format_return_report(report: Dictionary) -> String:
 	var kills := int(report.get("kills", 0))
 	var gold_gained := int(report.get("gold", 0))
 	var levels := int(report.get("levels", 0))
+	var talent_points_earned := int(report.get("talent_points", 0))
 	var deaths_while_away := int(report.get("deaths", 0))
 
 	if quests > 0:
@@ -718,6 +872,8 @@ func _format_return_report(report: Dictionary) -> String:
 		lines.append("+%d gold." % gold_gained)
 	if levels > 0:
 		lines.append("Gained %d level%s." % [levels, "" if levels == 1 else "s"])
+	if talent_points_earned > 0:
+		lines.append("%d talent point%s ready." % [talent_points_earned, "" if talent_points_earned == 1 else "s"])
 	if deaths_while_away > 0:
 		lines.append("Defeated %d time%s, but recovered." % [deaths_while_away, "" if deaths_while_away == 1 else "s"])
 
@@ -754,8 +910,26 @@ func _format_duration(seconds: int) -> String:
 		return "%dm" % (seconds / 60)
 	return "%ds" % seconds
 
+func _show_talent_proc(branch_id: String) -> void:
+	if talent_proc_visual == null:
+		return
+
+	var colour := Color(0.62, 0.54, 0.34)
+	match branch_id:
+		"slayer":
+			colour = Color(0.68, 0.30, 0.18)
+		"warden":
+			colour = Color(0.32, 0.46, 0.56)
+		"trailblazer":
+			colour = Color(0.58, 0.50, 0.22)
+
+	talent_proc_visual.material_override = _material(colour)
+	talent_proc_visual.visible = true
+	talent_proc_visual.scale = Vector3.ONE * 0.85
+
 func _refresh_sim_ui() -> void:
-	hero_label.text = "Adventurer · Lv %d · HP %d/%d · %d gold" % [
+	hero_label.text = "%s · Lv %d · HP %d/%d · %d gold" % [
+		TalentCatalogScript.CLASS_NAME,
 		sim.hero_level,
 		sim.hero_hp,
 		sim.effective_max_hp(),
@@ -763,13 +937,26 @@ func _refresh_sim_ui() -> void:
 	]
 	activity_label.text = sim.current_activity_text()
 	quest_label.text = sim.current_quest_text()
+	if talent_button != null:
+		var points: int = sim.talent_points_available()
+		talent_button.text = "Talents" if points <= 0 else "Talents · %d" % points
 
 func _on_sim_event(event: Dictionary) -> void:
 	event_label.text = str(event.get("message", ""))
 	var event_type := str(event.get("type", ""))
-	if event_type in ["gear_obtained", "gear_equipped", "gear_unequipped", "gear_sold", "gear_salvaged"]:
+
+	if event_type == "talent_proc":
+		talent_proc_pulse = 0.28
+		var talent_id: String = str(event.get("talent", ""))
+		_show_talent_proc(TalentCatalogScript.branch(talent_id))
+
+	if event_type in ["gear_obtained", "gear_equipped", "gear_unequipped", "gear_sold", "gear_salvaged", "talent_unlocked", "talents_reset"]:
 		if equipment_panel != null and equipment_panel.visible:
 			_rebuild_equipment_panel()
+
+	if event_type in ["talent_unlocked", "talents_reset", "level_up"]:
+		if talent_panel != null and talent_panel.visible:
+			_rebuild_talent_panel()
 
 func _select_banner(banner_id: String) -> void:
 	selected_banner = banner_id

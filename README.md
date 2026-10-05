@@ -31,12 +31,26 @@ The first quest is intentionally tiny: leave Mossgate, defeat three goblins, tra
 
 ### Equipment slice
 - owned gear inventory;
-- weapon/head/chest/off-hand slots;
-- equipped items change combat stats;
+- eight restrained equipment slots;
+- inspect and same-slot comparison;
+- equip/unequip;
+- duplicate-safe sell for gold;
+- duplicate-safe salvage for existing gacha tokens;
 - guaranteed Goblin Cleaver + Wolfskin Hood during the first quest;
 - Gear-banner pulls enter the same owned-gear pool;
-- equipped weapons visibly change on the 3D adventurer;
+- modular visible weapon/armour treatment on the 3D adventurer;
 - persistence across saves/offline progress.
+
+### Talent/build slice
+- first class: **Wayfarer**;
+- three branches: Slayer, Warden and Trailblazer;
+- 12 meaningful automatic talents;
+- one point per level after level 1;
+- prerequisite chains;
+- free prototype respec;
+- combat, travel and XP effects run in the authoritative simulation;
+- talent procs are visible while watching;
+- no active combat buttons.
 
 ### Gacha foundation
 - Gear Cache;
@@ -105,10 +119,12 @@ Current targeted tests cover:
 - loot, XP and level-up;
 - death and recovery;
 - save/offline parity and duplicate-reward protection;
-- gear ownership/equip stat changes and persistence;
+- gear ownership/equip/disposal and persistence;
 - first-quest guaranteed gear;
 - Gear gacha → owned equipment integration;
-- real main-scene launch smoke coverage;
+- talent prerequisites, point spending, respec and persistence;
+- Slayer/Warden/Trailblazer simulation effects;
+- real main-scene launch smoke coverage including the talent drawer;
 - every art model loads, and every gear item has a model and icon.
 
-This branch still needs actual Godot 4.7.2 runtime validation. Static repository inspection is not a passing build.
+Godot 4.7.2 CI must be green on the exact branch head. Android portrait validation is still required for watchability, touch UX and real suspend/resume behaviour.
