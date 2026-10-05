@@ -262,7 +262,7 @@ func _build_briarfen() -> void:
 	_add_prop("briar_bush", fen + Vector3(-2.4, 0.0, 0.5), 200.0, 0.85)
 
 	_add_prop("thornback_hollow", lair + Vector3(2.9, 0.0, -3.2), -15.0)
-	_add_prop("briar_thorn", lair + Vector3(-1.7, 0.0, -1.5), 60.0, 1.1)
+	_add_prop("briar_thorn", lair + Vector3(-1.9, 0.0, 1.3), 60.0, 1.1)
 	_add_prop("bone_pile", lair + Vector3(-1.6, 0.0, 0.2), 120.0)
 
 func _build_hero() -> Node3D:
