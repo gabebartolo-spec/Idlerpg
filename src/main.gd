@@ -73,7 +73,9 @@ func _ready() -> void:
 	_build_ui()
 	_refresh_wallet(game.gacha_tokens)
 	_refresh_sim_ui()
-	if bool(pending_return_report.get("loaded", false)) and int(pending_return_report.get("elapsed_actual", 0)) >= 5:
+	# A return worth reporting: time away, or anything that went wrong with the save.
+	var save_trouble: bool = pending_return_report.has("save_lost") or pending_return_report.has("recovered_from_backup") or pending_return_report.has("clock_rollback")
+	if save_trouble or (bool(pending_return_report.get("loaded", false)) and int(pending_return_report.get("elapsed_actual", 0)) >= 5):
 		_show_return_report(pending_return_report)
 
 func _process(delta: float) -> void:
@@ -652,7 +654,8 @@ func _reset_pity() -> void:
 func _save_now(now_unix: int = -1) -> void:
 	if sim == null or game == null:
 		return
-	PersistenceScript.save(sim, game, now_unix)
+	if not PersistenceScript.save(sim, game, now_unix) and event_label != null:
+		event_label.text = "Could not save. Progress since the last save may be lost."
 
 func _dev_simulate_away() -> void:
 	var now_unix := int(Time.get_unix_time_from_system())
@@ -668,6 +671,18 @@ func _close_return_report() -> void:
 
 func _format_return_report(report: Dictionary) -> String:
 	var lines: Array[String] = []
+	if bool(report.get("save_lost", false)):
+		lines.append("Your save could not be read, so a new adventure has started.")
+		lines.append(str(report.get("error", "")))
+		if bool(report.get("kept_copy", false)):
+			lines.append("The unreadable save was kept beside the new one.")
+		return "\n".join(lines)
+	if bool(report.get("recovered_from_backup", false)):
+		lines.append("Your latest save could not be read, so the one before it was restored.")
+	if bool(report.get("clock_rollback", false)):
+		lines.append("The device clock is behind your last save, so no time away was counted.")
+	if bool(report.get("save_failed", false)):
+		lines.append("This return could not be saved yet.")
 	lines.append("Away for %s." % _format_duration(int(report.get("elapsed_actual", 0))))
 
 	var quests := int(report.get("quests", 0))
@@ -707,6 +722,8 @@ func _format_return_report(report: Dictionary) -> String:
 
 	if bool(report.get("capped", false)):
 		lines.append("Prototype catch-up is currently capped at 7 days per return.")
+	if game.dev_tools_available() and int(report.get("elapsed_simulated", 0)) > 0:
+		lines.append("Dev: catch-up took %d ms." % int(report.get("catch_up_msec", 0)))
 
 	if lines.size() == 1:
 		lines.append("No major events. Your adventurer kept moving.")
