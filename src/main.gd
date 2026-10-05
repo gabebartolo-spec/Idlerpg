@@ -5,11 +5,11 @@ const AdventurerSimScript = preload("res://src/sim/adventurer_sim.gd")
 const PersistenceScript = preload("res://src/state/persistence.gd")
 const GearCatalogScript = preload("res://src/data/gear_catalog.gd")
 const TalentCatalogScript = preload("res://src/data/talent_catalog.gd")
-const CompanionCatalogScript = preload("res://src/data/companion_catalog.gd")
 const ArtCatalogScript = preload("res://src/data/art_catalog.gd")
 const CharacterVisualScript = preload("res://src/view/character_visual.gd")
 const GearScreenScript = preload("res://src/ui/gear_screen.gd")
-const TouchListScript = preload("res://src/ui/touch_list.gd")
+const TalentScreenScript = preload("res://src/ui/talent_screen.gd")
+const GachaScreenScript = preload("res://src/ui/gacha_screen.gd")
 const UiStyleScript = preload("res://src/ui/ui_style.gd")
 
 const ACTIVITY_POSES := {"travelling": "walk", "returning": "walk", "fighting": "attack", "recovering": "down"}
@@ -37,30 +37,18 @@ var activity_label: Label
 var quest_label: Label
 var event_label: Label
 
-var selected_banner: String = "gear"
-var token_label: Label
-var banner_label: Label
-var pity_label: Label
-var results_label: RichTextLabel
-var gacha_panel: VBoxContainer
-var gacha_summon_view: VBoxContainer
-var gacha_collection_view: VBoxContainer
-var gacha_history_view: VBoxContainer
-var collection_summary_label: Label
-var collection_list: VBoxContainer
-var collection_detail_label: Label
-var collection_use_button: Button
-var collection_favourite_button: Button
-var collection_lock_button: Button
-var history_label: RichTextLabel
-var selected_collection_item: String = ""
+var gacha_panel: Control
+var gacha_collection_view: Control
+var gacha_history_view: Control
+var selected_collection_item: String:
+	get:
+		return gacha_panel.selected_item
+	set(value):
+		gacha_panel.select_item(value)
 var equipment_panel: Control
 var sell_gear_button: Button
-var talent_panel: VBoxContainer
+var talent_panel: Control
 var talent_button: Button
-var talent_points_label: Label
-var talent_list: VBoxContainer
-var selected_talent_branch: String = "slayer"
 var talent_proc_pulse: float = 0.0
 var dev_panel: VBoxContainer
 var return_panel: PanelContainer
@@ -504,18 +492,6 @@ func _build_ui() -> void:
 		action.custom_minimum_size = Vector2(0.0, UiStyleScript.TOUCH)
 		action.add_theme_font_size_override("font_size", 22)
 
-	talent_panel = VBoxContainer.new()
-	talent_panel.visible = false
-	talent_panel.add_theme_constant_override("separation", 6)
-	bottom_column.add_child(talent_panel)
-	_build_talent_panel(talent_panel)
-
-	gacha_panel = VBoxContainer.new()
-	gacha_panel.visible = false
-	gacha_panel.add_theme_constant_override("separation", 6)
-	bottom_column.add_child(gacha_panel)
-	_build_gacha_panel(gacha_panel)
-
 	if game.dev_tools_available():
 		dev_panel = VBoxContainer.new()
 		dev_panel.visible = false
@@ -523,13 +499,29 @@ func _build_ui() -> void:
 		bottom_column.add_child(dev_panel)
 		_build_dev_tools(dev_panel)
 
-	# The gear screen is a sheet of its own, drawn over the drawers (src/ui/gear_screen.gd).
+	# Management screens are sheets of their own, drawn over the world (src/ui/).
 	equipment_panel = GearScreenScript.new()
 	equipment_panel.visible = false
 	canvas.add_child(equipment_panel)
 	equipment_panel.setup(sim, game)
 	equipment_panel.gear_changed.connect(_on_gear_changed)
 	sell_gear_button = equipment_panel.sell_button
+
+	talent_panel = TalentScreenScript.new()
+	talent_panel.visible = false
+	canvas.add_child(talent_panel)
+	talent_panel.setup(sim)
+	talent_panel.talents_changed.connect(_on_build_changed)
+
+	gacha_panel = GachaScreenScript.new()
+	gacha_panel.visible = false
+	canvas.add_child(gacha_panel)
+	gacha_panel.setup(sim, game)
+	gacha_panel.summoned.connect(_on_build_changed)
+	gacha_panel.collection_changed.connect(_on_build_changed)
+	gacha_panel.companion_changed.connect(_on_companion_changed)
+	gacha_collection_view = gacha_panel.collection_view
+	gacha_history_view = gacha_panel.history_view
 
 func _rebuild_equipment_panel() -> void:
 	if equipment_panel != null and equipment_panel.visible:
@@ -545,347 +537,83 @@ func _on_gear_changed() -> void:
 	_sync_equipment_visual()
 	_save_now()
 
-func _build_talent_panel(parent: VBoxContainer) -> void:
-	var title := Label.new()
-	title.text = "%s talents" % TalentCatalogScript.CLASS_NAME
-	title.add_theme_font_size_override("font_size", 20)
-	parent.add_child(title)
-
-	talent_points_label = Label.new()
-	parent.add_child(talent_points_label)
-
-	var branches := HBoxContainer.new()
-	branches.add_theme_constant_override("separation", 6)
-	parent.add_child(branches)
-	for branch_id in TalentCatalogScript.branch_ids():
-		var button := Button.new()
-		button.text = TalentCatalogScript.branch_label(branch_id)
-		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		button.pressed.connect(_select_talent_branch.bind(branch_id))
-		branches.add_child(button)
-
-	talent_list = VBoxContainer.new()
-	talent_list.add_theme_constant_override("separation", 5)
-	parent.add_child(talent_list)
-
-	var reset := Button.new()
-	reset.text = "Reset talents"
-	reset.pressed.connect(_reset_talents)
-	parent.add_child(reset)
-
-	_rebuild_talent_panel()
-
-func _select_talent_branch(branch_id: String) -> void:
-	selected_talent_branch = branch_id
-	_rebuild_talent_panel()
-
-func _rebuild_talent_panel() -> void:
-	if talent_points_label == null or talent_list == null:
-		return
-
-	talent_points_label.text = "%d point%s available\nBuild: %s\nViewing %s" % [
-		sim.talent_points_available(),
-		"" if sim.talent_points_available() == 1 else "s",
-		sim.build_summary(),
-		TalentCatalogScript.branch_label(selected_talent_branch)
-	]
-
-	for child in talent_list.get_children():
-		child.queue_free()
-
-	for talent_id in TalentCatalogScript.nodes_for_branch(selected_talent_branch):
-		var button := Button.new()
-		var unlocked: bool = sim.has_talent(talent_id)
-		var requirement: String = TalentCatalogScript.requirement(talent_id)
-		var prefix := "✓" if unlocked else "○"
-		button.text = "%s %s\n%s" % [
-			prefix,
-			TalentCatalogScript.talent_name(talent_id),
-			TalentCatalogScript.description(talent_id)
-		]
-		button.custom_minimum_size = Vector2(0.0, 54.0)
-		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		button.disabled = unlocked or not sim.can_unlock_talent(talent_id)
-		if not unlocked and not requirement.is_empty() and not sim.has_talent(requirement):
-			button.tooltip_text = "Requires %s" % TalentCatalogScript.talent_name(requirement)
-		button.pressed.connect(_unlock_talent.bind(talent_id))
-		talent_list.add_child(button)
-
-func _unlock_talent(talent_id: String) -> void:
-	if sim.unlock_talent(talent_id):
-		_rebuild_talent_panel()
-		_rebuild_equipment_panel()
-		_save_now()
-
-func _reset_talents() -> void:
-	sim.reset_talents()
-	_rebuild_talent_panel()
+# Talents, summons and locks can all change what the gear screen shows.
+func _on_build_changed() -> void:
 	_rebuild_equipment_panel()
 	_save_now()
 
-func _build_gacha_panel(parent: VBoxContainer) -> void:
-	token_label = Label.new()
-	token_label.add_theme_font_size_override("font_size", 18)
-	parent.add_child(token_label)
-
-	var mode_row := HBoxContainer.new()
-	mode_row.add_theme_constant_override("separation", 6)
-	parent.add_child(mode_row)
-
-	var summon_mode := Button.new()
-	summon_mode.text = "Summon"
-	summon_mode.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	summon_mode.pressed.connect(_show_gacha_mode.bind("summon"))
-	mode_row.add_child(summon_mode)
-
-	var collection_mode := Button.new()
-	collection_mode.text = "Collection"
-	collection_mode.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	collection_mode.pressed.connect(_show_gacha_mode.bind("collection"))
-	mode_row.add_child(collection_mode)
-
-	var history_mode := Button.new()
-	history_mode.text = "History"
-	history_mode.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	history_mode.pressed.connect(_show_gacha_mode.bind("history"))
-	mode_row.add_child(history_mode)
-
-	gacha_summon_view = VBoxContainer.new()
-	gacha_summon_view.add_theme_constant_override("separation", 6)
-	parent.add_child(gacha_summon_view)
-
-	banner_label = Label.new()
-	gacha_summon_view.add_child(banner_label)
-
-	pity_label = Label.new()
-	gacha_summon_view.add_child(pity_label)
-
-	var banner_row := HBoxContainer.new()
-	banner_row.add_theme_constant_override("separation", 6)
-	gacha_summon_view.add_child(banner_row)
-	_add_banner_button(banner_row, "gear", "Gear")
-	_add_banner_button(banner_row, "companions", "Companions")
-	_add_banner_button(banner_row, "relics", "Relics")
-
-	var summon_row := HBoxContainer.new()
-	summon_row.add_theme_constant_override("separation", 6)
-	gacha_summon_view.add_child(summon_row)
-
-	var one := Button.new()
-	one.text = "Summon x1"
-	one.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	one.pressed.connect(_summon.bind(1))
-	summon_row.add_child(one)
-
-	var ten := Button.new()
-	ten.text = "Summon x10"
-	ten.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	ten.pressed.connect(_summon.bind(10))
-	summon_row.add_child(ten)
-
-	results_label = RichTextLabel.new()
-	results_label.fit_content = true
-	results_label.custom_minimum_size = Vector2(0.0, 90.0)
-	results_label.text = "Pick a banner and summon."
-	gacha_summon_view.add_child(results_label)
-
-	gacha_collection_view = VBoxContainer.new()
-	gacha_collection_view.visible = false
-	gacha_collection_view.add_theme_constant_override("separation", 6)
-	parent.add_child(gacha_collection_view)
-
-	collection_summary_label = Label.new()
-	gacha_collection_view.add_child(collection_summary_label)
-
-	collection_detail_label = Label.new()
-	collection_detail_label.text = "Tap a collected item."
-	collection_detail_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	gacha_collection_view.add_child(collection_detail_label)
-
-	collection_use_button = Button.new()
-	collection_use_button.text = "Travel together"
-	collection_use_button.visible = false
-	collection_use_button.pressed.connect(_use_collection_item)
-	gacha_collection_view.add_child(collection_use_button)
-
-	var collection_actions := HBoxContainer.new()
-	collection_actions.add_theme_constant_override("separation", 6)
-	gacha_collection_view.add_child(collection_actions)
-
-	collection_favourite_button = Button.new()
-	collection_favourite_button.text = "Favourite"
-	collection_favourite_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	collection_favourite_button.pressed.connect(_toggle_collection_favourite)
-	collection_actions.add_child(collection_favourite_button)
-
-	collection_lock_button = Button.new()
-	collection_lock_button.text = "Lock"
-	collection_lock_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	collection_lock_button.pressed.connect(_toggle_collection_lock)
-	collection_actions.add_child(collection_lock_button)
-
-	# Same touch-owned list as the gear screen, so it scrolls both ways on a phone.
-	var collection_scroll: Control = TouchListScript.new()
-	collection_scroll.custom_minimum_size = Vector2(0.0, 180.0)
-	gacha_collection_view.add_child(collection_scroll)
-	collection_list = collection_scroll.content
-
-	gacha_history_view = VBoxContainer.new()
-	gacha_history_view.visible = false
-	parent.add_child(gacha_history_view)
-
-	history_label = RichTextLabel.new()
-	history_label.fit_content = true
-	history_label.custom_minimum_size = Vector2(0.0, 230.0)
-	gacha_history_view.add_child(history_label)
-
-	_select_banner(selected_banner)
-	_show_gacha_mode("summon")
-
-func _show_gacha_mode(mode: String) -> void:
-	gacha_summon_view.visible = mode == "summon"
-	gacha_collection_view.visible = mode == "collection"
-	gacha_history_view.visible = mode == "history"
-	if mode == "collection":
-		_rebuild_collection_view()
-	elif mode == "history":
-		_rebuild_history_view()
-
-func _rebuild_collection_view() -> void:
-	if collection_list == null or collection_summary_label == null:
-		return
-
-	collection_summary_label.text = "%s · %d/%d collected" % [
-		game.banner_label(selected_banner),
-		game.collected_unique(selected_banner),
-		game.banner_item_count(selected_banner)
-	]
-
-	for child in collection_list.get_children():
-		child.queue_free()
-
-	for item_name in game.collection_items(selected_banner):
-		var rarity: String = game.item_rarity(selected_banner, item_name)
-		var count: int = game.collection_count(selected_banner, item_name)
-		var button := Button.new()
-		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		var icon: Texture2D = ArtCatalogScript.companion_icon(item_name) if selected_banner == "companions" else ArtCatalogScript.item_icon(item_name)
-		if icon != null:
-			button.icon = icon
-			button.expand_icon = true
-			button.alignment = HORIZONTAL_ALIGNMENT_LEFT
-			button.custom_minimum_size = Vector2(0.0, 56.0)
-		if count <= 0:
-			button.text = "— %s · %s" % [item_name, rarity]
-			button.disabled = true
-		else:
-			var markers: Array[String] = []
-			if game.is_favourite(item_name):
-				markers.append("Favourite")
-			if game.is_locked(item_name):
-				markers.append("Locked")
-			if selected_banner == "companions" and sim.active_companion == item_name:
-				markers.append("Active")
-			button.text = "%s · %s · ×%d" % [item_name, rarity, count]
-			if not markers.is_empty():
-				button.text += " · " + " · ".join(markers)
-			button.pressed.connect(_select_collection_item.bind(item_name))
-		collection_list.add_child(button)
-
-	_refresh_collection_detail()
-
-func _select_collection_item(item_name: String) -> void:
-	selected_collection_item = item_name
-	_refresh_collection_detail()
-
-func _refresh_collection_detail() -> void:
-	if collection_detail_label == null:
-		return
-	if selected_collection_item.is_empty() or game.collection_count(selected_banner, selected_collection_item) <= 0:
-		collection_detail_label.text = "Tap a collected item."
-		collection_use_button.visible = false
-		collection_favourite_button.disabled = true
-		collection_lock_button.disabled = true
-		return
-
-	var detail_lines: Array[String] = [
-		"%s · %s · Owned ×%d" % [
-			selected_collection_item,
-			game.item_rarity(selected_banner, selected_collection_item),
-			game.collection_count(selected_banner, selected_collection_item)
-		]
-	]
-	if selected_banner == "companions" and CompanionCatalogScript.has_companion(selected_collection_item):
-		detail_lines.append("%s · Bond %d" % [
-			CompanionCatalogScript.role(selected_collection_item),
-			sim.companion_bond_level(selected_collection_item)
-		])
-		detail_lines.append(CompanionCatalogScript.description(selected_collection_item))
-		collection_use_button.visible = true
-		collection_use_button.text = "Rest companion" if sim.active_companion == selected_collection_item else "Travel together"
-	else:
-		collection_use_button.visible = false
-	collection_detail_label.text = "\n".join(detail_lines)
-	collection_favourite_button.disabled = false
-	collection_lock_button.disabled = false
-	collection_favourite_button.text = "Unfavourite" if game.is_favourite(selected_collection_item) else "Favourite"
-	collection_lock_button.text = "Unlock" if game.is_locked(selected_collection_item) else "Lock"
-
-func _use_collection_item() -> void:
-	if selected_banner != "companions" or selected_collection_item.is_empty():
-		return
-	if game.collection_count("companions", selected_collection_item) <= 0:
-		return
-
-	if sim.active_companion == selected_collection_item:
-		sim.clear_active_companion()
-	else:
-		sim.set_active_companion(selected_collection_item)
-
-	_rebuild_collection_view()
+func _on_companion_changed() -> void:
 	_sync_companion_visual(1.0)
 	_save_now()
 
-func _toggle_collection_favourite() -> void:
-	if selected_collection_item.is_empty():
-		return
-	game.set_favourite(selected_collection_item, not game.is_favourite(selected_collection_item))
-	_rebuild_collection_view()
-	_save_now()
+func _unlock_talent(talent_id: String) -> void:
+	talent_panel.unlock(talent_id)
 
-func _toggle_collection_lock() -> void:
-	if selected_collection_item.is_empty():
-		return
-	game.set_locked(selected_collection_item, not game.is_locked(selected_collection_item))
-	_rebuild_collection_view()
-	if equipment_panel != null and equipment_panel.visible:
-		_rebuild_equipment_panel()
-	_save_now()
+func _select_banner(banner_id: String) -> void:
+	gacha_panel.select_banner(banner_id)
 
-func _rebuild_history_view() -> void:
-	if history_label == null:
-		return
-	var lines: Array[String] = ["Recent summons"]
-	var history: Array[Dictionary] = game.recent_summons(12)
-	if history.is_empty():
-		lines.append("No summons yet.")
-	else:
-		for entry in history:
-			var prefix := "NEW · " if bool(entry.get("is_new", false)) else ""
-			lines.append("%s%s · %s · copy %d" % [
-				prefix,
-				entry.get("rarity", "Common"),
-				entry.get("name", "?"),
-				int(entry.get("copy", 1))
-			])
-	history_label.text = "\n".join(lines)
+func _show_gacha_mode(mode: String) -> void:
+	gacha_panel.show_mode(mode)
 
-func _add_banner_button(parent: HBoxContainer, id: String, label: String) -> void:
-	var button := Button.new()
-	button.text = label
-	button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	button.pressed.connect(_select_banner.bind(id))
-	parent.add_child(button)
+func _summon(count: int) -> void:
+	gacha_panel.summon(count)
+
+func _use_collection_item() -> void:
+	gacha_panel.use_item()
+
+func _refresh_wallet(_tokens: int) -> void:
+	if gacha_panel != null:
+		gacha_panel.refresh_wallet()
+
+# Only one sheet, drawer or report is open at a time.
+func _close_drawers() -> void:
+	for sheet in [equipment_panel, talent_panel, gacha_panel, dev_panel, return_panel]:
+		if sheet != null:
+			sheet.visible = false
+
+func _toggle_sheet(sheet: Control) -> void:
+	var opening: bool = not sheet.visible
+	_close_drawers()
+	if opening:
+		sheet.open()
+
+func _toggle_equipment() -> void:
+	_toggle_sheet(equipment_panel)
+
+func _toggle_talents() -> void:
+	_toggle_sheet(talent_panel)
+
+func _toggle_gacha() -> void:
+	gacha_panel.show_mode("summon")
+	_toggle_sheet(gacha_panel)
+
+func _toggle_dev_tools() -> void:
+	if dev_panel == null:
+		return
+	var opening: bool = not dev_panel.visible
+	_close_drawers()
+	dev_panel.visible = opening
+
+func _dev_stress_pull() -> void:
+	_close_drawers()
+	gacha_panel.show_mode("summon")
+	gacha_panel.open()
+	_summon(100)
+
+func _show_return_report(report: Dictionary) -> void:
+	if return_panel == null or return_label == null:
+		return
+	return_label.text = _format_return_report(report)
+	if return_talent_button != null:
+		var earned_points: int = int(report.get("talent_points", 0))
+		return_talent_button.visible = earned_points > 0 and sim.talent_points_available() > 0
+		return_talent_button.text = "Spend talent point" if sim.talent_points_available() == 1 else "Spend talent points"
+	_close_drawers()
+	return_panel.visible = true
+
+func _open_talents_from_return() -> void:
+	_close_drawers()
+	talent_panel.open()
 
 func _build_dev_tools(parent: VBoxContainer) -> void:
 	var infinite := CheckButton.new()
@@ -913,54 +641,9 @@ func _build_dev_tools(parent: VBoxContainer) -> void:
 	away.pressed.connect(_dev_simulate_away)
 	parent.add_child(away)
 
-func _toggle_equipment() -> void:
-	equipment_panel.visible = not equipment_panel.visible
-	if equipment_panel.visible:
-		_rebuild_equipment_panel()
-	talent_panel.visible = false
-	gacha_panel.visible = false
-	return_panel.visible = false
-	if dev_panel != null:
-		dev_panel.visible = false
-
-func _toggle_talents() -> void:
-	talent_panel.visible = not talent_panel.visible
-	if talent_panel.visible:
-		_rebuild_talent_panel()
-	equipment_panel.visible = false
-	gacha_panel.visible = false
-	return_panel.visible = false
-	if dev_panel != null:
-		dev_panel.visible = false
-
-func _toggle_gacha() -> void:
-	gacha_panel.visible = not gacha_panel.visible
-	if gacha_panel.visible:
-		_show_gacha_mode("summon")
-	equipment_panel.visible = false
-	talent_panel.visible = false
-	return_panel.visible = false
-	if dev_panel != null:
-		dev_panel.visible = false
-
-func _toggle_dev_tools() -> void:
-	if dev_panel == null:
-		return
-	dev_panel.visible = not dev_panel.visible
-	gacha_panel.visible = false
-	equipment_panel.visible = false
-	talent_panel.visible = false
-	return_panel.visible = false
-
 func _set_infinite_tokens(enabled: bool) -> void:
 	game.set_dev_infinite_tokens(enabled)
 	_refresh_wallet(game.gacha_tokens)
-
-func _dev_stress_pull() -> void:
-	gacha_panel.visible = true
-	if dev_panel != null:
-		dev_panel.visible = false
-	_summon(100)
 
 func _reset_pity() -> void:
 	game.dev_reset_pity()
@@ -978,31 +661,6 @@ func _dev_simulate_away() -> void:
 	_show_return_report(report)
 	if dev_panel != null:
 		dev_panel.visible = false
-
-func _show_return_report(report: Dictionary) -> void:
-	if return_panel == null or return_label == null:
-		return
-	return_label.text = _format_return_report(report)
-	if return_talent_button != null:
-		var earned_points: int = int(report.get("talent_points", 0))
-		return_talent_button.visible = earned_points > 0 and sim.talent_points_available() > 0
-		return_talent_button.text = "Spend talent point" if sim.talent_points_available() == 1 else "Spend talent points"
-	return_panel.visible = true
-	gacha_panel.visible = false
-	equipment_panel.visible = false
-	talent_panel.visible = false
-	if dev_panel != null:
-		dev_panel.visible = false
-
-func _open_talents_from_return() -> void:
-	if return_panel != null:
-		return_panel.visible = false
-	talent_panel.visible = true
-	equipment_panel.visible = false
-	gacha_panel.visible = false
-	if dev_panel != null:
-		dev_panel.visible = false
-	_rebuild_talent_panel()
 
 func _close_return_report() -> void:
 	if return_panel != null:
@@ -1111,71 +769,8 @@ func _on_sim_event(event: Dictionary) -> void:
 
 	if event_type in ["talent_unlocked", "talents_reset", "level_up"]:
 		if talent_panel != null and talent_panel.visible:
-			_rebuild_talent_panel()
+			talent_panel.refresh()
 
 	if event_type in ["companion_changed", "companion_bond_up"]:
-		if gacha_collection_view != null and gacha_collection_view.visible:
-			_rebuild_collection_view()
-
-func _select_banner(banner_id: String) -> void:
-	selected_banner = banner_id
-	if banner_label != null:
-		banner_label.text = "Banner: %s · Collection %d/%d" % [
-			game.banner_label(banner_id),
-			game.collected_unique(banner_id),
-			game.banner_item_count(banner_id)
-		]
-	if pity_label != null:
-		pity_label.text = "Legendary guaranteed within %d pull%s" % [
-			game.pity_remaining(banner_id),
-			"" if game.pity_remaining(banner_id) == 1 else "s"
-		]
-	if gacha_collection_view != null and gacha_collection_view.visible:
-		selected_collection_item = ""
-		_rebuild_collection_view()
-
-func _summon(count: int) -> void:
-	var response: Dictionary = game.pull(selected_banner, count)
-	if not bool(response.get("ok", false)):
-		results_label.text = str(response.get("error", "Summon failed"))
-		return
-
-	var results: Array = response.get("results", [])
-	var rarity_counts := {"Common": 0, "Rare": 0, "Epic": 0, "Legendary": 0}
-	var highlights: Array[String] = []
-	var new_count := 0
-	for result in results:
-		var rarity: String = str(result.get("rarity", "Common"))
-		var item_name: String = str(result.get("name", ""))
-		var is_new: bool = bool(result.get("is_new", false))
-		rarity_counts[rarity] = int(rarity_counts.get(rarity, 0)) + 1
-		if is_new:
-			new_count += 1
-		if selected_banner == "gear":
-			sim.add_gear(item_name)
-		if is_new or rarity == "Epic" or rarity == "Legendary":
-			highlights.append("%s%s — %s" % ["NEW · " if is_new else "", rarity, item_name])
-
-	var summary := "Pulled %d · %d new · C %d · R %d · E %d · L %d" % [
-		results.size(),
-		new_count,
-		rarity_counts["Common"],
-		rarity_counts["Rare"],
-		rarity_counts["Epic"],
-		rarity_counts["Legendary"]
-	]
-	if not highlights.is_empty():
-		summary += "\n" + "\n".join(highlights.slice(0, 5))
-	results_label.text = summary
-	_select_banner(selected_banner)
-	if equipment_panel != null and equipment_panel.visible:
-		_rebuild_equipment_panel()
-	_save_now()
-
-func _refresh_wallet(tokens: int) -> void:
-	if token_label == null:
-		return
-	if game.dev_infinite_tokens:
-		token_label.text = "Gacha tokens: ∞ (dev)"
-	else:
-		token_label.text = "Gacha tokens: %d" % tokens
+		if gacha_panel != null and gacha_panel.visible:
+			gacha_panel.refresh()

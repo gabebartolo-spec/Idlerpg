@@ -37,6 +37,10 @@ static func box(colour: Color, radius: float = 10.0, margin: float = 12.0, borde
 		style.set_border_width_all(2)
 	return style
 
+# Background for a list row or a tab; the chosen one is outlined.
+static func row_box(chosen: bool) -> StyleBoxFlat:
+	return box(SELECTED if chosen else RAISED, 10.0, 10.0, ACCENT if chosen else Color.TRANSPARENT)
+
 static func label(text: String, size: int, colour: Color = TEXT) -> Label:
 	var result := Label.new()
 	result.text = text
