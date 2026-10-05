@@ -33,7 +33,7 @@ install folder. The outputs are committed, so the game, the tests and CI do not 
 | weapon | 300 | 2.0 m | 3 | origin on the grip |
 | armour | 400 | 1.0 m | 3 | |
 | prop | 500 | 5.0 m | 3 | sits on the ground |
-| character | 1500 | 2.0 m | 3 | sits on the ground |
+| character | 1500 | 2.6 m | 3 | sits on the ground |
 | backdrop | 300 | 45 m | 3 | sits on the ground |
 
 Budgets live in `tools/art/models/__init__.py`. Colours come only from `tools/art/palette.py`;
@@ -63,6 +63,14 @@ steep roofs and thick beams. New models should be checked against it.
 - Gear is shown by parenting its model to an attach point on the character: `attach_hand_r`
   (weapon), `attach_hand_l` (off-hand), `attach_head`, `attach_chest`, `attach_accessory`, and
   left/right pairs of `attach_leg`, `attach_glove` and `attach_foot`.
+
+## Companions
+
+Each entry in `src/data/companion_catalog.gd` needs a model registered with
+`@model("pack_rat", "character", companion="Pack Rat")` in `tools/art/models/companions.py`.
+The build fails if a companion has no model, and renders an icon for each one. People share
+one body (`_person`) and differ by headgear, what they carry and a colour family; winged
+companions name their wings `wing_l` and `wing_r` and the game flaps them.
 
 ## Adding a model
 

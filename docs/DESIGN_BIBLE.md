@@ -1247,6 +1247,7 @@ Acceptance:
 
 ## IRPG-P6 — Companion system
 
+**Status:** `VERIFY` — PR #8 adds one active companion, collection-based activation, a visible low-poly follower, authoritative passive effects, five bond levels and save/offline persistence. Android follower readability and companion-choice feel remain to validate.  
 **Goal:** give the adventurer a collectible visible partner.
 
 Build:
@@ -1260,6 +1261,15 @@ Acceptance:
 - companions visibly change the watched experience;
 - choice changes simulation outcomes;
 - system does not become a second full character-management spreadsheet.
+
+**Implementation (PR #8):**
+- Companion management stays inside the existing Companion collection; no new bottom navigation or companion equipment screen.
+- The active companion is visible beside the adventurer using lightweight low-poly placeholder geometry consistent with the art guide.
+- Passive identities cover attack, max health, travel speed, enemy XP, quest gold and post-kill healing.
+- Passive effects run in the authoritative simulation and therefore apply during offline catch-up too.
+- Shared kills award bond XP; bond levels 1–5 modestly strengthen the companion passive.
+- Active companion and bond progression persist.
+- No manual companion abilities, extra party slots or new currencies were added.
 
 ---
 
@@ -1376,12 +1386,12 @@ Do not confuse content volume with finished quality.
 
 Do these in order:
 
-1. Keep the linear stack PR #5 → #6 → #7 green in Godot 4.7.2 CI.
-2. Phone-test the combined management loop: equipment, talents and gacha collection/history/pity.
-3. Validate touch targets, drawer height, watch-mode readability and that pulls feel quick rather than menu-heavy.
-4. Fix mobile/core-loop blockers before adding more content breadth.
-5. Merge in dependency order: P3, then P4, then P5; retarget and re-verify each exact head as its base lands.
-6. Only then begin **IRPG-P6** companions on a fresh branch from the updated line.
+1. Keep the linear stack PR #5 → #6 → #7 → #8 green in Godot 4.7.2 CI.
+2. Phone-test the combined management/watch loop: equipment, talents, gacha collection and active companions.
+3. Validate touch targets, drawer height, follower readability, real suspend/resume and whether companion choices are understandable while watching.
+4. Fix mobile/core-loop blockers before broad content expansion.
+5. Merge in dependency order: P3, P4, P5, P6; retarget and re-verify each exact head as its base lands.
+6. After that gate, begin **IRPG-P7** world expansion with one additional zone and one named boss—not a content dump.
 
 Do not respond to a mediocre phone test by piling on more zones, classes, currencies or content. Fix the little-adventurer loop first.
 

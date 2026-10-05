@@ -28,6 +28,7 @@ ICON_DIR = os.path.join(ROOT, "assets", "icons")
 REVIEW_DIR = os.path.join(ROOT, "art", "review")
 MANIFEST = os.path.join(ROOT, "src", "data", "art_manifest.gd")
 GEAR_CATALOG = os.path.join(ROOT, "src", "data", "gear_catalog.gd")
+COMPANION_CATALOG = os.path.join(ROOT, "src", "data", "companion_catalog.gd")
 
 ICON_SIZE = 256
 SHEET_COLUMNS = 6
@@ -47,6 +48,12 @@ def gear_items():
     """Item name -> slot, read from the game's gear catalogue."""
     with open(GEAR_CATALOG, encoding="utf-8") as handle:
         return dict(re.findall(r'^\s*"([^"]+)":\s*\{"slot":\s*"(\w+)"', handle.read(), re.MULTILINE))
+
+
+def companion_names():
+    """Companion names, read from the game's companion catalogue."""
+    with open(COMPANION_CATALOG, encoding="utf-8") as handle:
+        return re.findall(r'^\t"([^"]+)": \{$', handle.read(), re.MULTILINE)
 
 
 def setup_scene():
@@ -78,7 +85,7 @@ def clear_scene():
             block.remove(item)
 
 
-def build_model(spec, gear):
+def build_model(spec, gear, companions):
     """Create the model's objects. Returns (objects, info, errors)."""
     parts = spec.build()
     errors = []
@@ -119,6 +126,9 @@ def build_model(spec, gear):
             errors.append('item "%s" is not in the gear catalogue' % spec.item)
         elif (slot == "weapon") != (spec.category == "weapon"):
             errors.append('item "%s" is a %s but the model is a %s' % (spec.item, slot, spec.category))
+
+    if spec.companion is not None and spec.companion not in companions:
+        errors.append('companion "%s" is not in the companion catalogue' % spec.companion)
 
     info = {"tris": tris, "size": size, "nodes": names[1:]}
     return objects, info, errors
@@ -240,6 +250,10 @@ def write_manifest(built):
     for spec, _info in built:
         if spec.item is not None:
             lines.append('\t"%s": {"model": "%s", "icon": "%s"},' % (spec.item, spec.id, res_path(icon_path(spec))))
+    lines += ["}", "", "const COMPANIONS := {"]
+    for spec, _info in built:
+        if spec.companion is not None:
+            lines.append('\t"%s": {"model": "%s", "icon": "%s"},' % (spec.companion, spec.id, res_path(icon_path(spec))))
     lines += ["}", ""]
     with open(MANIFEST, "w", encoding="utf-8", newline="\n") as handle:
         handle.write("\n".join(lines))
@@ -280,6 +294,11 @@ def main():
     for item in gear:
         if item not in covered:
             failures.append('gear item "%s" has no model' % item)
+    companions = companion_names()
+    modelled = {spec.companion for spec in MODELS.values() if spec.companion is not None}
+    for name in companions:
+        if name not in modelled:
+            failures.append('companion "%s" has no model' % name)
 
     setup_scene()
     thumbs = tempfile.mkdtemp(prefix="idlerpg_art_")
@@ -287,7 +306,7 @@ def main():
     sheets = {}
     for spec in specs:
         clear_scene()
-        objects, info, errors = build_model(spec, gear)
+        objects, info, errors = build_model(spec, gear, companions)
         failures += ["%s: %s" % (spec.id, error) for error in errors]
         print("%-10s %-16s %4d tris  %.2f x %.2f x %.2f m%s" % (
             spec.category, spec.id, info["tris"], info["size"].x, info["size"].y, info["size"].z,
@@ -295,7 +314,7 @@ def main():
         if errors:
             continue
         export_glb(objects, model_path(spec))
-        if spec.item is not None:
+        if spec.item is not None or spec.companion is not None:
             render(objects, spec.category, icon_path(spec))
         thumb = os.path.join(thumbs, spec.id + ".png")
         render(objects, spec.category, thumb, label="%s  %d" % (spec.id, info["tris"]))
@@ -313,7 +332,7 @@ def main():
             contact_sheet(paths, os.path.join(REVIEW_DIR, category + "s.png"))
         write_manifest(built)
         remove_stale(MODEL_DIR, ".glb", {model_path(spec) for spec, _ in built})
-        remove_stale(ICON_DIR, ".png", {icon_path(spec) for spec, _ in built if spec.item is not None})
+        remove_stale(ICON_DIR, ".png", {icon_path(spec) for spec, _ in built if spec.item is not None or spec.companion is not None})
     print("\nArt build OK: %d models, %d triangles in total." % (len(built), sum(info["tris"] for _, info in built)))
 
 

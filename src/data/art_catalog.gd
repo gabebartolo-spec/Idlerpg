@@ -50,8 +50,16 @@ static func _apply_matte(node: Node) -> void:
 static func item_model(item_name: String) -> String:
 	return str(ArtManifestScript.ITEMS.get(item_name, {}).get("model", ""))
 
+static func companion_model(companion_name: String) -> String:
+	return str(ArtManifestScript.COMPANIONS.get(companion_name, {}).get("model", ""))
+
+static func companion_icon(companion_name: String) -> Texture2D:
+	return _icon(str(ArtManifestScript.COMPANIONS.get(companion_name, {}).get("icon", "")))
+
 static func item_icon(item_name: String) -> Texture2D:
-	var path := str(ArtManifestScript.ITEMS.get(item_name, {}).get("icon", ""))
+	return _icon(str(ArtManifestScript.ITEMS.get(item_name, {}).get("icon", "")))
+
+static func _icon(path: String) -> Texture2D:
 	if path.is_empty() or not ResourceLoader.exists(path):
 		return null
 	return load(path) as Texture2D

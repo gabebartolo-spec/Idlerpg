@@ -2,13 +2,14 @@ extends SceneTree
 
 # In-engine art review: runs the real main scene and saves screenshots of the
 # adventurer walking and fighting each enemy in a different gear set, each with a
-# close-up of the worn gear.
+# close-up of the worn gear, and a different companion alongside.
 # Needs a window, so run it without --headless:
 #   godot --path . -s res://tools/art/capture.gd
 # Writes art/review/ingame_*.png. Uses a throwaway save, never the player's.
 
 const SAVE_PATH := "user://idle_rpg_save.json"
 const BACKUP_PATH := "user://idle_rpg_save.capture_backup.json"
+const COMPANIONS := ["Stable Hound", "Ancient Warden", "Clockwork Raven"]
 const LOADOUTS := [
 	["Iron Sword", "Rough Trousers", "Hide Gloves", "Trail Boots", "Copper Ring"],
 	["Crownblade", "Titanheart Plate", "Starforged Helm", "Oak Buckler", "Steel Greaves", "Knight Gauntlets", "Worldwalker Boots", "Phoenix Sigil"],
@@ -33,14 +34,17 @@ func _run() -> void:
 
 	var sim: Node = main.get("sim")
 	_equip(sim, LOADOUTS[0])
+	sim.set_active_companion(COMPANIONS[0])
 	await _snap("walk")
 	await _closeup("walk_gear")
 	await _until(sim, "goblin")
 	_equip(sim, LOADOUTS[1])
+	sim.set_active_companion(COMPANIONS[1])
 	await _snap("goblin_fight")
 	await _closeup("goblin_fight_gear")
 	await _until(sim, "wolf")
 	_equip(sim, LOADOUTS[2])
+	sim.set_active_companion(COMPANIONS[2])
 	await _snap("wolf_fight")
 	await _closeup("wolf_fight_gear")
 

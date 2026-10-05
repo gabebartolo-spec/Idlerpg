@@ -52,6 +52,16 @@ The first quest is intentionally tiny: leave Mossgate, defeat three goblins, tra
 - talent procs are visible while watching;
 - no active combat buttons.
 
+### Companion slice
+- one active companion slot;
+- activation from the existing Companion collection;
+- visible low-poly follower in the watched world;
+- distinct passive identities;
+- five bond levels from shared kills;
+- passive effects run in the authoritative sim and therefore work offline;
+- active companion and bond persistence;
+- no manual companion abilities or companion-management spreadsheet.
+
 ### Gacha collection
 - Gear Cache, Companion Pact and Relic Vault;
 - 1x and 10x pulls;
@@ -129,7 +139,8 @@ Current targeted tests cover:
 - Gear gacha → owned equipment integration;
 - talent prerequisites, point spending, respec and persistence;
 - Slayer/Warden/Trailblazer simulation effects;
-- real main-scene launch smoke coverage including the talent drawer;
-- every art model loads, and every gear item has a model and icon.
+- companion activation, passives, bond progression and persistence;
+- real main-scene launch smoke coverage including collection, talents and visible companion activation;
+- every art model loads, and every gear item and companion has a model and icon.
 
 Godot 4.7.2 CI must be green on the exact branch head. Android portrait validation is still required for watchability, touch UX and real suspend/resume behaviour.

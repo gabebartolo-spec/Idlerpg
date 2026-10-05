@@ -8,7 +8,8 @@ const ArtCatalogScript = preload("res://src/data/art_catalog.gd")
 const PART_NAMES := [
 	"torso", "body", "head", "tail",
 	"arm_l", "arm_r", "leg_l", "leg_r",
-	"leg_fl", "leg_fr", "leg_bl", "leg_br"
+	"leg_fl", "leg_fr", "leg_bl", "leg_br",
+	"wing_l", "wing_r"
 ]
 # Paired slots show the same model on both sides.
 const SLOT_ATTACH := {
@@ -122,6 +123,13 @@ func _process(delta: float) -> void:
 			_pitch("head", sin(clock * 2.0) * 0.05)
 			_pitch("arm_l", sin(clock * 2.0) * 0.04)
 			_pitch("tail", sin(clock * 3.0) * 0.25)
+
+	# Winged characters flap in every state.
+	var flap := sin(clock * 12.0) * 0.5
+	if parts.has("wing_l"):
+		parts["wing_l"].rotation.z += flap
+	if parts.has("wing_r"):
+		parts["wing_r"].rotation.z -= flap
 
 func _pitch(part_name: String, angle: float) -> void:
 	if parts.has(part_name):

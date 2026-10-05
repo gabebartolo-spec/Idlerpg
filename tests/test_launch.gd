@@ -40,6 +40,7 @@ func _run() -> void:
 	_check(instance.get("talent_panel") != null, "main scene creates the talent drawer")
 	_check(instance.get("gacha_collection_view") != null, "main scene creates the gacha collection view")
 	_check(instance.get("gacha_history_view") != null, "main scene creates the summon history view")
+	_check(instance.get("companion_visual") != null, "main scene creates the companion presentation root")
 	_check(instance.get("talent_button") != null, "main scene creates the talent action button")
 	_check(instance.get("talent_proc_visual") != null, "main scene creates a talent proc visual")
 	_check(instance.get("weapon_visual") != null, "main scene creates a visible weapon slot")
@@ -69,6 +70,19 @@ func _run() -> void:
 		await process_frame
 		var sell_button: Button = instance.get("sell_gear_button")
 		_check(sell_button.disabled, "locked collected gear is protected from disposal")
+
+		game.set_dev_infinite_tokens(true)
+		instance.call("_select_banner", "companions")
+		instance.call("_summon", 1)
+		await process_frame
+		var companion_latest: Dictionary = game.recent_summons(1)[0]
+		var companion_name: String = str(companion_latest.get("name", ""))
+		instance.set("selected_collection_item", companion_name)
+		instance.call("_use_collection_item")
+		await process_frame
+		_check(sim.active_companion == companion_name, "collected companion can become the active authoritative companion")
+		var companion_visual: Node3D = instance.get("companion_visual")
+		_check(companion_visual.visible, "active companion is visible in the watched world")
 
 		sim.hero_level = 2
 		instance.call("_refresh_sim_ui")
