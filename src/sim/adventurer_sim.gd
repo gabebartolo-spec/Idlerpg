@@ -212,6 +212,7 @@ func report_counters() -> Dictionary:
 		"total_kills": total_kills,
 		"quests": quest_cycles_completed,
 		"deaths": deaths,
+		"talent_points": talent_points_available(),
 		"inventory": inventory.duplicate(true),
 		"gear_inventory": gear_inventory.duplicate(true)
 	}
