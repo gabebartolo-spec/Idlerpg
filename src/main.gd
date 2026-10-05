@@ -5,6 +5,11 @@ const AdventurerSimScript = preload("res://src/sim/adventurer_sim.gd")
 const PersistenceScript = preload("res://src/state/persistence.gd")
 const GearCatalogScript = preload("res://src/data/gear_catalog.gd")
 const TalentCatalogScript = preload("res://src/data/talent_catalog.gd")
+const ArtCatalogScript = preload("res://src/data/art_catalog.gd")
+const CharacterVisualScript = preload("res://src/view/character_visual.gd")
+
+const ACTIVITY_POSES := {"travelling": "walk", "returning": "walk", "fighting": "attack", "recovering": "down"}
+const GEAR_SLOTS := ["weapon", "offhand", "head", "chest", "legs", "hands", "feet", "accessory"]
 
 var game: Node
 var sim: Node
@@ -13,17 +18,9 @@ var world: Node3D
 var hero_visual: Node3D
 var enemy_visual: Node3D
 var camera: Camera3D
-var weapon_visual: MeshInstance3D
-var head_gear_visual: MeshInstance3D
-var chest_gear_visual: MeshInstance3D
-var legs_gear_visual: MeshInstance3D
-var hands_gear_root: Node3D
-var feet_gear_root: Node3D
-var offhand_visual: MeshInstance3D
-var accessory_visual: MeshInstance3D
+var weapon_visual: Node3D
 var talent_proc_visual: MeshInstance3D
 var rendered_enemy_kind: String = ""
-var rendered_equipment_key: String = "__unset__"
 
 var hero_label: Label
 var activity_label: Label
@@ -96,14 +93,41 @@ func _build_world() -> void:
 	world.name = "Greenway"
 	add_child(world)
 
+	var sky_material := ProceduralSkyMaterial.new()
+	sky_material.sky_top_color = Color(0.30, 0.52, 0.85)
+	sky_material.sky_horizon_color = Color(0.72, 0.84, 0.93)
+	sky_material.ground_horizon_color = Color(0.72, 0.84, 0.93)
+	sky_material.ground_bottom_color = Color(0.36, 0.45, 0.36)
+	var sky := Sky.new()
+	sky.sky_material = sky_material
+
+	var environment := Environment.new()
+	environment.background_mode = Environment.BG_SKY
+	environment.sky = sky
+	environment.ambient_light_source = Environment.AMBIENT_SOURCE_SKY
+	environment.ambient_light_energy = 1.0
+	environment.tonemap_mode = Environment.TONE_MAPPER_FILMIC
+	# Fade the far ground into the horizon so it never ends in a hard edge.
+	environment.fog_enabled = true
+	environment.fog_mode = Environment.FOG_MODE_DEPTH
+	environment.fog_light_color = sky_material.sky_horizon_color
+	environment.fog_depth_begin = 30.0
+	environment.fog_depth_end = 160.0
+	environment.fog_sky_affect = 0.0
+	var world_environment := WorldEnvironment.new()
+	world_environment.environment = environment
+	world.add_child(world_environment)
+
 	var sun := DirectionalLight3D.new()
 	sun.rotation_degrees = Vector3(-55.0, -25.0, 0.0)
+	sun.light_color = Color(1.0, 0.96, 0.88)
+	sun.light_energy = 1.3
 	sun.shadow_enabled = true
 	world.add_child(sun)
 
 	var fill := DirectionalLight3D.new()
 	fill.rotation_degrees = Vector3(-25.0, 145.0, 0.0)
-	fill.light_energy = 0.4
+	fill.light_energy = 0.3
 	world.add_child(fill)
 
 	camera = Camera3D.new()
@@ -114,7 +138,7 @@ func _build_world() -> void:
 
 	var ground := MeshInstance3D.new()
 	var ground_mesh := BoxMesh.new()
-	ground_mesh.size = Vector3(20.0, 0.35, 18.0)
+	ground_mesh.size = Vector3(400.0, 0.35, 400.0)
 	ground.mesh = ground_mesh
 	ground.position = Vector3(0.0, -0.2, 0.0)
 	ground.material_override = _material(Color(0.24, 0.36, 0.20))
@@ -127,8 +151,9 @@ func _build_world() -> void:
 	_build_town()
 	_build_goblin_camp()
 	_build_wolf_den()
+	_build_horizon()
 
-	for pos in [
+	var trees := [
 		Vector3(-6.8, 0.0, -2.5),
 		Vector3(-3.2, 0.0, -4.5),
 		Vector3(0.2, 0.0, 3.9),
@@ -136,8 +161,13 @@ func _build_world() -> void:
 		Vector3(6.7, 0.0, 2.1),
 		Vector3(6.9, 0.0, -5.2),
 		Vector3(-1.0, 0.0, -6.1)
-	]:
-		_add_tree(pos)
+	]
+	for index in trees.size():
+		_add_prop("tree_oak" if index % 2 == 0 else "tree_pine", trees[index], index * 70.0, 0.9 + 0.1 * (index % 3))
+	_add_prop("bush", Vector3(-1.6, 0.0, 3.4), 20.0)
+	_add_prop("bush", Vector3(4.4, 0.0, 1.2), 140.0)
+	_add_prop("rock_small", Vector3(-2.4, 0.0, -2.6), 60.0)
+	_add_prop("rock_small", Vector3(8.2, 0.0, -1.4), 200.0)
 
 	hero_visual = _build_hero()
 	world.add_child(hero_visual)
@@ -148,95 +178,49 @@ func _build_world() -> void:
 	world.add_child(enemy_visual)
 
 func _build_town() -> void:
-	_add_box(sim.TOWN_POSITION + Vector3(-0.7, 0.65, -0.3), Vector3(2.7, 1.3, 2.0), Color(0.45, 0.34, 0.23))
-	_add_box(sim.TOWN_POSITION + Vector3(1.2, 0.45, 0.8), Vector3(1.5, 0.9, 1.4), Color(0.38, 0.29, 0.21))
+	var town: Vector3 = sim.TOWN_POSITION
+	_add_prop("cottage", town + Vector3(-2.6, 0.0, -2.2), 40.0)
+	_add_prop("market_stall", town + Vector3(1.4, 0.0, -2.9), 20.0)
+	_add_prop("well", town + Vector3(-2.4, 0.0, 1.8), 30.0)
+	_add_prop("barrel", town + Vector3(-0.5, 0.0, -2.9), 0.0)
+	_add_prop("crate", town + Vector3(0.2, 0.0, -3.2), 15.0)
+	_add_prop("signpost", town + Vector3(2.4, 0.0, -1.9), 50.0)
+	_add_prop("fence", town + Vector3(-4.3, 0.0, -0.2), 90.0)
+	_add_prop("fence", town + Vector3(-4.3, 0.0, 1.4), 90.0)
 
 func _build_goblin_camp() -> void:
-	_add_box(sim.GOBLIN_CAMP_POSITION + Vector3(0.0, 0.2, 0.0), Vector3(2.2, 0.4, 1.5), Color(0.32, 0.25, 0.17))
-	_add_box(sim.GOBLIN_CAMP_POSITION + Vector3(0.8, 0.65, -0.4), Vector3(0.25, 1.3, 0.25), Color(0.30, 0.18, 0.12))
+	var camp: Vector3 = sim.GOBLIN_CAMP_POSITION
+	_add_prop("goblin_tent", camp + Vector3(-1.7, 0.0, -2.1), 35.0)
+	_add_prop("goblin_totem", camp + Vector3(1.3, 0.0, -1.7), 30.0)
+	_add_prop("campfire", camp + Vector3(-0.1, 0.0, -1.5), 0.0)
+	_add_prop("bone_pile", camp + Vector3(2.2, 0.0, -1.0), 70.0)
 
 func _build_wolf_den() -> void:
-	var den := MeshInstance3D.new()
-	var den_mesh := SphereMesh.new()
-	den_mesh.radius = 1.25
-	den_mesh.height = 1.5
-	den_mesh.radial_segments = 8
-	den_mesh.rings = 4
-	den.mesh = den_mesh
-	den.position = sim.WOLF_DEN_POSITION + Vector3(0.0, 0.55, 0.0)
-	den.scale = Vector3(1.3, 0.75, 1.0)
-	den.material_override = _material(Color(0.28, 0.29, 0.27))
-	world.add_child(den)
+	var den: Vector3 = sim.WOLF_DEN_POSITION
+	_add_prop("wolf_den", den + Vector3(0.2, 0.0, -2.8), 30.0)
+	_add_prop("rock_large", den + Vector3(2.8, 0.0, -1.2), 110.0)
+	_add_prop("bone_pile", den + Vector3(-1.5, 0.0, -1.6), 200.0)
+	_add_prop("rock_small", den + Vector3(-2.3, 0.0, -2.6), 20.0)
+
+func _build_horizon() -> void:
+	# Backdrop only, on the side the fixed camera looks towards.
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 7
+	var view := Vector2(-7.0, -8.0).normalized()
+	for index in 16:
+		var spot := view.rotated(rng.randf_range(-1.3, 1.3)) * rng.randf_range(55.0, 120.0)
+		_add_prop("hill_round" if index % 2 == 0 else "hill_ridge", Vector3(spot.x, 0.0, spot.y), rng.randf_range(0.0, 360.0), rng.randf_range(0.7, 1.5))
+	for index in 45:
+		var spot := view.rotated(rng.randf_range(-1.4, 1.4)) * rng.randf_range(16.0, 50.0)
+		_add_prop("tree_oak" if index % 3 == 0 else "tree_pine", Vector3(spot.x, 0.0, spot.y), rng.randf_range(0.0, 360.0), rng.randf_range(0.9, 1.6))
 
 func _build_hero() -> Node3D:
-	var hero := Node3D.new()
+	var hero: Node3D = CharacterVisualScript.new()
 	hero.name = "Adventurer"
+	hero.setup("hero")
+	weapon_visual = hero.attach_point("weapon")
 
-	var body := MeshInstance3D.new()
-	var body_mesh := CapsuleMesh.new()
-	body_mesh.radius = 0.38
-	body_mesh.height = 1.25
-	body.mesh = body_mesh
-	body.position = Vector3(0.0, 0.65, 0.0)
-	body.material_override = _material(Color(0.56, 0.29, 0.16))
-	hero.add_child(body)
-
-	var head := MeshInstance3D.new()
-	var head_mesh := SphereMesh.new()
-	head_mesh.radius = 0.28
-	head_mesh.height = 0.56
-	head_mesh.radial_segments = 8
-	head_mesh.rings = 4
-	head.mesh = head_mesh
-	head.position = Vector3(0.0, 1.45, 0.0)
-	head.material_override = _material(Color(0.75, 0.59, 0.43))
-	hero.add_child(head)
-
-	head_gear_visual = MeshInstance3D.new()
-	head_gear_visual.name = "HeadGear"
-	head_gear_visual.visible = false
-	hero.add_child(head_gear_visual)
-
-	chest_gear_visual = MeshInstance3D.new()
-	chest_gear_visual.name = "ChestGear"
-	chest_gear_visual.visible = false
-	hero.add_child(chest_gear_visual)
-
-	legs_gear_visual = MeshInstance3D.new()
-	legs_gear_visual.name = "LegGear"
-	legs_gear_visual.visible = false
-	hero.add_child(legs_gear_visual)
-
-	hands_gear_root = _build_pair_gear(
-		hero,
-		"HandGear",
-		Vector3(-0.43, 0.73, -0.01),
-		Vector3(0.43, 0.73, -0.01),
-		Vector3(0.18, 0.28, 0.20)
-	)
-	feet_gear_root = _build_pair_gear(
-		hero,
-		"FootGear",
-		Vector3(-0.20, 0.10, 0.0),
-		Vector3(0.20, 0.10, 0.0),
-		Vector3(0.22, 0.20, 0.34)
-	)
-
-	offhand_visual = MeshInstance3D.new()
-	offhand_visual.name = "Offhand"
-	offhand_visual.visible = false
-	hero.add_child(offhand_visual)
-
-	accessory_visual = MeshInstance3D.new()
-	accessory_visual.name = "Accessory"
-	accessory_visual.visible = false
-	hero.add_child(accessory_visual)
-
-	weapon_visual = MeshInstance3D.new()
-	weapon_visual.name = "Weapon"
-	weapon_visual.position = Vector3(0.48, 0.78, -0.25)
-	hero.add_child(weapon_visual)
-
+	# Talent proc effect: a ring that pulses on the ground under the adventurer.
 	talent_proc_visual = MeshInstance3D.new()
 	talent_proc_visual.name = "TalentProc"
 	var proc_mesh := CylinderMesh.new()
@@ -247,17 +231,18 @@ func _build_hero() -> Node3D:
 	talent_proc_visual.position = Vector3(0.0, 0.025, 0.0)
 	talent_proc_visual.visible = false
 	hero.add_child(talent_proc_visual)
-
-	_sync_equipment_visual()
-
 	return hero
 
 func _sync_world(delta: float) -> void:
-	var fight_bob := 0.0
-	if sim.activity == "fighting":
-		fight_bob = sin(Time.get_ticks_msec() * 0.018) * 0.05
+	var fighting: bool = sim.activity == "fighting" and not sim.enemy_kind.is_empty()
+	var enemy_position: Vector3 = sim.hero_position + Vector3(1.15, 0.0, -0.45)
 
-	hero_visual.position = sim.hero_position + Vector3(0.0, fight_bob, 0.0)
+	if fighting:
+		hero_visual.face(enemy_position - sim.hero_position)
+	else:
+		hero_visual.face(sim.hero_position - hero_visual.position)
+	hero_visual.position = sim.hero_position
+	hero_visual.set_state(str(ACTIVITY_POSES.get(sim.activity, "idle")))
 	var pulse_scale: float = 1.06 if talent_proc_pulse > 0.0 else 1.0
 	hero_visual.scale = Vector3.ONE * pulse_scale
 	if talent_proc_visual != null:
@@ -267,12 +252,12 @@ func _sync_world(delta: float) -> void:
 			talent_proc_visual.scale = Vector3.ONE * (0.85 + progress * 0.45)
 	_sync_equipment_visual()
 
-	if sim.activity == "fighting" and not sim.enemy_kind.is_empty():
+	if fighting:
 		if rendered_enemy_kind != sim.enemy_kind:
 			_rebuild_enemy(sim.enemy_kind)
 		enemy_visual.visible = true
-		enemy_visual.position = sim.hero_position + Vector3(1.15, 0.0, -0.45)
-		enemy_visual.rotation.y = sin(Time.get_ticks_msec() * 0.012) * 0.08
+		enemy_visual.position = enemy_position
+		enemy_visual.rotation.y = atan2(sim.hero_position.x - enemy_position.x, sim.hero_position.z - enemy_position.z)
 	else:
 		enemy_visual.visible = false
 		rendered_enemy_kind = ""
@@ -281,177 +266,30 @@ func _sync_world(delta: float) -> void:
 	camera.position = camera.position.lerp(desired_camera, min(1.0, delta * 2.0))
 	camera.look_at(hero_visual.position + Vector3(0.0, 0.7, 0.0), Vector3.UP)
 
-func _build_pair_gear(parent: Node3D, node_name: String, left_pos: Vector3, right_pos: Vector3, size: Vector3) -> Node3D:
-	var root := Node3D.new()
-	root.name = node_name
-	root.visible = false
-	parent.add_child(root)
-
-	for pos in [left_pos, right_pos]:
-		var piece := MeshInstance3D.new()
-		var mesh := BoxMesh.new()
-		mesh.size = size
-		piece.mesh = mesh
-		piece.position = pos
-		root.add_child(piece)
-
-	return root
-
 func _sync_equipment_visual() -> void:
-	if weapon_visual == null or sim == null:
+	if hero_visual == null or sim == null:
 		return
-
-	var slots: Array[String] = ["weapon", "head", "chest", "legs", "hands", "feet", "offhand", "accessory"]
-	var equipped_names: Array[String] = []
-	for slot_name in slots:
-		equipped_names.append(str(sim.equipped_item(slot_name)))
-	var equipment_key := "|".join(equipped_names)
-	if equipment_key == rendered_equipment_key:
-		return
-	rendered_equipment_key = equipment_key
-
-	_sync_weapon_visual(equipped_names[0])
-	_sync_head_visual(equipped_names[1])
-	_sync_box_visual(chest_gear_visual, equipped_names[2], Vector3(0.80, 0.70, 0.48), Vector3(0.0, 0.72, 0.0))
-	_sync_box_visual(legs_gear_visual, equipped_names[3], Vector3(0.58, 0.44, 0.42), Vector3(0.0, 0.31, 0.0))
-	_sync_pair_visual(hands_gear_root, equipped_names[4])
-	_sync_pair_visual(feet_gear_root, equipped_names[5])
-	_sync_box_visual(offhand_visual, equipped_names[6], Vector3(0.38, 0.56, 0.12), Vector3(-0.48, 0.72, -0.16))
-	_sync_accessory_visual(equipped_names[7])
-
-func _sync_weapon_visual(item_name: String) -> void:
-	var mesh := BoxMesh.new()
-	var colour := Color(0.62, 0.64, 0.66)
-	weapon_visual.position = Vector3(0.48, 0.78, -0.25)
-	weapon_visual.rotation_degrees = Vector3(0.0, 0.0, -28.0)
-
-	if item_name.is_empty():
-		mesh.size = Vector3(0.10, 0.10, 0.85)
-	elif item_name.contains("Longbow"):
-		mesh.size = Vector3(0.08, 0.08, 1.35)
-		weapon_visual.rotation_degrees = Vector3(0.0, 0.0, 12.0)
-		colour = Color(0.45, 0.31, 0.18)
-	elif item_name.contains("Staff") or item_name == "Stormcaller":
-		mesh.size = Vector3(0.11, 0.11, 1.45)
-		weapon_visual.rotation_degrees = Vector3(0.0, 0.0, 2.0)
-		colour = _gear_colour(item_name)
-	elif item_name == "Crownblade":
-		mesh.size = Vector3(0.16, 0.10, 1.30)
-		colour = _gear_colour(item_name)
-	elif item_name == "Moonsteel Blade":
-		mesh.size = Vector3(0.14, 0.10, 1.20)
-		colour = _gear_colour(item_name)
-	elif item_name == "Goblin Cleaver":
-		mesh.size = Vector3(0.20, 0.11, 0.95)
-		weapon_visual.rotation_degrees = Vector3(0.0, 0.0, -38.0)
-		colour = Color(0.48, 0.50, 0.46)
-	else:
-		mesh.size = Vector3(0.12, 0.10, 1.05)
-		colour = _gear_colour(item_name)
-
-	weapon_visual.mesh = mesh
-	weapon_visual.material_override = _material(colour)
-
-func _sync_head_visual(item_name: String) -> void:
-	head_gear_visual.visible = not item_name.is_empty()
-	if item_name.is_empty():
-		return
-
-	var mesh := SphereMesh.new()
-	mesh.radius = 0.33
-	mesh.height = 0.38 if item_name.contains("Hood") else 0.48
-	mesh.radial_segments = 8
-	mesh.rings = 4
-	head_gear_visual.mesh = mesh
-	head_gear_visual.position = Vector3(0.0, 1.55, 0.0)
-	head_gear_visual.scale = Vector3(1.10, 0.72 if item_name.contains("Hood") else 0.88, 1.08)
-	head_gear_visual.material_override = _material(_gear_colour(item_name))
-
-func _sync_box_visual(visual: MeshInstance3D, item_name: String, size: Vector3, position: Vector3) -> void:
-	visual.visible = not item_name.is_empty()
-	if item_name.is_empty():
-		return
-	var mesh := BoxMesh.new()
-	mesh.size = size
-	visual.mesh = mesh
-	visual.position = position
-	visual.material_override = _material(_gear_colour(item_name))
-
-func _sync_pair_visual(root: Node3D, item_name: String) -> void:
-	root.visible = not item_name.is_empty()
-	if item_name.is_empty():
-		return
-	for child in root.get_children():
-		if child is MeshInstance3D:
-			(child as MeshInstance3D).material_override = _material(_gear_colour(item_name))
-
-func _sync_accessory_visual(item_name: String) -> void:
-	accessory_visual.visible = not item_name.is_empty()
-	if item_name.is_empty():
-		return
-	var mesh := SphereMesh.new()
-	mesh.radius = 0.09
-	mesh.height = 0.18
-	mesh.radial_segments = 8
-	mesh.rings = 4
-	accessory_visual.mesh = mesh
-	accessory_visual.position = Vector3(0.0, 0.88, -0.28)
-	accessory_visual.material_override = _material(_gear_colour(item_name))
-
-func _gear_colour(item_name: String) -> Color:
-	if item_name == "Wolfskin Hood":
-		return Color(0.38, 0.40, 0.40)
-	match GearCatalogScript.rarity(item_name):
-		"Rare":
-			return Color(0.34, 0.46, 0.58)
-		"Epic":
-			return Color(0.46, 0.36, 0.58)
-		"Legendary":
-			return Color(0.72, 0.58, 0.30)
-		_:
-			return Color(0.40, 0.32, 0.23)
+	for slot in GEAR_SLOTS:
+		hero_visual.set_equipment(slot, str(sim.equipped_item(slot)))
 
 func _rebuild_enemy(kind: String) -> void:
 	rendered_enemy_kind = kind
 	for child in enemy_visual.get_children():
 		child.queue_free()
 
-	if kind == "goblin":
-		var body := MeshInstance3D.new()
-		var body_mesh := CapsuleMesh.new()
-		body_mesh.radius = 0.32
-		body_mesh.height = 1.0
-		body.mesh = body_mesh
-		body.position = Vector3(0.0, 0.50, 0.0)
-		body.material_override = _material(Color(0.28, 0.52, 0.20))
-		enemy_visual.add_child(body)
+	var enemy: Node3D = CharacterVisualScript.new()
+	enemy.setup(kind)
+	enemy.set_state("attack")
+	enemy_visual.add_child(enemy)
 
-		var head := MeshInstance3D.new()
-		var head_mesh := SphereMesh.new()
-		head_mesh.radius = 0.25
-		head_mesh.height = 0.50
-		head_mesh.radial_segments = 8
-		head_mesh.rings = 4
-		head.mesh = head_mesh
-		head.position = Vector3(0.0, 1.13, 0.0)
-		head.material_override = _material(Color(0.36, 0.62, 0.24))
-		enemy_visual.add_child(head)
-	else:
-		var body := MeshInstance3D.new()
-		var body_mesh := BoxMesh.new()
-		body_mesh.size = Vector3(1.1, 0.55, 0.52)
-		body.mesh = body_mesh
-		body.position = Vector3(0.0, 0.48, 0.0)
-		body.material_override = _material(Color(0.36, 0.38, 0.40))
-		enemy_visual.add_child(body)
-
-		var head := MeshInstance3D.new()
-		var head_mesh := BoxMesh.new()
-		head_mesh.size = Vector3(0.50, 0.48, 0.48)
-		head.mesh = head_mesh
-		head.position = Vector3(-0.62, 0.58, 0.0)
-		head.material_override = _material(Color(0.42, 0.44, 0.46))
-		enemy_visual.add_child(head)
+func _add_prop(model_id: String, pos: Vector3, yaw_degrees: float = 0.0, size: float = 1.0) -> void:
+	var prop := ArtCatalogScript.instantiate(model_id)
+	if prop == null:
+		return
+	prop.position = pos
+	prop.rotation_degrees.y = yaw_degrees
+	prop.scale = Vector3.ONE * size
+	world.add_child(prop)
 
 func _add_box(pos: Vector3, size: Vector3, colour: Color) -> void:
 	var item := MeshInstance3D.new()
@@ -461,28 +299,6 @@ func _add_box(pos: Vector3, size: Vector3, colour: Color) -> void:
 	item.position = pos
 	item.material_override = _material(colour)
 	world.add_child(item)
-
-func _add_tree(pos: Vector3) -> void:
-	var trunk := MeshInstance3D.new()
-	var trunk_mesh := CylinderMesh.new()
-	trunk_mesh.top_radius = 0.16
-	trunk_mesh.bottom_radius = 0.23
-	trunk_mesh.height = 1.6
-	trunk.mesh = trunk_mesh
-	trunk.position = pos + Vector3(0.0, 0.8, 0.0)
-	trunk.material_override = _material(Color(0.32, 0.22, 0.14))
-	world.add_child(trunk)
-
-	var crown := MeshInstance3D.new()
-	var crown_mesh := SphereMesh.new()
-	crown_mesh.radius = 0.82
-	crown_mesh.height = 1.45
-	crown_mesh.radial_segments = 8
-	crown_mesh.rings = 4
-	crown.mesh = crown_mesh
-	crown.position = pos + Vector3(0.0, 1.85, 0.0)
-	crown.material_override = _material(Color(0.17, 0.41, 0.19))
-	world.add_child(crown)
 
 func _material(colour: Color) -> StandardMaterial3D:
 	var material := StandardMaterial3D.new()
@@ -521,6 +337,11 @@ func _build_ui() -> void:
 	event_label.text = "The adventure begins."
 	event_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	top_column.add_child(event_label)
+
+	# The HUD sits over a bright sky; outline it so it stays readable.
+	for label in [hero_label, activity_label, quest_label, event_label]:
+		label.add_theme_color_override("font_outline_color", Color(0.08, 0.09, 0.11))
+		label.add_theme_constant_override("outline_size", 6)
 
 	var bottom := MarginContainer.new()
 	bottom.anchor_right = 1.0
@@ -705,6 +526,10 @@ func _rebuild_equipment_panel() -> void:
 		button.text = GearCatalogScript.summary(item_name)
 		if count > 1:
 			button.text += " · ×%d" % count
+		button.icon = ArtCatalogScript.item_icon(item_name)
+		button.expand_icon = true
+		button.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		button.custom_minimum_size = Vector2(0.0, 56.0)
 		var slot_name: String = GearCatalogScript.slot(item_name)
 		if sim.equipped_item(slot_name) == item_name:
 			button.text += " · Equipped"
