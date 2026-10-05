@@ -10,11 +10,16 @@ const PART_NAMES := [
 	"arm_l", "arm_r", "leg_l", "leg_r",
 	"leg_fl", "leg_fr", "leg_bl", "leg_br"
 ]
+# Paired slots show the same model on both sides.
 const SLOT_ATTACH := {
-	"weapon": "attach_hand_r",
-	"offhand": "attach_hand_l",
-	"head": "attach_head",
-	"chest": "attach_chest"
+	"weapon": ["attach_hand_r"],
+	"offhand": ["attach_hand_l"],
+	"head": ["attach_head"],
+	"chest": ["attach_chest"],
+	"legs": ["attach_leg_l", "attach_leg_r"],
+	"hands": ["attach_glove_l", "attach_glove_r"],
+	"feet": ["attach_foot_l", "attach_foot_r"],
+	"accessory": ["attach_accessory"]
 }
 
 var model: Node3D
@@ -46,25 +51,36 @@ func face(direction: Vector3) -> void:
 	if Vector2(direction.x, direction.z).length() > 0.001:
 		rotation.y = atan2(direction.x, direction.z)
 
-func attach_point(slot: String) -> Node3D:
+func attach_points(slot: String) -> Array[Node3D]:
+	var points: Array[Node3D] = []
 	if model == null:
-		return null
-	return model.find_child(str(SLOT_ATTACH.get(slot, "")), true, false) as Node3D
+		return points
+	for point_name in SLOT_ATTACH.get(slot, []):
+		var point := model.find_child(point_name, true, false) as Node3D
+		if point != null:
+			points.append(point)
+	return points
+
+func attach_point(slot: String) -> Node3D:
+	var points := attach_points(slot)
+	return points[0] if not points.is_empty() else null
 
 func set_equipment(slot: String, item_name: String) -> void:
 	if str(worn_names.get(slot, "")) == item_name:
 		return
 	worn_names[slot] = item_name
-	if worn.has(slot):
-		worn[slot].queue_free()
-		worn.erase(slot)
+	for piece in worn.get(slot, []):
+		piece.queue_free()
+	worn.erase(slot)
 
-	var point := attach_point(slot)
-	var item := ArtCatalogScript.instantiate(ArtCatalogScript.item_model(item_name))
-	if point == null or item == null:
-		return
-	point.add_child(item)
-	worn[slot] = item
+	var pieces: Array[Node3D] = []
+	for point in attach_points(slot):
+		var piece := ArtCatalogScript.instantiate(ArtCatalogScript.item_model(item_name))
+		if piece != null:
+			point.add_child(piece)
+			pieces.append(piece)
+	if not pieces.is_empty():
+		worn[slot] = pieces
 
 func _process(delta: float) -> void:
 	if model == null:

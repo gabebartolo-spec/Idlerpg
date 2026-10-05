@@ -46,12 +46,15 @@ change a colour there and every model that uses it changes on the next build.
 - Weapons: origin at the grip, business end towards +Z, flat in the XZ plane.
 - Armour is sized for the hero and modelled around the attach point it is worn at: head pieces
   around the head centre, chest pieces around the torso centre, off-hand around the grip.
+- Legs, hands and feet are modelled as one symmetric piece for a single limb; the game shows it
+  on both sides. Accessories hang as a pendant on the chest.
 - Props: origin on the ground at the footprint centre.
 - Characters are split into parts that pivot at the joints, with no skinning. The game animates
   them by swinging parts (`src/view/character_visual.gd`): `torso, head, arm_l, arm_r, leg_l,
   leg_r` for humanoids and `body, head, leg_fl, leg_fr, leg_bl, leg_br, tail` for quadrupeds.
 - Gear is shown by parenting its model to an attach point on the character: `attach_hand_r`
-  (weapon), `attach_hand_l` (off-hand), `attach_head`, `attach_chest`.
+  (weapon), `attach_hand_l` (off-hand), `attach_head`, `attach_chest`, `attach_accessory`, and
+  left/right pairs of `attach_leg`, `attach_glove` and `attach_foot`.
 
 ## Adding a model
 

@@ -41,10 +41,12 @@ func _run() -> void:
 		_check(character.setup(model_id), "%s character builds from its model" % model_id)
 		_check(character.parts.has("head"), "%s has animatable parts" % model_id)
 		if model_id == "hero":
-			for slot in ["weapon", "offhand", "head", "chest"]:
+			for slot in ["weapon", "offhand", "head", "chest", "legs", "hands", "feet", "accessory"]:
 				_check(character.attach_point(slot) != null, "hero has a %s attach point" % slot)
 			character.set_equipment("weapon", "Iron Sword")
 			_check(character.worn.has("weapon"), "equipping a weapon shows its model in the hand")
+			character.set_equipment("feet", "Trail Boots")
+			_check(character.worn.get("feet", []).size() == 2, "paired gear shows on both sides")
 			character.set_equipment("weapon", "")
 			_check(not character.worn.has("weapon"), "unequipping removes the model")
 		character.free()

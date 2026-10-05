@@ -68,7 +68,7 @@ See `docs/ART_PIPELINE.md`.
 
 ## Design source of truth
 
-Read `docs/DESIGN_BIBLE.md`.
+Read `docs/DESIGN_BIBLE.md` for product/roadmap decisions and `docs/ART_STYLE_GUIDE.md` for the locked visual language.
 
 The central rule is:
 

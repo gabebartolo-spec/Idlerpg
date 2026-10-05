@@ -8,7 +8,7 @@ const ArtCatalogScript = preload("res://src/data/art_catalog.gd")
 const CharacterVisualScript = preload("res://src/view/character_visual.gd")
 
 const ACTIVITY_POSES := {"travelling": "walk", "returning": "walk", "fighting": "attack", "recovering": "down"}
-const GEAR_SLOTS := ["weapon", "offhand", "head", "chest"]
+const GEAR_SLOTS := ["weapon", "offhand", "head", "chest", "legs", "hands", "feet", "accessory"]
 
 var game: Node
 var sim: Node
@@ -33,6 +33,12 @@ var gacha_panel: VBoxContainer
 var equipment_panel: VBoxContainer
 var equipment_slots_label: Label
 var gear_list: VBoxContainer
+var selected_gear_name: String = ""
+var gear_detail_label: Label
+var gear_action_row: HBoxContainer
+var equip_gear_button: Button
+var sell_gear_button: Button
+var salvage_gear_button: Button
 var dev_panel: VBoxContainer
 var return_panel: PanelContainer
 var return_label: Label
@@ -314,7 +320,7 @@ func _build_ui() -> void:
 	bottom.anchor_bottom = 1.0
 	bottom.offset_left = 16.0
 	bottom.offset_right = -16.0
-	bottom.offset_top = -370.0
+	bottom.offset_top = -455.0
 	bottom.offset_bottom = -16.0
 	canvas.add_child(bottom)
 
@@ -397,8 +403,34 @@ func _build_equipment_panel(parent: VBoxContainer) -> void:
 	equipment_slots_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	parent.add_child(equipment_slots_label)
 
+	gear_detail_label = Label.new()
+	gear_detail_label.text = "Tap an item to inspect it."
+	gear_detail_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	parent.add_child(gear_detail_label)
+
+	gear_action_row = HBoxContainer.new()
+	gear_action_row.visible = false
+	gear_action_row.add_theme_constant_override("separation", 6)
+	parent.add_child(gear_action_row)
+
+	equip_gear_button = Button.new()
+	equip_gear_button.text = "Equip"
+	equip_gear_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	equip_gear_button.pressed.connect(_equip_selected_gear)
+	gear_action_row.add_child(equip_gear_button)
+
+	sell_gear_button = Button.new()
+	sell_gear_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	sell_gear_button.pressed.connect(_sell_selected_gear)
+	gear_action_row.add_child(sell_gear_button)
+
+	salvage_gear_button = Button.new()
+	salvage_gear_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	salvage_gear_button.pressed.connect(_salvage_selected_gear)
+	gear_action_row.add_child(salvage_gear_button)
+
 	var scroll := ScrollContainer.new()
-	scroll.custom_minimum_size = Vector2(0.0, 145.0)
+	scroll.custom_minimum_size = Vector2(0.0, 160.0)
 	parent.add_child(scroll)
 
 	gear_list = VBoxContainer.new()
@@ -413,16 +445,16 @@ func _rebuild_equipment_panel() -> void:
 		return
 
 	var weapon: String = str(sim.equipped_item("weapon"))
-	var head: String = str(sim.equipped_item("head"))
-	var chest: String = str(sim.equipped_item("chest"))
-	var offhand: String = str(sim.equipped_item("offhand"))
-	equipment_slots_label.text = "ATK %d · HP %d\nWeapon: %s · Head: %s\nChest: %s · Off-hand: %s" % [
+	var equipped_count := 0
+	for slot_name in ["head", "chest", "legs", "hands", "feet", "offhand", "accessory"]:
+		if not str(sim.equipped_item(slot_name)).is_empty():
+			equipped_count += 1
+
+	equipment_slots_label.text = "ATK %d · HP %d\nWeapon: %s · Other slots %d/7" % [
 		sim.effective_attack(),
 		sim.effective_max_hp(),
-		weapon if not weapon.is_empty() else "—",
-		head if not head.is_empty() else "—",
-		chest if not chest.is_empty() else "—",
-		offhand if not offhand.is_empty() else "—"
+		weapon if not weapon.is_empty() else "Starter sword",
+		equipped_count
 	]
 
 	for child in gear_list.get_children():
@@ -430,15 +462,23 @@ func _rebuild_equipment_panel() -> void:
 
 	var names: Array[String] = sim.owned_gear_names()
 	if names.is_empty():
+		selected_gear_name = ""
 		var empty := Label.new()
 		empty.text = "No gear yet. Keep questing or try the Gear banner."
 		empty.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		gear_list.add_child(empty)
+		_refresh_gear_detail()
 		return
+
+	if not selected_gear_name.is_empty() and sim.gear_count(selected_gear_name) <= 0:
+		selected_gear_name = ""
 
 	for item_name in names:
 		var button := Button.new()
+		var count: int = sim.gear_count(item_name)
 		button.text = GearCatalogScript.summary(item_name)
+		if count > 1:
+			button.text += " · ×%d" % count
 		button.icon = ArtCatalogScript.item_icon(item_name)
 		button.expand_icon = true
 		button.alignment = HORIZONTAL_ALIGNMENT_LEFT
@@ -446,14 +486,82 @@ func _rebuild_equipment_panel() -> void:
 		var slot_name: String = GearCatalogScript.slot(item_name)
 		if sim.equipped_item(slot_name) == item_name:
 			button.text += " · Equipped"
-		button.pressed.connect(_equip_item.bind(item_name))
+		button.pressed.connect(_select_gear_item.bind(item_name))
 		gear_list.add_child(button)
 
-func _equip_item(item_name: String) -> void:
-	if sim.equip_gear(item_name):
+	_refresh_gear_detail()
+
+func _select_gear_item(item_name: String) -> void:
+	selected_gear_name = item_name
+	_refresh_gear_detail()
+
+func _refresh_gear_detail() -> void:
+	if gear_detail_label == null or gear_action_row == null:
+		return
+	if selected_gear_name.is_empty() or sim.gear_count(selected_gear_name) <= 0:
+		gear_detail_label.text = "Tap an item to inspect it."
+		gear_action_row.visible = false
+		return
+
+	var slot_name: String = GearCatalogScript.slot(selected_gear_name)
+	var equipped_name: String = str(sim.equipped_item(slot_name))
+	var comparison: String = GearCatalogScript.comparison(selected_gear_name, equipped_name)
+	var lines: Array[String] = [GearCatalogScript.summary(selected_gear_name)]
+	lines.append("Owned ×%d" % sim.gear_count(selected_gear_name))
+	if equipped_name == selected_gear_name:
+		lines.append("Currently equipped.")
+	else:
+		lines.append("vs %s: %s" % [equipped_name if not equipped_name.is_empty() else "empty slot", comparison])
+	gear_detail_label.text = "\n".join(lines)
+
+	gear_action_row.visible = true
+	equip_gear_button.text = "Unequip" if equipped_name == selected_gear_name else "Equip"
+	equip_gear_button.disabled = false
+	sell_gear_button.text = "Sell +%dg" % GearCatalogScript.sell_value(selected_gear_name)
+	salvage_gear_button.text = "Salvage +%d token%s" % [
+		GearCatalogScript.salvage_tokens(selected_gear_name),
+		"" if GearCatalogScript.salvage_tokens(selected_gear_name) == 1 else "s"
+	]
+	var can_dispose: bool = sim.can_dispose_gear(selected_gear_name)
+	sell_gear_button.disabled = not can_dispose
+	salvage_gear_button.disabled = not can_dispose
+
+func _equip_selected_gear() -> void:
+	if selected_gear_name.is_empty():
+		return
+	var slot_name: String = GearCatalogScript.slot(selected_gear_name)
+	var changed := false
+	if sim.equipped_item(slot_name) == selected_gear_name:
+		changed = sim.unequip_gear(selected_gear_name)
+	else:
+		changed = sim.equip_gear(selected_gear_name)
+	if changed:
 		_rebuild_equipment_panel()
 		_sync_equipment_visual()
 		_save_now()
+
+func _sell_selected_gear() -> void:
+	if selected_gear_name.is_empty():
+		return
+	var result: Dictionary = sim.sell_gear(selected_gear_name)
+	if not bool(result.get("ok", false)):
+		return
+	if sim.gear_count(selected_gear_name) <= 0:
+		selected_gear_name = ""
+	_rebuild_equipment_panel()
+	_save_now()
+
+func _salvage_selected_gear() -> void:
+	if selected_gear_name.is_empty():
+		return
+	var result: Dictionary = sim.salvage_gear(selected_gear_name)
+	if not bool(result.get("ok", false)):
+		return
+	game.grant_tokens(int(result.get("tokens", 0)))
+	if sim.gear_count(selected_gear_name) <= 0:
+		selected_gear_name = ""
+	_rebuild_equipment_panel()
+	_save_now()
 
 func _build_gacha_panel(parent: VBoxContainer) -> void:
 	token_label = Label.new()
@@ -659,7 +767,7 @@ func _refresh_sim_ui() -> void:
 func _on_sim_event(event: Dictionary) -> void:
 	event_label.text = str(event.get("message", ""))
 	var event_type := str(event.get("type", ""))
-	if event_type == "gear_obtained" or event_type == "gear_equipped":
+	if event_type in ["gear_obtained", "gear_equipped", "gear_unequipped", "gear_sold", "gear_salvaged"]:
 		if equipment_panel != null and equipment_panel.visible:
 			_rebuild_equipment_panel()
 

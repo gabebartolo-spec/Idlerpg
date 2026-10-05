@@ -3,7 +3,8 @@ swinging parts (src/view/character_visual.gd), so there is no skinning.
 
 Humanoid parts: torso, head, arm_l, arm_r, leg_l, leg_r.
 Quadruped parts: body, head, leg_fl, leg_fr, leg_bl, leg_br, tail.
-Attach points (empties): attach_hand_r, attach_hand_l, attach_head, attach_chest.
+Attach points (empties): attach_hand_r, attach_hand_l, attach_head, attach_chest,
+attach_accessory, and a left/right pair each of attach_glove, attach_leg, attach_foot.
 """
 
 from lowpoly import Part
@@ -25,6 +26,7 @@ def _humanoid(name, s, skin, shirt, pants, boots, belt, head_size=0.42):
         head.box((head_size * 0.14, 0.02, head_size * 0.2), (x * head_size, -head_size * 0.48, head_z + head_size * 0.05), "black")
     parts["attach_head"] = Part("attach_head", (0, 0, head_z), head)
     parts["attach_chest"] = Part("attach_chest", (0, 0, 0.9 * s), torso)
+    parts["attach_accessory"] = Part("attach_accessory", (0, -0.17 * s, 0.98 * s), torso)
 
     for side, sx in (("l", 1), ("r", -1)):
         x = sx * 0.33 * s
@@ -34,11 +36,14 @@ def _humanoid(name, s, skin, shirt, pants, boots, belt, head_size=0.42):
         # Weapons point +Z; tilt the grip so a held weapon points forward and a little up.
         tilt = (70, 0, 0) if side == "r" else (0, 0, 0)
         parts["attach_hand_" + side] = Part("attach_hand_" + side, (x, -0.03 * s, 0.68 * s), arm, rot=tilt)
+        parts["attach_glove_" + side] = Part("attach_glove_" + side, (x, 0, 0.7 * s), arm)
 
         x = sx * 0.13 * s
         leg = parts["leg_" + side] = Part("leg_" + side, (x, 0, 0.62 * s), root)
         leg.box((0.2 * s, 0.22 * s, 0.44 * s), (x, 0, 0.41 * s), pants)
         leg.box((0.22 * s, 0.3 * s, 0.2 * s), (x, -0.03 * s, 0.1 * s), boots)
+        parts["attach_leg_" + side] = Part("attach_leg_" + side, (x, 0, 0.41 * s), leg)
+        parts["attach_foot_" + side] = Part("attach_foot_" + side, (x, -0.03 * s, 0.1 * s), leg)
     return parts
 
 

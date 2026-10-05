@@ -49,7 +49,11 @@ var equipped: Dictionary = {
 	"weapon": "",
 	"head": "",
 	"chest": "",
-	"offhand": ""
+	"legs": "",
+	"hands": "",
+	"feet": "",
+	"offhand": "",
+	"accessory": ""
 }
 var recent_events: Array[String] = []
 
@@ -145,7 +149,16 @@ func load_save_dict(data: Dictionary) -> void:
 	inventory = (data.get("inventory", {}) as Dictionary).duplicate(true)
 	gear_inventory = (data.get("gear_inventory", {}) as Dictionary).duplicate(true)
 
-	equipped = {"weapon": "", "head": "", "chest": "", "offhand": ""}
+	equipped = {
+		"weapon": "",
+		"head": "",
+		"chest": "",
+		"legs": "",
+		"hands": "",
+		"feet": "",
+		"offhand": "",
+		"accessory": ""
+	}
 	var saved_equipped: Dictionary = data.get("equipped", {})
 	for slot_name in equipped.keys():
 		var item_name := str(saved_equipped.get(slot_name, ""))
@@ -193,6 +206,55 @@ func equip_gear(item_name: String) -> bool:
 
 func equipped_item(slot_name: String) -> String:
 	return str(equipped.get(slot_name, ""))
+
+func unequip_gear(item_name: String) -> bool:
+	if not GearCatalogScript.has_item(item_name):
+		return false
+	var slot_name: String = GearCatalogScript.slot(item_name)
+	if equipped_item(slot_name) != item_name:
+		return false
+	equipped[slot_name] = ""
+	hero_hp = min(hero_hp, effective_max_hp())
+	_emit_event("gear_unequipped", "Unequipped %s." % item_name, {"gear": item_name, "slot": slot_name})
+	return true
+
+func gear_count(item_name: String) -> int:
+	return max(0, int(gear_inventory.get(item_name, 0)))
+
+func can_dispose_gear(item_name: String) -> bool:
+	if not GearCatalogScript.has_item(item_name):
+		return false
+	var count := gear_count(item_name)
+	if count <= 0:
+		return false
+	var slot_name := GearCatalogScript.slot(item_name)
+	if equipped_item(slot_name) == item_name and count <= 1:
+		return false
+	return true
+
+func sell_gear(item_name: String) -> Dictionary:
+	if not can_dispose_gear(item_name):
+		return {"ok": false, "gold": 0}
+	var value := GearCatalogScript.sell_value(item_name)
+	_remove_one_gear(item_name)
+	gold += value
+	_emit_event("gear_sold", "Sold %s for %d gold." % [item_name, value], {"gear": item_name, "gold": value})
+	return {"ok": true, "gold": value}
+
+func salvage_gear(item_name: String) -> Dictionary:
+	if not can_dispose_gear(item_name):
+		return {"ok": false, "tokens": 0}
+	var tokens := GearCatalogScript.salvage_tokens(item_name)
+	_remove_one_gear(item_name)
+	_emit_event("gear_salvaged", "Salvaged %s for %d gacha token%s." % [item_name, tokens, "" if tokens == 1 else "s"], {"gear": item_name, "tokens": tokens})
+	return {"ok": true, "tokens": tokens}
+
+func _remove_one_gear(item_name: String) -> void:
+	var count := gear_count(item_name)
+	if count <= 1:
+		gear_inventory.erase(item_name)
+	else:
+		gear_inventory[item_name] = count - 1
 
 func owned_gear_names() -> Array[String]:
 	var names: Array[String] = []

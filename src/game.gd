@@ -11,10 +11,10 @@ const BANNERS: Dictionary = {
 	"gear": {
 		"label": "Gear Cache",
 		"items": {
-			"Common": ["Iron Sword", "Leather Hood", "Oak Buckler"],
-			"Rare": ["Runed Longbow", "Knight Mail", "Ember Staff"],
-			"Epic": ["Moonsteel Blade", "Wyrmhide Coat", "Stormcaller"],
-			"Legendary": ["Crownblade"]
+			"Common": ["Iron Sword", "Leather Hood", "Oak Buckler", "Rough Trousers", "Hide Gloves", "Trail Boots", "Copper Ring"],
+			"Rare": ["Runed Longbow", "Knight Mail", "Ember Staff", "Steel Greaves", "Knight Gauntlets", "Ranger Boots", "Sapphire Charm"],
+			"Epic": ["Moonsteel Blade", "Wyrmhide Coat", "Stormcaller", "Dragon Legguards", "Rune Grips", "Shadow Treads", "Phoenix Sigil"],
+			"Legendary": ["Crownblade", "Starforged Helm", "Titanheart Plate", "Worldwalker Boots"]
 		}
 	},
 	"companions": {
@@ -71,6 +71,12 @@ func dev_add_tokens(amount: int = 10000) -> void:
 	if not dev_tools_available():
 		return
 	gacha_tokens = max(0, gacha_tokens + amount)
+	wallet_changed.emit(gacha_tokens)
+
+func grant_tokens(amount: int) -> void:
+	if amount <= 0:
+		return
+	gacha_tokens += amount
 	wallet_changed.emit(gacha_tokens)
 
 func dev_reset_pity() -> void:
