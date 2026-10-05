@@ -1,4 +1,4 @@
-extends Control
+extends "res://src/ui/sheet.gd"
 
 # The gear screen: a sheet over the lower part of the screen, so the adventurer stays in
 # view above it. Browse by slot, compare against what is worn, equip, sell or salvage.
@@ -8,12 +8,9 @@ extends Control
 # `gear_changed` tells the scene to update the adventurer and save.
 
 signal gear_changed
-signal closed
 
 const GearCatalogScript = preload("res://src/data/gear_catalog.gd")
 const ArtCatalogScript = preload("res://src/data/art_catalog.gd")
-const TouchListScript = preload("res://src/ui/touch_list.gd")
-const Style = preload("res://src/ui/ui_style.gd")
 
 const SLOTS := ["weapon", "offhand", "head", "chest", "legs", "hands", "feet", "accessory"]
 const SLOT_LABELS := {
@@ -21,9 +18,6 @@ const SLOT_LABELS := {
 	"legs": "Legs", "hands": "Hands", "feet": "Feet", "accessory": "Charm"
 }
 const RARITY_ORDER := ["Legendary", "Epic", "Rare", "Common"]
-# The sheet leaves this much of the screen to the world.
-const WORLD_SHARE := 0.34
-const ROW_HEIGHT := 96.0
 
 var sim: Node
 var game: Node
@@ -46,15 +40,6 @@ func setup(sim_node: Node, game_node: Node) -> void:
 	game = game_node
 	_build()
 	refresh()
-
-func open() -> void:
-	visible = true
-	refresh()
-
-func close() -> void:
-	if visible:
-		visible = false
-		closed.emit()
 
 func select(item_name: String) -> void:
 	selected = item_name
@@ -86,53 +71,8 @@ func _before(a: String, b: String) -> bool:
 	return a < b
 
 func _build() -> void:
-	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	mouse_filter = Control.MOUSE_FILTER_IGNORE
-
-	# Tapping the world above the sheet goes back to it.
-	var world_area := Button.new()
-	world_area.flat = true
-	world_area.focus_mode = Control.FOCUS_NONE
-	world_area.anchor_right = 1.0
-	world_area.anchor_bottom = WORLD_SHARE
-	world_area.add_theme_stylebox_override("normal", StyleBoxEmpty.new())
-	world_area.add_theme_stylebox_override("hover", StyleBoxEmpty.new())
-	world_area.add_theme_stylebox_override("pressed", StyleBoxEmpty.new())
-	world_area.pressed.connect(close)
-	add_child(world_area)
-
-	var sheet := PanelContainer.new()
-	sheet.anchor_top = WORLD_SHARE
-	sheet.anchor_right = 1.0
-	sheet.anchor_bottom = 1.0
-	var surface := Style.box(Style.SURFACE, 22.0, 20.0)
-	surface.corner_radius_bottom_left = 0
-	surface.corner_radius_bottom_right = 0
-	# Keep the last controls clear of the phone's gesture bar.
-	surface.content_margin_bottom = 36.0
-	sheet.add_theme_stylebox_override("panel", surface)
-	add_child(sheet)
-
-	var column := VBoxContainer.new()
-	column.add_theme_constant_override("separation", 12)
-	sheet.add_child(column)
-
-	var header := HBoxContainer.new()
-	header.add_theme_constant_override("separation", 12)
-	column.add_child(header)
-
-	var titles := VBoxContainer.new()
-	titles.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	titles.add_theme_constant_override("separation", 0)
-	header.add_child(titles)
-	titles.add_child(Style.label("Gear", 32))
-	stats_label = Style.label("", 20, Style.MUTED)
-	titles.add_child(stats_label)
-
-	var back := Style.button("Back to adventure")
-	back.custom_minimum_size = Vector2(250.0, Style.TOUCH)
-	back.pressed.connect(close)
-	header.add_child(back)
+	var column := build_sheet("Gear")
+	stats_label = subtitle_label
 
 	var slots := HBoxContainer.new()
 	slots.add_theme_constant_override("separation", 6)
@@ -153,16 +93,9 @@ func _build() -> void:
 	caption_label = Style.label("", 18, Style.MUTED)
 	column.add_child(caption_label)
 
-	list = TouchListScript.new()
-	list.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	list.custom_minimum_size = Vector2(0.0, ROW_HEIGHT * 2.0)
+	list = add_list(column)
 	list.row_tapped.connect(_on_row_tapped)
-	column.add_child(list)
-
-	var line := ColorRect.new()
-	line.color = Style.LINE
-	line.custom_minimum_size = Vector2(0.0, 2.0)
-	column.add_child(line)
+	add_line(column)
 
 	# Comparison and actions stay pinned under the list, always within reach.
 	detail_name = Style.label("", 22)
@@ -213,9 +146,7 @@ func refresh() -> void:
 		"" if names.size() == 1 else "s"
 	]
 
-	for child in list.content.get_children():
-		list.content.remove_child(child)
-		child.queue_free()
+	clear_list(list)
 	rows.clear()
 	if names.is_empty():
 		var empty := Style.label(
@@ -236,20 +167,13 @@ func _make_row(item_name: String) -> Control:
 	var worn: String = str(sim.equipped_item(slot_name))
 	var is_worn: bool = worn == item_name
 
-	var row := PanelContainer.new()
-	row.custom_minimum_size = Vector2(0.0, ROW_HEIGHT)
-	row.set_meta("item", item_name)
+	var row := make_row(item_name)
 
 	var line := HBoxContainer.new()
 	line.add_theme_constant_override("separation", 12)
 	row.add_child(line)
 
-	var icon := TextureRect.new()
-	icon.texture = ArtCatalogScript.item_icon(item_name)
-	icon.custom_minimum_size = Vector2(72.0, 72.0)
-	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	line.add_child(icon)
+	add_icon(line, ArtCatalogScript.item_icon(item_name))
 
 	var words := VBoxContainer.new()
 	words.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -280,10 +204,7 @@ func _make_row(item_name: String) -> Control:
 	return row
 
 func _restyle_rows() -> void:
-	for item_name in rows:
-		var chosen: bool = item_name == selected
-		(rows[item_name] as PanelContainer).add_theme_stylebox_override(
-			"panel", Style.box(Style.SELECTED if chosen else Style.RAISED, 10.0, 10.0, Style.ACCENT if chosen else Color.TRANSPARENT))
+	restyle_rows(rows, selected)
 
 func refresh_detail() -> void:
 	if detail_name == null:
@@ -356,8 +277,8 @@ func _change_colour(change: Vector2i) -> Color:
 	return Style.MUTED
 
 func _on_row_tapped(row: Control) -> void:
-	if row.has_meta("item"):
-		select(str(row.get_meta("item")))
+	if row.has_meta("key"):
+		select(str(row.get_meta("key")))
 
 func _equip_selected() -> void:
 	if selected.is_empty():

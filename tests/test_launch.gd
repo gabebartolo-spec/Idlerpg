@@ -103,7 +103,7 @@ func _run() -> void:
 		var return_talent_button: Button = instance.get("return_talent_button")
 		_check(return_talent_button.visible, "offline talent gains create a direct return-screen action")
 		instance.call("_open_talents_from_return")
-		var talent_panel: VBoxContainer = instance.get("talent_panel")
+		var talent_panel: Control = instance.get("talent_panel")
 		_check(talent_panel.visible, "return-screen talent action opens the talent drawer")
 
 	instance.queue_free()

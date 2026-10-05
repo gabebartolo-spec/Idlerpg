@@ -5,6 +5,9 @@ extends SceneTree
 
 const TouchListScript = preload("res://src/ui/touch_list.gd")
 const GearScreenScript = preload("res://src/ui/gear_screen.gd")
+const TalentScreenScript = preload("res://src/ui/talent_screen.gd")
+const GachaScreenScript = preload("res://src/ui/gacha_screen.gd")
+const TalentCatalogScript = preload("res://src/data/talent_catalog.gd")
 const Style = preload("res://src/ui/ui_style.gd")
 const GearCatalogScript = preload("res://src/data/gear_catalog.gd")
 const GameStateScript = preload("res://src/game.gd")
@@ -70,6 +73,8 @@ func _fill(list: Control, count: int) -> void:
 func _run() -> void:
 	await _test_touch_list()
 	await _test_gear_screen()
+	await _test_talent_screen()
+	await _test_gacha_screen()
 	print("UI tests complete: %d failure(s)" % failures)
 	quit(failures)
 
@@ -176,6 +181,140 @@ func _test_gear_screen() -> void:
 	game.set_locked("Crownblade", true)
 	screen.select("Crownblade")
 	_check(screen.sell_button.disabled and screen.salvage_button.disabled, "locked gear cannot be sold or salvaged")
+
+	screen.free()
+	sim.free()
+	game.free()
+
+func _on_screen(buttons: Array) -> void:
+	var view := root.get_visible_rect()
+	for button in buttons:
+		var rect: Rect2 = button.get_global_rect()
+		_check(view.encloses(rect) and rect.size.y >= Style.TOUCH, "%s stays on screen at touch size" % button.text)
+
+func _row_centre(screen_list: Control, row: Control) -> Vector2:
+	return row.get_global_rect().get_center()
+
+func _test_talent_screen() -> void:
+	var sim: Node = AdventurerSimScript.new()
+	root.add_child(sim)
+	sim.hero_level = 3
+
+	var screen: Control = TalentScreenScript.new()
+	root.add_child(screen)
+	screen.setup(sim)
+	screen.open()
+	await _settle()
+
+	var branch: String = screen.branch
+	var talents: Array[String] = TalentCatalogScript.nodes_for_branch(branch)
+	_check(screen.rows.size() == talents.size(), "every talent in the branch has a row")
+	_on_screen([screen.learn_button, screen.reset_button])
+	_check(screen.learn_button.disabled, "nothing can be learned before a talent is chosen")
+
+	var points: int = sim.talent_points_available()
+	await _tap(_row_centre(screen.list, screen.rows[talents[0]]))
+	_check(screen.selected == talents[0], "tapping a talent selects it")
+	_check(sim.talent_points_available() == points and not sim.has_talent(talents[0]), "tapping a talent does not spend a point")
+	_check(not screen.learn_button.disabled, "a talent that can be learned enables Learn")
+
+	screen.learn_button.pressed.emit()
+	await _settle()
+	_check(sim.has_talent(talents[0]) and sim.talent_points_available() == points - 1, "Learn spends one point on the chosen talent")
+	_check(screen.learn_button.disabled, "a learned talent cannot be learned again")
+
+	screen.reset_button.pressed.emit()
+	await _settle()
+	_check(not sim.has_talent(talents[0]) and sim.talent_points_available() == points, "Reset gives the points back")
+
+	var other: String = TalentCatalogScript.branch_ids()[1]
+	screen.tabs[other].pressed.emit()
+	await _settle()
+	_check(screen.branch == other and screen.selected.is_empty(), "a branch tab shows that branch with nothing selected")
+	_check(screen.rows.has(TalentCatalogScript.nodes_for_branch(other)[0]), "the list shows the new branch's talents")
+
+	screen.free()
+	sim.free()
+
+func _test_gacha_screen() -> void:
+	var game: Node = GameStateScript.new()
+	root.add_child(game)
+	var sim: Node = AdventurerSimScript.new()
+	root.add_child(sim)
+	game.set_dev_infinite_tokens(true)
+
+	var screen: Control = GachaScreenScript.new()
+	root.add_child(screen)
+	screen.setup(sim, game)
+	screen.open()
+	await _settle()
+
+	_on_screen([screen.summon_one, screen.summon_ten])
+	var gear_before: int = sim.owned_gear_names().size()
+	screen.summon_ten.pressed.emit()
+	await _settle()
+	_check(game.recent_summons(20).size() == 10, "Summon x10 makes ten pulls")
+	_check(sim.owned_gear_names().size() > gear_before, "gear pulls reach the adventurer's inventory")
+	_check(screen.results_list.content.get_child_count() >= 2, "the results list shows what was pulled")
+
+	screen.mode_tabs["collection"].pressed.emit()
+	await _settle()
+	_check(screen.collection_view.visible and not screen.summon_view.visible, "the Collection tab shows the collection")
+	_check(screen.rows.size() == game.banner_item_count("gear"), "every banner item has a collection row")
+	_on_screen([screen.favourite_button, screen.lock_button])
+
+	var list: Control = screen.collection_list
+	var rect := list.get_global_rect()
+	var low := rect.position + Vector2(rect.size.x * 0.5, rect.size.y - 20.0)
+	var high := rect.position + Vector2(rect.size.x * 0.5, 20.0)
+	await _swipe(low, high)
+	var scrolled: float = list.offset
+	_check(scrolled > 50.0, "the collection list scrolls down")
+	await _swipe(high, low)
+	_check(list.offset < scrolled - 50.0, "the collection list scrolls back up")
+
+	var owned := ""
+	var missing := ""
+	for item_name in game.collection_items("gear"):
+		if game.collection_count("gear", item_name) > 0 and owned.is_empty():
+			owned = item_name
+		elif game.collection_count("gear", item_name) <= 0 and missing.is_empty():
+			missing = item_name
+	list.scroll_to(0.0)
+	await _settle()
+	_check(screen.content_order()[0] == owned or game.collection_count("gear", screen.content_order()[0]) > 0, "owned items are listed first")
+	await _tap(_row_centre(list, screen.rows[owned]))
+	_check(screen.selected_item == owned, "tapping an owned item selects it")
+	if not missing.is_empty():
+		screen._on_collection_row(screen.rows[missing])
+		_check(screen.selected_item == owned, "an item not found yet cannot be selected")
+
+	screen.lock_button.pressed.emit()
+	await _settle()
+	_check(game.is_locked(owned), "Lock protects the selected item")
+	screen.favourite_button.pressed.emit()
+	await _settle()
+	_check(game.is_favourite(owned), "Favourite marks the selected item")
+
+	screen.banner_tabs["companions"].pressed.emit()
+	await _settle()
+	_check(screen.banner == "companions" and screen.selected_item.is_empty(), "changing banner clears the selection")
+	screen.show_mode("summon")
+	screen.summon_one.pressed.emit()
+	await _settle()
+	var companion: String = str(game.recent_summons(1)[0].get("name", ""))
+	screen.show_mode("collection")
+	await _settle()
+	screen.select_item(companion)
+	_check(screen.use_button.visible, "a collected companion can be asked to travel")
+	screen.use_button.pressed.emit()
+	await _settle()
+	_check(sim.active_companion == companion, "Travel together makes it the active companion")
+	_on_screen([screen.use_button])
+
+	screen.mode_tabs["history"].pressed.emit()
+	await _settle()
+	_check(screen.history_view.visible and screen.history_list.content.get_child_count() == 11, "History lists every recent summon")
 
 	screen.free()
 	sim.free()
