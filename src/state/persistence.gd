@@ -6,7 +6,7 @@ extends RefCounted
 # These saves are for single-player continuity. They are files on the player's device and
 # a device clock, so nothing here can be trusted as online or competitive state.
 
-const SAVE_VERSION := 3
+const SAVE_VERSION := 4
 const DEFAULT_PATH := "user://idle_rpg_save.json"
 const MAX_OFFLINE_SECONDS := 7 * 24 * 60 * 60
 
@@ -108,6 +108,7 @@ static func load_and_advance(sim: Node, game: Node, now_unix: int = -1, path: St
 	sim.load_save_dict(data["sim"])
 	game.load_save_dict(data["game"])
 
+	var chronicle_cursor: int = sim.chronicle.sequence
 	var before: Dictionary = sim.report_counters()
 	var saved_unix: int = int(data.get("saved_unix", now_unix))
 	var elapsed_actual: int = max(0, now_unix - saved_unix)
@@ -121,6 +122,7 @@ static func load_and_advance(sim: Node, game: Node, now_unix: int = -1, path: St
 	var after: Dictionary = sim.report_counters()
 	report = _build_report(before, after, elapsed_actual, elapsed_simulated)
 	report["catch_up_msec"] = catch_up_msec
+	report["highlights"] = sim.chronicle.highlights_since(chronicle_cursor)
 	if used != path:
 		report["recovered_from_backup"] = true
 		if not first_error.is_empty():
@@ -170,6 +172,10 @@ static func _migrate(data: Dictionary) -> Dictionary:
 		# "sim". A version 2 save has none, and the simulation starts them from nothing:
 		# rank 0, the default hunt, and world items already owned counted as discovered.
 		version = 3
+	if version == 3:
+		# Version 4 adds a bounded milestone chronicle. Older saves seed known firsts
+		# without fabricating events; see AdventurerSim._seed_legacy_chronicle.
+		version = 4
 	data["version"] = version
 	return data
 

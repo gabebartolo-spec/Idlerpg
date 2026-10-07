@@ -145,3 +145,7 @@ device.
 - [ ] On the device: force-close during play and reopen; confirm progress and the next
       summon are as expected.
 - [ ] Decide whether the seven-day cap should stay now that catch-up is cheap.
+
+## Version 4: adventurer chronicle
+
+Version 4 adds bounded milestone entries, a monotonic sequence and remembered first-event keys under `sim.chronicle`. Version 1–3 saves migrate without invented journal entries: existing loot, boss rank, owned gear and companion bond progress seed known firsts. Return highlights use the sequence loaded before catch-up; the ordinary immediate checkpoint persists both rewards and history, so an immediate reopen repeats neither. Quiet repeated cycles do not create milestones; cycles that change history cannot be batched. See [CHRONICLE.md](CHRONICLE.md).

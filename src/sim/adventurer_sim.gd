@@ -3,6 +3,8 @@ extends Node
 
 signal event_emitted(event: Dictionary)
 
+const ChronicleScript = preload("res://src/state/chronicle.gd")
+
 const GearCatalogScript = preload("res://src/data/gear_catalog.gd")
 const TalentCatalogScript = preload("res://src/data/talent_catalog.gd")
 const CompanionCatalogScript = preload("res://src/data/companion_catalog.gd")
@@ -92,6 +94,7 @@ var equipped: Dictionary = {
 	"accessory": ""
 }
 var recent_events: Array[String] = []
+var chronicle = ChronicleScript.new()
 
 var unlocked_talents: Dictionary = {}
 var hero_attack_count: int = 0
@@ -279,10 +282,12 @@ func to_save_dict() -> Dictionary:
 		"second_wind_used": second_wind_used,
 		"last_stand_used": last_stand_used,
 		"active_companion": active_companion,
-		"companion_bond_xp": companion_bond_xp.duplicate(true)
+		"companion_bond_xp": companion_bond_xp.duplicate(true),
+		"chronicle": chronicle.to_save_dict()
 	}
 
 func load_save_dict(data: Dictionary) -> void:
+	chronicle.load_save_dict(data.get("chronicle", {}))
 	hero_position = _vec3_from_save(data.get("hero_position", []), TOWN_POSITION)
 	hero_level = max(1, int(data.get("hero_level", 1)))
 	hero_xp = max(0, int(data.get("hero_xp", 0)))
@@ -377,6 +382,22 @@ func load_save_dict(data: Dictionary) -> void:
 
 	hero_hp = clampi(saved_hp, 0, effective_max_hp())
 	recent_events.clear()
+
+	if not data.has("chronicle"):
+		_seed_legacy_chronicle()
+
+func _seed_legacy_chronicle() -> void:
+	for item_name in gear_inventory:
+		chronicle.remember("gear:" + str(item_name))
+	var loot_enemies := {"Goblin Trinket": "goblin", "Wolf Pelt": "wolf", "Briar Sap": "briarling", "Thornback Tusk": "thornback"}
+	for loot in loot_enemies:
+		if int(inventory.get(loot, 0)) > 0:
+			chronicle.remember("kill:" + str(loot_enemies[loot]))
+	if thornback_rank > 0:
+		chronicle.remember("boss:first")
+	for companion_name in companion_bond_xp:
+		for level in range(2, companion_bond_level(str(companion_name)) + 1):
+			chronicle.remember("bond:%s:%d" % [companion_name, level])
 
 func report_counters() -> Dictionary:
 	return {
@@ -622,8 +643,10 @@ func effective_attack_interval() -> float:
 func add_gear(item_name: String) -> bool:
 	if not GearCatalogScript.has_item(item_name):
 		return false
+	var current := equipped_item(GearCatalogScript.slot(item_name))
+	var useful := GearCatalogScript.attack_bonus(item_name) > GearCatalogScript.attack_bonus(current) or GearCatalogScript.hp_bonus(item_name) > GearCatalogScript.hp_bonus(current) or not GearCatalogScript.effect(item_name).is_empty()
 	gear_inventory[item_name] = int(gear_inventory.get(item_name, 0)) + 1
-	_emit_event("gear_obtained", "Found %s." % item_name, {"gear": item_name})
+	_emit_event("gear_obtained", "Found %s." % item_name, {"gear": item_name, "useful": useful})
 	return true
 
 func equip_gear(item_name: String) -> bool:
@@ -1133,7 +1156,7 @@ func _die() -> void:
 		_emit_event(
 			"boss_lost",
 			"%s drove you off at rank %d." % [BossCatalogScript.NAME, thornback_rank],
-			{"enemy": enemy_kind, "rank": thornback_rank}
+			{"enemy": enemy_kind, "rank": thornback_rank, "close": enemy_hp * 4 <= enemy_max_hp}
 		)
 	boss_fight = {}
 	activity = "recovering"
@@ -1218,4 +1241,5 @@ func _emit_event(type: String, message: String, details: Dictionary = {}) -> voi
 	if recent_events.size() > 6:
 		recent_events.resize(6)
 
+	chronicle.observe(event)
 	event_emitted.emit(event)

@@ -3,6 +3,7 @@ extends SceneTree
 # Input and layout checks for the management UI, driven by synthetic touches.
 # These prove the list logic and the layout. They do not prove how it feels on a phone.
 
+const ChronicleScreenScript = preload("res://src/ui/chronicle_screen.gd")
 const TouchListScript = preload("res://src/ui/touch_list.gd")
 const GearScreenScript = preload("res://src/ui/gear_screen.gd")
 const TalentScreenScript = preload("res://src/ui/talent_screen.gd")
@@ -77,6 +78,7 @@ func _run() -> void:
 	await _test_talent_screen()
 	await _test_gacha_screen()
 	await _test_boss_screen()
+	await _test_chronicle_screen()
 	print("UI tests complete: %d failure(s)" % failures)
 	quit(failures)
 
@@ -375,5 +377,34 @@ func _test_boss_screen() -> void:
 		await _swipe(area.position + Vector2(300.0, 40.0), area.position + Vector2(300.0, area.size.y - 20.0))
 		_check(screen.list.offset < before - 40.0, "the boss screen scrolls back up")
 
+	screen.free()
+	sim.free()
+
+func _test_chronicle_screen() -> void:
+	var sim: Node = AdventurerSimScript.new()
+	root.add_child(sim)
+	for index in 40:
+		sim.chronicle.record("fixture:%d" % index, "A useful find to remember %d." % index, "gear", 80)
+	var screen: Control = ChronicleScreenScript.new()
+	root.add_child(screen)
+	screen.setup(sim)
+	screen.open()
+	await _settle()
+	_on_screen([screen.act_button])
+	var area: Rect2 = screen.list.get_global_rect()
+	var low := area.position + Vector2(area.size.x * 0.5, area.size.y - 20.0)
+	var high := area.position + Vector2(area.size.x * 0.5, 20.0)
+	await _swipe(low, high)
+	var offset: float = screen.list.offset
+	_check(offset > 50.0 and screen.selected.is_empty(), "journal swipes scroll without selecting a milestone")
+	await _swipe(high, low)
+	_check(screen.list.offset < offset - 50.0, "journal scrolls back upward")
+	screen.list.scroll_to(0.0)
+	await _settle()
+	await _tap(_row_centre(screen.list, screen.rows["40"]))
+	_check(screen.selected == "40" and not screen.act_button.disabled, "milestone tap selects a reachable review action")
+	screen.route_requested.connect(func(route: String) -> void: _count(route))
+	await _tap(screen.act_button.get_global_rect().get_center())
+	_check(int(presses.get("gear", 0)) == 1, "journal review links to the recorded management route once")
 	screen.free()
 	sim.free()

@@ -113,6 +113,15 @@ func _run() -> void:
 		var talent_panel: Control = instance.get("talent_panel")
 		_check(talent_panel.visible, "return-screen talent action opens the talent drawer")
 
+	instance.call("_show_return_report", {"loaded": true, "elapsed_actual": 600, "highlights": sim.chronicle.highlights_since(0)})
+	_check(instance.get("return_highlights").get_child_count() <= 3, "one return report shows at most three highlights")
+	instance.call("_open_chronicle_route", "gear")
+	_check(instance.get("equipment_panel").visible and not instance.get("return_panel").visible, "gear highlight opens management and closes the report")
+	instance.call("_open_chronicle_route", "companions")
+	_check(instance.get("gacha_panel").visible and instance.get("gacha_panel").banner == "companions", "bond highlight opens the companion collection")
+	instance.call("_toggle_sheet", instance.get("chronicle_panel"))
+	_check(instance.get("chronicle_panel").visible and not instance.get("gacha_panel").visible, "journal uses the single-sheet navigation rule")
+
 	instance.queue_free()
 	await process_frame
 	_remove_saves()
