@@ -10,6 +10,7 @@ const CharacterVisualScript = preload("res://src/view/character_visual.gd")
 const GearScreenScript = preload("res://src/ui/gear_screen.gd")
 const TalentScreenScript = preload("res://src/ui/talent_screen.gd")
 const GachaScreenScript = preload("res://src/ui/gacha_screen.gd")
+const AdventureScreenScript = preload("res://src/ui/adventure_screen.gd")
 const SheetScript = preload("res://src/ui/sheet.gd")
 const ChronicleScreenScript = preload("res://src/ui/chronicle_screen.gd")
 const BossScreenScript = preload("res://src/ui/boss_screen.gd")
@@ -53,6 +54,7 @@ var sell_gear_button: Button
 var talent_panel: Control
 var boss_panel: Control
 var chronicle_panel: Control
+var adventure_panel: Control
 var return_highlights: VBoxContainer
 var talent_button: Button
 var talent_proc_pulse: float = 0.0
@@ -443,9 +445,17 @@ func _build_ui() -> void:
 	bottom_column.add_theme_constant_override("separation", 8)
 	bottom.add_child(bottom_column)
 
-	var chronicle_button := UiStyleScript.button("Adventurer chronicle")
+	var pursuits := HBoxContainer.new()
+	pursuits.add_theme_constant_override("separation", 8)
+	bottom_column.add_child(pursuits)
+	var adventure_button := UiStyleScript.button("Adventure")
+	adventure_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	adventure_button.pressed.connect(func() -> void: _toggle_sheet(adventure_panel))
+	pursuits.add_child(adventure_button)
+	var chronicle_button := UiStyleScript.button("Chronicle")
 	chronicle_button.pressed.connect(func() -> void: _toggle_sheet(chronicle_panel))
-	bottom_column.add_child(chronicle_button)
+	chronicle_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	pursuits.add_child(chronicle_button)
 
 	var actions := HBoxContainer.new()
 	actions.add_theme_constant_override("separation", 8)
@@ -526,6 +536,13 @@ func _build_ui() -> void:
 	gacha_collection_view = gacha_panel.collection_view
 	gacha_history_view = gacha_panel.history_view
 
+	adventure_panel = AdventureScreenScript.new()
+	adventure_panel.visible = false
+	canvas.add_child(adventure_panel)
+	adventure_panel.setup(sim)
+	adventure_panel.route_requested.connect(_open_chronicle_route)
+	adventure_panel.changed.connect(_save_now)
+
 	chronicle_panel = ChronicleScreenScript.new()
 	chronicle_panel.visible = false
 	canvas.add_child(chronicle_panel)
@@ -594,7 +611,7 @@ func _refresh_wallet(_tokens: int) -> void:
 
 # Only one sheet, drawer or report is open at a time.
 func _close_drawers() -> void:
-	for sheet in [equipment_panel, talent_panel, boss_panel, gacha_panel, chronicle_panel, dev_panel, return_panel]:
+	for sheet in [equipment_panel, talent_panel, boss_panel, gacha_panel, adventure_panel, chronicle_panel, dev_panel, return_panel]:
 		if sheet != null:
 			sheet.visible = false
 
@@ -832,6 +849,9 @@ func _refresh_sim_ui() -> void:
 func _on_sim_event(event: Dictionary) -> void:
 	event_label.text = str(event.get("message", ""))
 	var event_type := str(event.get("type", ""))
+
+	if adventure_panel != null and adventure_panel.visible:
+		adventure_panel.refresh()
 
 	if event_type == "talent_proc":
 		talent_proc_pulse = 0.28

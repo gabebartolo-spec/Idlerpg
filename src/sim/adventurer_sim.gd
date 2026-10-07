@@ -3,6 +3,7 @@ extends Node
 
 signal event_emitted(event: Dictionary)
 
+const GoalsScript = preload("res://src/state/adventure_goals.gd")
 const ChronicleScript = preload("res://src/state/chronicle.gd")
 
 const GearCatalogScript = preload("res://src/data/gear_catalog.gd")
@@ -95,6 +96,7 @@ var equipped: Dictionary = {
 }
 var recent_events: Array[String] = []
 var chronicle = ChronicleScript.new()
+var goals = GoalsScript.new()
 
 var unlocked_talents: Dictionary = {}
 var hero_attack_count: int = 0
@@ -283,11 +285,13 @@ func to_save_dict() -> Dictionary:
 		"last_stand_used": last_stand_used,
 		"active_companion": active_companion,
 		"companion_bond_xp": companion_bond_xp.duplicate(true),
-		"chronicle": chronicle.to_save_dict()
+		"chronicle": chronicle.to_save_dict(),
+		"goals": goals.to_save_dict()
 	}
 
 func load_save_dict(data: Dictionary) -> void:
 	chronicle.load_save_dict(data.get("chronicle", {}))
+	goals.load_save_dict(data.get("goals", {}))
 	hero_position = _vec3_from_save(data.get("hero_position", []), TOWN_POSITION)
 	hero_level = max(1, int(data.get("hero_level", 1)))
 	hero_xp = max(0, int(data.get("hero_xp", 0)))
@@ -383,8 +387,16 @@ func load_save_dict(data: Dictionary) -> void:
 	hero_hp = clampi(saved_hp, 0, effective_max_hp())
 	recent_events.clear()
 
+	if not data.has("goals"):
+		goals.update(self, false)
 	if not data.has("chronicle"):
 		_seed_legacy_chronicle()
+
+func set_tracked_goal(id: String) -> bool:
+	if not goals.track(id):
+		return false
+	_emit_event("goal_tracked", "Tracking an adventure goal.", {"goal": id})
+	return true
 
 func _seed_legacy_chronicle() -> void:
 	for item_name in gear_inventory:
@@ -1242,4 +1254,7 @@ func _emit_event(type: String, message: String, details: Dictionary = {}) -> voi
 		recent_events.resize(6)
 
 	chronicle.observe(event)
+	if type != "goal_completed":
+		for completion in goals.update(self):
+			_emit_event("goal_completed", "%s complete. +%d gold." % [completion["title"], completion["gold"]], completion)
 	event_emitted.emit(event)
