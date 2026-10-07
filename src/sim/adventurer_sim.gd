@@ -3,6 +3,7 @@ extends Node
 
 signal event_emitted(event: Dictionary)
 
+const PolicyScript = preload("res://src/data/adventure_policy.gd")
 const GoalsScript = preload("res://src/state/adventure_goals.gd")
 const ChronicleScript = preload("res://src/state/chronicle.gd")
 
@@ -97,6 +98,10 @@ var equipped: Dictionary = {
 var recent_events: Array[String] = []
 var chronicle = ChronicleScript.new()
 var goals = GoalsScript.new()
+var adventure_policy: String = PolicyScript.DEFAULT
+var outing_policy: String = PolicyScript.DEFAULT
+var outing_hunt: String = ""
+var policy_retreat: bool = false
 
 var unlocked_talents: Dictionary = {}
 var hero_attack_count: int = 0
@@ -286,12 +291,26 @@ func to_save_dict() -> Dictionary:
 		"active_companion": active_companion,
 		"companion_bond_xp": companion_bond_xp.duplicate(true),
 		"chronicle": chronicle.to_save_dict(),
-		"goals": goals.to_save_dict()
+		"goals": goals.to_save_dict(),
+		"adventure_policy": adventure_policy,
+		"outing_policy": outing_policy,
+		"outing_hunt": outing_hunt,
+		"policy_retreat": policy_retreat
 	}
 
 func load_save_dict(data: Dictionary) -> void:
 	chronicle.load_save_dict(data.get("chronicle", {}))
 	goals.load_save_dict(data.get("goals", {}))
+	adventure_policy = str(data.get("adventure_policy", PolicyScript.DEFAULT))
+	if not PolicyScript.valid(adventure_policy):
+		adventure_policy = PolicyScript.DEFAULT
+	outing_policy = str(data.get("outing_policy", adventure_policy))
+	if not PolicyScript.valid(outing_policy):
+		outing_policy = PolicyScript.DEFAULT
+	outing_hunt = str(data.get("outing_hunt", ""))
+	if not HuntCatalogScript.HUNTS.has(outing_hunt):
+		outing_hunt = ""
+	policy_retreat = bool(data.get("policy_retreat", false))
 	hero_position = _vec3_from_save(data.get("hero_position", []), TOWN_POSITION)
 	hero_level = max(1, int(data.get("hero_level", 1)))
 	hero_xp = max(0, int(data.get("hero_xp", 0)))
@@ -391,6 +410,16 @@ func load_save_dict(data: Dictionary) -> void:
 		goals.update(self, false)
 	if not data.has("chronicle"):
 		_seed_legacy_chronicle()
+
+func set_adventure_policy(id: String) -> bool:
+	if not PolicyScript.valid(id):
+		return false
+	adventure_policy = id
+	_emit_event("policy_changed", "%s selected for the next outing." % PolicyScript.POLICIES[id]["name"])
+	return true
+
+func policy_reason() -> String:
+	return PolicyScript.reason(outing_policy, outing_hunt, quest_cycles_completed == 0)
 
 func set_tracked_goal(id: String) -> bool:
 	if not goals.track(id):
@@ -857,6 +886,9 @@ func get_snapshot() -> Dictionary:
 
 func _begin_quest_cycle() -> void:
 	cycle_starts += 1
+	outing_policy = adventure_policy
+	outing_hunt = hunt_target
+	policy_retreat = false
 	last_stand_used = false
 	goblins_killed = 0
 	wolves_killed = 0
@@ -866,7 +898,7 @@ func _begin_quest_cycle() -> void:
 	quest_stage = 0
 	hero_hp = effective_max_hp()
 
-	if quest_cycles_completed <= 0:
+	if quest_cycles_completed <= 0 or outing_policy == "safe" or (outing_policy == "hunt" and outing_hunt.is_empty()):
 		quest_kind = "rangers_errand"
 		_emit_event("quest_started", "Ranger's Errand started.")
 		_travel_to("goblin_camp", "Goblin Camp", GOBLIN_CAMP_POSITION, false)
@@ -1097,17 +1129,25 @@ func _defeat_enemy() -> void:
 
 func _finish_looting() -> void:
 	enemy_kind = ""
+	# Preparation is chosen between outings; retreat is automatic after an encounter.
+	var threshold: float = PolicyScript.POLICIES[outing_policy]["threshold"]
+	if quest_cycles_completed > 0 and not thornback_killed and threshold > 0.0 and hero_hp < effective_max_hp() * threshold:
+		policy_retreat = true
+		quest_stage = 4
+		_emit_event("policy_retreat", "Health is low; returning to Mossgate under the chosen policy.")
+		_travel_to("town", "Mossgate", TOWN_POSITION, true)
+		return
 
 	if quest_kind == "briarfen":
 		if quest_stage == 1:
 			if briarlings_killed < 4:
 				_start_fight("briarling")
-			elif will_challenge_boss():
+			elif will_challenge_boss() and not (outing_policy == "hunt" and outing_hunt == "briarhook"):
 				quest_stage = 2
 				_travel_to("thornback_lair", "Old Thornback's Hollow", THORNBACK_POSITION, false)
 			else:
 				quest_stage = 4
-				_emit_event("boss_skipped", "%s is still too strong. Heading home to prepare." % BossCatalogScript.NAME)
+				_emit_event("boss_skipped", "Briarhook outing complete; heading home." if outing_policy == "hunt" and outing_hunt == "briarhook" else "%s is still too strong. Heading home to prepare." % BossCatalogScript.NAME)
 				_travel_to("town", "Mossgate", TOWN_POSITION, true)
 			return
 
@@ -1135,6 +1175,12 @@ func _finish_looting() -> void:
 			_travel_to("town", "Mossgate", TOWN_POSITION, true)
 
 func _complete_quest() -> void:
+	if policy_retreat:
+		hero_hp = effective_max_hp()
+		activity = "resting"
+		activity_timer = REST_TIME
+		_emit_event("policy_recovered", "Resting after an early return. Loot kept; no unfinished quest reward.")
+		return
 	var completed_quest := quest_kind
 	var gold_reward := 20
 	var xp_reward := 20

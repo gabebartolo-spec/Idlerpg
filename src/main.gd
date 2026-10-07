@@ -840,7 +840,7 @@ func _refresh_sim_ui() -> void:
 		sim.effective_max_hp(),
 		sim.gold
 	]
-	activity_label.text = sim.current_activity_text()
+	activity_label.text = sim.current_activity_text() + "\n" + sim.policy_reason()
 	quest_label.text = sim.current_quest_text()
 	if talent_button != null:
 		var points: int = sim.talent_points_available()
