@@ -11,6 +11,7 @@ signal companion_changed
 signal collection_changed
 
 const ArtCatalogScript = preload("res://src/data/art_catalog.gd")
+const RelicCatalogScript = preload("res://src/data/relic_catalog.gd")
 const CompanionCatalogScript = preload("res://src/data/companion_catalog.gd")
 
 const BANNERS := [["gear", "Gear"], ["companions", "Companions"], ["relics", "Relics"]]
@@ -99,8 +100,24 @@ func summon(count: int) -> void:
 	refresh()
 	summoned.emit()
 
+func _owned_count(banner_id: String, item_name: String) -> int:
+	var count: int = game.collection_count(banner_id, item_name)
+	return count + (1 if banner_id == "relics" and sim.earned_relics.has(item_name) else 0)
+
+func _owned_unique() -> int:
+	var count := 0
+	for name in game.collection_items(banner):
+		if _owned_count(banner, name) > 0:
+			count += 1
+	return count
+
 func use_item() -> void:
-	if banner != "companions" or selected_item.is_empty() or game.collection_count("companions", selected_item) <= 0:
+	if banner == "relics" and sim.owns_relic(selected_item, game):
+		sim.equip_relic("" if sim.active_relic == selected_item else selected_item, game)
+		refresh()
+		collection_changed.emit()
+		return
+	if banner != "companions" or selected_item.is_empty() or _owned_count("companions", selected_item) <= 0:
 		return
 	if sim.active_companion == selected_item:
 		sim.clear_active_companion()
@@ -180,7 +197,7 @@ func _build() -> void:
 func _on_collection_row(row: Control) -> void:
 	# Only things you own can be selected.
 	var item_name := str(row.get_meta("key"))
-	if game.collection_count(banner, item_name) > 0:
+	if _owned_count(banner, item_name) > 0:
 		select_item(item_name)
 
 func _view(parent: Control) -> VBoxContainer:
@@ -205,7 +222,7 @@ func refresh() -> void:
 
 	var pity: int = game.pity_remaining(banner)
 	banner_label.text = "%s · %d of %d collected · Legendary guaranteed within %d pull%s" % [
-		game.banner_label(banner), game.collected_unique(banner), game.banner_item_count(banner),
+		game.banner_label(banner), _owned_unique(), game.banner_item_count(banner),
 		pity, "" if pity == 1 else "s"
 	]
 	if mode == "collection":
@@ -240,7 +257,7 @@ func _icon(item_name: String) -> Texture2D:
 	return ArtCatalogScript.companion_icon(item_name) if banner == "companions" else ArtCatalogScript.item_icon(item_name)
 
 func _rebuild_collection() -> void:
-	if not selected_item.is_empty() and game.collection_count(banner, selected_item) <= 0:
+	if not selected_item.is_empty() and _owned_count(banner, selected_item) <= 0:
 		selected_item = ""
 	clear_list(collection_list)
 	rows.clear()
@@ -248,11 +265,11 @@ func _rebuild_collection() -> void:
 	var names: Array[String] = []
 	for owned in [true, false]:
 		for item_name in game.collection_items(banner):
-			if (game.collection_count(banner, item_name) > 0) == owned:
+			if (_owned_count(banner, item_name) > 0) == owned:
 				names.append(item_name)
 	for item_name in names:
 		var rarity: String = game.item_rarity(banner, item_name)
-		var count: int = game.collection_count(banner, item_name)
+		var count: int = _owned_count(banner, item_name)
 		var row := make_row(item_name)
 		var line := HBoxContainer.new()
 		line.add_theme_constant_override("separation", 12)
@@ -281,6 +298,8 @@ func _rebuild_collection() -> void:
 		if count <= 0:
 			state.text = "Not found yet"
 			row.modulate = Color(1.0, 1.0, 1.0, 0.55)
+		elif banner == "relics" and sim.active_relic == item_name:
+			state.text = "Equipped"
 		elif banner == "companions" and sim.active_companion == item_name:
 			state.text = "With you"
 			state.add_theme_color_override("font_color", Style.ACCENT)
@@ -297,8 +316,9 @@ func refresh_detail() -> void:
 	if detail_name == null:
 		return
 	var is_companion: bool = banner == "companions" and CompanionCatalogScript.has_companion(selected_item)
-	use_button.visible = is_companion
-	var owned: bool = not selected_item.is_empty() and game.collection_count(banner, selected_item) > 0
+	var is_relic: bool = banner == "relics" and RelicCatalogScript.valid(selected_item)
+	use_button.visible = is_companion or is_relic
+	var owned: bool = not selected_item.is_empty() and _owned_count(banner, selected_item) > 0
 	favourite_button.disabled = not owned
 	lock_button.disabled = not owned
 	if not owned:
@@ -310,7 +330,7 @@ func refresh_detail() -> void:
 		use_button.visible = false
 		return
 
-	detail_name.text = "%s · owned ×%d" % [selected_item, game.collection_count(banner, selected_item)]
+	detail_name.text = "%s · owned ×%d" % [selected_item, _owned_count(banner, selected_item)]
 	detail_name.add_theme_color_override("font_color", Style.rarity_colour(game.item_rarity(banner, selected_item)))
 	if is_companion:
 		detail_text.text = "%s · Bond %d. %s" % [
@@ -318,6 +338,9 @@ func refresh_detail() -> void:
 			CompanionCatalogScript.description(selected_item)
 		]
 		use_button.text = "Rest companion" if sim.active_companion == selected_item else "Travel together"
+	elif is_relic:
+		detail_text.text = RelicCatalogScript.description(selected_item)
+		use_button.text = "Unequip relic" if sim.active_relic == selected_item else "Equip relic"
 	else:
 		detail_text.text = "%s from the %s." % [game.item_rarity(banner, selected_item), game.banner_label(banner)]
 	favourite_button.text = "Unfavourite" if game.is_favourite(selected_item) else "Favourite"

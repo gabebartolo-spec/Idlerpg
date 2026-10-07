@@ -145,3 +145,13 @@ device.
 - [ ] On the device: force-close during play and reopen; confirm progress and the next
       summon are as expected.
 - [ ] Decide whether the seven-day cap should stay now that catch-up is cheap.
+
+## Version 4: adventurer chronicle
+
+Version 4 adds bounded milestone entries, a monotonic sequence and remembered first-event keys under `sim.chronicle`. Version 1–3 saves migrate without invented journal entries: existing loot, boss rank, owned gear and companion bond progress seed known firsts. Return highlights use the sequence loaded before catch-up; the ordinary immediate checkpoint persists both rewards and history, so an immediate reopen repeats neither. Quiet repeated cycles do not create milestones; cycles that change history cannot be batched. See [CHRONICLE.md](CHRONICLE.md).
+
+## Versions 5–8: goals, policies, builds and relics
+
+Version 5 adds three once-only goals and tracking. Older satisfied criteria seed completed markers without retroactive gold or invented history. Version 6 stores selected and current-outing policies separately, with the outing quarry and early-return flag. Older saves retain Push progression. Version 7 adds three empty optional named loadout slots. Version 8 adds one active relic and permanent guaranteed earned ownership; older progressed saves receive the opening-errand travel relic and first-boss health relic when their progress supports it, without auto-equipping. Empty relic choice in older presets remains valid.
+
+Banner relic ownership stays in game collection; earned alternatives stay in simulation state, and presentation uses their union. After both sim and game restore, invalid/unowned active relics clear before catch-up. Loadouts validate ownership, slots, points and prerequisites before mutation. Selecting a policy mid-outing changes only the next outing. Goals, earned relics and presets participate in saved-state comparison, so catch-up cannot batch across an unrecorded transition. See [ADVENTURE_AND_BUILDS.md](ADVENTURE_AND_BUILDS.md).

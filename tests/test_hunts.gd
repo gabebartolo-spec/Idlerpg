@@ -228,7 +228,7 @@ func _test_saves() -> void:
 	_check(migrated.thornback_rank == 0 and migrated.hunt_target == HuntCatalogScript.DEFAULT_HUNT and migrated.last_boss_fight.is_empty(), "an older save starts the boss at rank 0 with the default hunt")
 	_check(migrated.has_discovered("Briarheart Charm") and not migrated.has_discovered("Briarhook"), "a world item it already owns counts as discovered, so it cannot be claimed again")
 	_check(migrated.equipped_item("accessory") == "Briarheart Charm" and migrated.has_gear_effect("thornward"), "and the Charm it was wearing now carries its effect")
-	_check(PersistenceScript.SAVE_VERSION == 3, "the save format is version 3")
+	_check(PersistenceScript.SAVE_VERSION >= 4, "the save format includes the version 4 chronicle")
 	sim.free()
 	restored.free()
 	migrated.free()

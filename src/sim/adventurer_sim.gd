@@ -3,6 +3,12 @@ extends Node
 
 signal event_emitted(event: Dictionary)
 
+const RelicScript = preload("res://src/data/relic_catalog.gd")
+const LoadoutsScript = preload("res://src/state/build_loadouts.gd")
+const PolicyScript = preload("res://src/data/adventure_policy.gd")
+const GoalsScript = preload("res://src/state/adventure_goals.gd")
+const ChronicleScript = preload("res://src/state/chronicle.gd")
+
 const GearCatalogScript = preload("res://src/data/gear_catalog.gd")
 const TalentCatalogScript = preload("res://src/data/talent_catalog.gd")
 const CompanionCatalogScript = preload("res://src/data/companion_catalog.gd")
@@ -92,6 +98,15 @@ var equipped: Dictionary = {
 	"accessory": ""
 }
 var recent_events: Array[String] = []
+var chronicle = ChronicleScript.new()
+var goals = GoalsScript.new()
+var loadouts = LoadoutsScript.new()
+var active_relic: String = ""
+var earned_relics: Dictionary = {}
+var adventure_policy: String = PolicyScript.DEFAULT
+var outing_policy: String = PolicyScript.DEFAULT
+var outing_hunt: String = ""
+var policy_retreat: bool = false
 
 var unlocked_talents: Dictionary = {}
 var hero_attack_count: int = 0
@@ -279,10 +294,40 @@ func to_save_dict() -> Dictionary:
 		"second_wind_used": second_wind_used,
 		"last_stand_used": last_stand_used,
 		"active_companion": active_companion,
-		"companion_bond_xp": companion_bond_xp.duplicate(true)
+		"companion_bond_xp": companion_bond_xp.duplicate(true),
+		"chronicle": chronicle.to_save_dict(),
+		"goals": goals.to_save_dict(),
+		"loadouts": loadouts.to_save_dict(),
+		"active_relic": active_relic,
+		"earned_relics": earned_relics.duplicate(),
+		"adventure_policy": adventure_policy,
+		"outing_policy": outing_policy,
+		"outing_hunt": outing_hunt,
+		"policy_retreat": policy_retreat
 	}
 
 func load_save_dict(data: Dictionary) -> void:
+	chronicle.load_save_dict(data.get("chronicle", {}))
+	goals.load_save_dict(data.get("goals", {}))
+	loadouts.load_save_dict(data.get("loadouts", {}))
+	active_relic = str(data.get("active_relic", ""))
+	if not RelicScript.valid(active_relic):
+		active_relic = ""
+	earned_relics.clear()
+	var saved_relics: Dictionary = data.get("earned_relics", {})
+	for name in RelicScript.FREE_SOURCES:
+		if bool(saved_relics.get(name, false)):
+			earned_relics[name] = true
+	adventure_policy = str(data.get("adventure_policy", PolicyScript.DEFAULT))
+	if not PolicyScript.valid(adventure_policy):
+		adventure_policy = PolicyScript.DEFAULT
+	outing_policy = str(data.get("outing_policy", adventure_policy))
+	if not PolicyScript.valid(outing_policy):
+		outing_policy = PolicyScript.DEFAULT
+	outing_hunt = str(data.get("outing_hunt", ""))
+	if not HuntCatalogScript.HUNTS.has(outing_hunt):
+		outing_hunt = ""
+	policy_retreat = bool(data.get("policy_retreat", false))
 	hero_position = _vec3_from_save(data.get("hero_position", []), TOWN_POSITION)
 	hero_level = max(1, int(data.get("hero_level", 1)))
 	hero_xp = max(0, int(data.get("hero_xp", 0)))
@@ -378,6 +423,62 @@ func load_save_dict(data: Dictionary) -> void:
 	hero_hp = clampi(saved_hp, 0, effective_max_hp())
 	recent_events.clear()
 
+	if not data.has("earned_relics"):
+		if quest_cycles_completed > 0:
+			earned_relics["Hunter's Knot"] = true
+		if thornback_rank > 0:
+			earned_relics["Copper Charm"] = true
+	if not data.has("goals"):
+		goals.update(self, false)
+	if not data.has("chronicle"):
+		_seed_legacy_chronicle()
+
+func owns_relic(name: String, game: Node) -> bool:
+	return RelicScript.valid(name) and (earned_relics.has(name) or game.collection_count("relics", name) > 0)
+
+func equip_relic(name: String, game: Node) -> bool:
+	if not name.is_empty() and not owns_relic(name, game):
+		return false
+	active_relic = name
+	hero_hp = mini(hero_hp, effective_max_hp())
+	_emit_event("relic_equipped", "Relic: %s." % (name if not name.is_empty() else "none"))
+	return true
+
+func _earn_relic(name: String) -> void:
+	if earned_relics.has(name):
+		return
+	earned_relics[name] = true
+	_emit_event("relic_obtained", "Earned %s." % name, {"relic": name})
+
+func set_adventure_policy(id: String) -> bool:
+	if not PolicyScript.valid(id):
+		return false
+	adventure_policy = id
+	_emit_event("policy_changed", "%s selected for the next outing." % PolicyScript.POLICIES[id]["name"])
+	return true
+
+func policy_reason() -> String:
+	return PolicyScript.reason(outing_policy, outing_hunt, quest_cycles_completed == 0)
+
+func set_tracked_goal(id: String) -> bool:
+	if not goals.track(id):
+		return false
+	_emit_event("goal_tracked", "Tracking an adventure goal.", {"goal": id})
+	return true
+
+func _seed_legacy_chronicle() -> void:
+	for item_name in gear_inventory:
+		chronicle.remember("gear:" + str(item_name))
+	var loot_enemies := {"Goblin Trinket": "goblin", "Wolf Pelt": "wolf", "Briar Sap": "briarling", "Thornback Tusk": "thornback"}
+	for loot in loot_enemies:
+		if int(inventory.get(loot, 0)) > 0:
+			chronicle.remember("kill:" + str(loot_enemies[loot]))
+	if thornback_rank > 0:
+		chronicle.remember("boss:first")
+	for companion_name in companion_bond_xp:
+		for level in range(2, companion_bond_level(str(companion_name)) + 1):
+			chronicle.remember("bond:%s:%d" % [companion_name, level])
+
 func report_counters() -> Dictionary:
 	return {
 		"level": hero_level,
@@ -434,7 +535,7 @@ func enemy_winding_up() -> bool:
 func _build_signature() -> String:
 	var talents: Array = unlocked_talents.keys()
 	talents.sort()
-	return "%d|%s|%s|%s|%d" % [hero_level, ",".join(PackedStringArray(equipped.values())), ",".join(PackedStringArray(talents)), active_companion, active_companion_bond_level()]
+	return "%d|%s|%s|%s|%d" % [hero_level, ",".join(PackedStringArray(equipped.values())), ",".join(PackedStringArray(talents)), active_companion + ":" + active_relic, active_companion_bond_level()]
 
 # After a loss the adventurer leaves Old Thornback alone until something has changed:
 # a level, the gear worn, talents or the companion.
@@ -614,7 +715,7 @@ func effective_move_speed() -> float:
 	var speed := MOVE_SPEED * (1.20 if has_talent("trail_legs") else 1.0)
 	if not active_companion.is_empty():
 		speed *= CompanionCatalogScript.move_multiplier(active_companion, active_companion_bond_level())
-	return speed
+	return speed * RelicScript.move(active_relic)
 
 func effective_attack_interval() -> float:
 	return HERO_ATTACK_INTERVAL * (0.85 if has_talent("quick_hands") else 1.0)
@@ -622,8 +723,10 @@ func effective_attack_interval() -> float:
 func add_gear(item_name: String) -> bool:
 	if not GearCatalogScript.has_item(item_name):
 		return false
+	var current := equipped_item(GearCatalogScript.slot(item_name))
+	var useful := GearCatalogScript.attack_bonus(item_name) > GearCatalogScript.attack_bonus(current) or GearCatalogScript.hp_bonus(item_name) > GearCatalogScript.hp_bonus(current) or not GearCatalogScript.effect(item_name).is_empty()
 	gear_inventory[item_name] = int(gear_inventory.get(item_name, 0)) + 1
-	_emit_event("gear_obtained", "Found %s." % item_name, {"gear": item_name})
+	_emit_event("gear_obtained", "Found %s." % item_name, {"gear": item_name, "useful": useful})
 	return true
 
 func equip_gear(item_name: String) -> bool:
@@ -708,7 +811,7 @@ func effective_attack() -> int:
 	for item_name in equipped.values():
 		if not str(item_name).is_empty():
 			total += GearCatalogScript.attack_bonus(str(item_name))
-	return total
+	return total + RelicScript.attack(active_relic)
 
 func effective_max_hp() -> int:
 	var total := hero_max_hp
@@ -719,7 +822,7 @@ func effective_max_hp() -> int:
 	for item_name in equipped.values():
 		if not str(item_name).is_empty():
 			total += GearCatalogScript.hp_bonus(str(item_name))
-	return total
+	return total + RelicScript.hp(active_relic)
 
 # `telegraphed` marks a blow the enemy warned of first.
 func take_damage(amount: int, telegraphed: bool = false) -> void:
@@ -822,6 +925,9 @@ func get_snapshot() -> Dictionary:
 
 func _begin_quest_cycle() -> void:
 	cycle_starts += 1
+	outing_policy = adventure_policy
+	outing_hunt = hunt_target
+	policy_retreat = false
 	last_stand_used = false
 	goblins_killed = 0
 	wolves_killed = 0
@@ -831,7 +937,7 @@ func _begin_quest_cycle() -> void:
 	quest_stage = 0
 	hero_hp = effective_max_hp()
 
-	if quest_cycles_completed <= 0:
+	if quest_cycles_completed <= 0 or outing_policy == "safe" or (outing_policy == "hunt" and outing_hunt.is_empty()):
 		quest_kind = "rangers_errand"
 		_emit_event("quest_started", "Ranger's Errand started.")
 		_travel_to("goblin_camp", "Goblin Camp", GOBLIN_CAMP_POSITION, false)
@@ -1012,6 +1118,7 @@ func _defeat_enemy() -> void:
 				"%s fell at rank %d. It will return stronger." % [BossCatalogScript.NAME, thornback_rank],
 				{"enemy": defeated_kind, "rank": thornback_rank}
 			)
+			_earn_relic("Copper Charm")
 			thornback_rank += 1
 			boss_retry_mark = ""
 			if int(gear_inventory.get("Briarheart Charm", 0)) == 0:
@@ -1062,17 +1169,25 @@ func _defeat_enemy() -> void:
 
 func _finish_looting() -> void:
 	enemy_kind = ""
+	# Preparation is chosen between outings; retreat is automatic after an encounter.
+	var threshold: float = PolicyScript.POLICIES[outing_policy]["threshold"]
+	if quest_cycles_completed > 0 and not thornback_killed and threshold > 0.0 and hero_hp < effective_max_hp() * threshold:
+		policy_retreat = true
+		quest_stage = 4
+		_emit_event("policy_retreat", "Health is low; returning to Mossgate under the chosen policy.")
+		_travel_to("town", "Mossgate", TOWN_POSITION, true)
+		return
 
 	if quest_kind == "briarfen":
 		if quest_stage == 1:
 			if briarlings_killed < 4:
 				_start_fight("briarling")
-			elif will_challenge_boss():
+			elif will_challenge_boss() and not (outing_policy == "hunt" and outing_hunt == "briarhook"):
 				quest_stage = 2
 				_travel_to("thornback_lair", "Old Thornback's Hollow", THORNBACK_POSITION, false)
 			else:
 				quest_stage = 4
-				_emit_event("boss_skipped", "%s is still too strong. Heading home to prepare." % BossCatalogScript.NAME)
+				_emit_event("boss_skipped", "Briarhook outing complete; heading home." if outing_policy == "hunt" and outing_hunt == "briarhook" else "%s is still too strong. Heading home to prepare." % BossCatalogScript.NAME)
 				_travel_to("town", "Mossgate", TOWN_POSITION, true)
 			return
 
@@ -1100,6 +1215,12 @@ func _finish_looting() -> void:
 			_travel_to("town", "Mossgate", TOWN_POSITION, true)
 
 func _complete_quest() -> void:
+	if policy_retreat:
+		hero_hp = effective_max_hp()
+		activity = "resting"
+		activity_timer = REST_TIME
+		_emit_event("policy_recovered", "Resting after an early return. Loot kept; no unfinished quest reward.")
+		return
 	var completed_quest := quest_kind
 	var gold_reward := 20
 	var xp_reward := 20
@@ -1110,6 +1231,8 @@ func _complete_quest() -> void:
 	if not active_companion.is_empty():
 		gold_reward = int(round(float(gold_reward) * CompanionCatalogScript.gold_multiplier(active_companion, active_companion_bond_level())))
 
+	if quest_cycles_completed == 0 and completed_quest == "rangers_errand":
+		_earn_relic("Hunter's Knot")
 	quest_cycles_completed += 1
 	gold += gold_reward
 	_grant_xp(xp_reward)
@@ -1133,7 +1256,7 @@ func _die() -> void:
 		_emit_event(
 			"boss_lost",
 			"%s drove you off at rank %d." % [BossCatalogScript.NAME, thornback_rank],
-			{"enemy": enemy_kind, "rank": thornback_rank}
+			{"enemy": enemy_kind, "rank": thornback_rank, "close": enemy_hp * 4 <= enemy_max_hp}
 		)
 	boss_fight = {}
 	activity = "recovering"
@@ -1218,4 +1341,8 @@ func _emit_event(type: String, message: String, details: Dictionary = {}) -> voi
 	if recent_events.size() > 6:
 		recent_events.resize(6)
 
+	chronicle.observe(event)
+	if type != "goal_completed":
+		for completion in goals.update(self):
+			_emit_event("goal_completed", "%s complete. +%d gold." % [completion["title"], completion["gold"]], completion)
 	event_emitted.emit(event)

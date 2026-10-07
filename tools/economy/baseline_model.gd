@@ -17,6 +17,7 @@ extends RefCounted
 const GameStateScript = preload("res://src/game.gd")
 const AdventurerSimScript = preload("res://src/sim/adventurer_sim.gd")
 const GearCatalogScript = preload("res://src/data/gear_catalog.gd")
+const Relics = preload("res://src/data/relic_catalog.gd")
 const CompanionCatalogScript = preload("res://src/data/companion_catalog.gd")
 const TalentCatalogScript = preload("res://src/data/talent_catalog.gd")
 
@@ -50,6 +51,7 @@ class Account:
 	var tokens_spent: int = 0
 	var gold_from_quests: int = 0
 	var gold_from_discoveries: int = 0
+	var gold_from_goals: int = 0
 	# Per day, index 1..days.
 	var draws: PackedInt32Array
 	var new_draws: PackedInt32Array
@@ -69,6 +71,8 @@ class Account:
 		var type := str(event.get("type", ""))
 		if type == "quest_completed":
 			gold_from_quests += int(event.get("gold", 0))
+		if type == "goal_completed":
+			gold_from_goals += int(event.get("gold", 0))
 		if type == "world_discovery":
 			gold_from_discoveries += int(event.get("gold", 0))
 		elif type == "enemy_defeated" and str(event.get("enemy", "")) == "thornback" and boss_first_kill_seconds < 0.0:
@@ -223,6 +227,7 @@ func _check_in(account: Account, day: int) -> void:
 				if int(_gear_score[item_name]) > int(_gear_score.get(sim.equipped_item(_gear_slot[item_name]), 0)):
 					sim.equip_gear(item_name)
 
+	_choose_relic(account)
 	var pattern: Array = inputs["pull_pattern"]
 	var cost: int = game.SUMMON_COST
 	while game.gacha_tokens >= cost:
@@ -247,7 +252,24 @@ func _check_in(account: Account, day: int) -> void:
 				account.useful_draws[day] += 1
 		else:
 			account.relic_draws[day] += 1
+			if _choose_relic(account):
+				account.useful_draws[day] += 1
 
+
+# Uses the existing documented attack/HP score; this scripted player does not value
+# travel effects. Real build preference is a player-research question.
+func _choose_relic(account: Account) -> bool:
+	var weights: Dictionary = inputs["upgrade_score"]
+	var selected: String = account.sim.active_relic
+	var best: int = Relics.attack(selected) * int(weights["attack"]) + Relics.hp(selected) * int(weights["hp"])
+	for name in Relics.ITEMS:
+		var score: int = Relics.attack(name) * int(weights["attack"]) + Relics.hp(name) * int(weights["hp"])
+		if account.sim.owns_relic(name, account.game) and score > best:
+			selected = name
+			best = score
+	if selected == account.sim.active_relic:
+		return false
+	return account.sim.equip_relic(selected, account.game)
 
 # Adds a gear item, equips it if it beats what is worn, and salvages a duplicate.
 # Returns true if it was an upgrade.
@@ -288,7 +310,7 @@ func _check_ledger(account: Account, label: String) -> void:
 	var expected := account.tokens_started + account.tokens_purchased + account.tokens_income + account.tokens_salvaged - account.tokens_spent
 	if expected != account.game.gacha_tokens or account.game.gacha_tokens < 0:
 		ledger_failures.append("%s: tokens %d, ledger says %d" % [label, account.game.gacha_tokens, expected])
-	var gold_earned: int = account.gold_from_quests + account.gold_from_discoveries
+	var gold_earned: int = account.gold_from_quests + account.gold_from_discoveries + account.gold_from_goals
 	if account.stepped and gold_earned != account.sim.gold:
 		ledger_failures.append("%s: gold %d, ledger says %d" % [label, account.sim.gold, gold_earned])
 

@@ -10,6 +10,11 @@ const CharacterVisualScript = preload("res://src/view/character_visual.gd")
 const GearScreenScript = preload("res://src/ui/gear_screen.gd")
 const TalentScreenScript = preload("res://src/ui/talent_screen.gd")
 const GachaScreenScript = preload("res://src/ui/gacha_screen.gd")
+const RelicScreenScript = preload("res://src/ui/relic_screen.gd")
+const LoadoutScreenScript = preload("res://src/ui/loadout_screen.gd")
+const AdventureScreenScript = preload("res://src/ui/adventure_screen.gd")
+const SheetScript = preload("res://src/ui/sheet.gd")
+const ChronicleScreenScript = preload("res://src/ui/chronicle_screen.gd")
 const BossScreenScript = preload("res://src/ui/boss_screen.gd")
 const UiStyleScript = preload("res://src/ui/ui_style.gd")
 
@@ -50,10 +55,15 @@ var equipment_panel: Control
 var sell_gear_button: Button
 var talent_panel: Control
 var boss_panel: Control
+var chronicle_panel: Control
+var adventure_panel: Control
+var loadout_panel: Control
+var relic_panel: Control
+var return_highlights: VBoxContainer
 var talent_button: Button
 var talent_proc_pulse: float = 0.0
 var dev_panel: VBoxContainer
-var return_panel: PanelContainer
+var return_panel: Control
 var return_label: Label
 var return_talent_button: Button
 var pending_return_report: Dictionary = {}
@@ -70,6 +80,8 @@ func _ready() -> void:
 	# Each save gets its own run of hunt rolls, fixed from here on.
 	if sim.drop_seed == 0:
 		sim.drop_seed = 1 + randi() % 0x7ffffffe
+	if not sim.active_relic.is_empty() and not sim.owns_relic(sim.active_relic, game):
+		sim.active_relic = ""
 	if not sim.active_companion.is_empty() and game.collection_count("companions", sim.active_companion) <= 0:
 		sim.clear_active_companion()
 	sim.event_emitted.connect(_on_sim_event)
@@ -407,6 +419,7 @@ func _build_ui() -> void:
 	top_column.add_child(hero_label)
 
 	activity_label = Label.new()
+	activity_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	activity_label.add_theme_font_size_override("font_size", 18)
 	top_column.add_child(activity_label)
 
@@ -439,33 +452,25 @@ func _build_ui() -> void:
 	bottom_column.add_theme_constant_override("separation", 8)
 	bottom.add_child(bottom_column)
 
-	return_panel = PanelContainer.new()
-	return_panel.visible = false
-	bottom_column.add_child(return_panel)
-
-	var return_column := VBoxContainer.new()
-	return_column.add_theme_constant_override("separation", 6)
-	return_panel.add_child(return_column)
-
-	var return_title := Label.new()
-	return_title.text = "While you were away"
-	return_title.add_theme_font_size_override("font_size", 20)
-	return_column.add_child(return_title)
-
-	return_label = Label.new()
-	return_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	return_column.add_child(return_label)
-
-	return_talent_button = Button.new()
-	return_talent_button.text = "Spend talent point"
-	return_talent_button.visible = false
-	return_talent_button.pressed.connect(_open_talents_from_return)
-	return_column.add_child(return_talent_button)
-
-	var return_close := Button.new()
-	return_close.text = "Back to the adventure"
-	return_close.pressed.connect(_close_return_report)
-	return_column.add_child(return_close)
+	var pursuits := HBoxContainer.new()
+	pursuits.add_theme_constant_override("separation", 8)
+	bottom_column.add_child(pursuits)
+	var adventure_button := UiStyleScript.button("Adventure")
+	adventure_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	adventure_button.pressed.connect(func() -> void: _toggle_sheet(adventure_panel))
+	pursuits.add_child(adventure_button)
+	var chronicle_button := UiStyleScript.button("Chronicle")
+	chronicle_button.pressed.connect(func() -> void: _toggle_sheet(chronicle_panel))
+	chronicle_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	pursuits.add_child(chronicle_button)
+	var loadout_button := UiStyleScript.button("Builds")
+	loadout_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	loadout_button.pressed.connect(func() -> void: _toggle_sheet(loadout_panel))
+	pursuits.add_child(loadout_button)
+	var relic_button := UiStyleScript.button("Relics")
+	relic_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	relic_button.pressed.connect(func() -> void: _toggle_sheet(relic_panel))
+	pursuits.add_child(relic_button)
 
 	var actions := HBoxContainer.new()
 	actions.add_theme_constant_override("separation", 8)
@@ -546,6 +551,49 @@ func _build_ui() -> void:
 	gacha_collection_view = gacha_panel.collection_view
 	gacha_history_view = gacha_panel.history_view
 
+	relic_panel = RelicScreenScript.new()
+	relic_panel.visible = false
+	canvas.add_child(relic_panel)
+	relic_panel.setup(sim, game)
+	relic_panel.changed.connect(_on_gear_changed)
+
+	loadout_panel = LoadoutScreenScript.new()
+	loadout_panel.visible = false
+	canvas.add_child(loadout_panel)
+	loadout_panel.setup(sim, game)
+	loadout_panel.changed.connect(_on_gear_changed)
+
+	adventure_panel = AdventureScreenScript.new()
+	adventure_panel.visible = false
+	canvas.add_child(adventure_panel)
+	adventure_panel.setup(sim)
+	adventure_panel.route_requested.connect(_open_chronicle_route)
+	adventure_panel.changed.connect(_save_now)
+
+	chronicle_panel = ChronicleScreenScript.new()
+	chronicle_panel.visible = false
+	canvas.add_child(chronicle_panel)
+	chronicle_panel.setup(sim)
+	chronicle_panel.route_requested.connect(_open_chronicle_route)
+
+	return_panel = SheetScript.new()
+	return_panel.visible = false
+	canvas.add_child(return_panel)
+	var return_column: VBoxContainer = return_panel.build_sheet("While you were away")
+	return_panel.subtitle_label.text = "Your adventurer kept living"
+	var return_list: Control = return_panel.add_list(return_column)
+	return_label = UiStyleScript.label("", 22)
+	return_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	return_list.content.add_child(return_label)
+	return_highlights = VBoxContainer.new()
+	return_highlights.add_theme_constant_override("separation", 12)
+	return_list.content.add_child(return_highlights)
+	return_list.content.move_child(return_highlights, 0)
+	return_talent_button = UiStyleScript.button("Spend talent points", true)
+	return_talent_button.visible = false
+	return_talent_button.pressed.connect(_open_talents_from_return)
+	return_column.add_child(return_talent_button)
+
 func _rebuild_equipment_panel() -> void:
 	if equipment_panel != null and equipment_panel.visible:
 		equipment_panel.refresh()
@@ -590,7 +638,7 @@ func _refresh_wallet(_tokens: int) -> void:
 
 # Only one sheet, drawer or report is open at a time.
 func _close_drawers() -> void:
-	for sheet in [equipment_panel, talent_panel, boss_panel, gacha_panel, dev_panel, return_panel]:
+	for sheet in [equipment_panel, talent_panel, boss_panel, gacha_panel, adventure_panel, loadout_panel, relic_panel, chronicle_panel, dev_panel, return_panel]:
 		if sheet != null:
 			sheet.visible = false
 
@@ -630,12 +678,40 @@ func _show_return_report(report: Dictionary) -> void:
 	if return_panel == null or return_label == null:
 		return
 	return_label.text = _format_return_report(report)
+	for child in return_highlights.get_children():
+		return_highlights.remove_child(child)
+		child.queue_free()
+	for entry in report.get("highlights", []):
+		var route := str(entry.get("route", ""))
+		if route.is_empty():
+			var words := UiStyleScript.label(str(entry["message"]), 20)
+			words.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+			return_highlights.add_child(words)
+		else:
+			var action := UiStyleScript.button(str(entry["message"]) + "  · Review")
+			action.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+			action.pressed.connect(_open_chronicle_route.bind(route))
+			return_highlights.add_child(action)
 	if return_talent_button != null:
 		var earned_points: int = int(report.get("talent_points", 0))
 		return_talent_button.visible = earned_points > 0 and sim.talent_points_available() > 0
 		return_talent_button.text = "Spend talent point" if sim.talent_points_available() == 1 else "Spend talent points"
 	_close_drawers()
 	return_panel.visible = true
+
+func _open_chronicle_route(route: String) -> void:
+	_close_drawers()
+	match route:
+		"relics": relic_panel.open()
+		"gear": equipment_panel.open()
+		"boss": boss_panel.open()
+		"talents": talent_panel.open()
+		"companions":
+			gacha_panel.select_banner("companions")
+			gacha_panel.show_mode("collection")
+			if not sim.active_companion.is_empty():
+				gacha_panel.select_item(sim.active_companion)
+			gacha_panel.open()
 
 func _open_talents_from_return() -> void:
 	_close_drawers()
@@ -745,7 +821,7 @@ func _format_return_report(report: Dictionary) -> String:
 		var count := int(gear_found[item_name])
 		gear_parts.append("%s%s" % [item_name, " ×%d" % count if count > 1 else ""])
 	if not gear_parts.is_empty():
-		lines.append("New gear: %s." % ", ".join(gear_parts.slice(0, 4)))
+		lines.append("Gear found: %s." % ", ".join(gear_parts.slice(0, 4)))
 
 	if bool(report.get("capped", false)):
 		lines.append("Prototype catch-up is currently capped at 7 days per return.")
@@ -792,7 +868,7 @@ func _refresh_sim_ui() -> void:
 		sim.effective_max_hp(),
 		sim.gold
 	]
-	activity_label.text = sim.current_activity_text()
+	activity_label.text = sim.current_activity_text() + "\n" + sim.policy_reason()
 	quest_label.text = sim.current_quest_text()
 	if talent_button != null:
 		var points: int = sim.talent_points_available()
@@ -801,6 +877,14 @@ func _refresh_sim_ui() -> void:
 func _on_sim_event(event: Dictionary) -> void:
 	event_label.text = str(event.get("message", ""))
 	var event_type := str(event.get("type", ""))
+
+	if adventure_panel != null and adventure_panel.visible:
+		adventure_panel.refresh()
+	if event_type in ["relic_obtained", "relic_equipped", "loadout_applied"]:
+		if relic_panel != null and relic_panel.visible:
+			relic_panel.refresh()
+		if gacha_panel != null and gacha_panel.visible:
+			gacha_panel.refresh()
 
 	if event_type == "talent_proc":
 		talent_proc_pulse = 0.28
@@ -811,11 +895,11 @@ func _on_sim_event(event: Dictionary) -> void:
 		if equipment_panel != null and equipment_panel.visible:
 			_rebuild_equipment_panel()
 
-	if event_type in ["talent_unlocked", "talents_reset", "level_up"]:
+	if event_type in ["talent_unlocked", "talents_reset", "level_up", "loadout_applied"]:
 		if talent_panel != null and talent_panel.visible:
 			talent_panel.refresh()
 
-	if event_type in ["boss_defeated", "boss_lost", "gear_obtained", "gear_equipped", "gear_unequipped", "hunt_changed", "level_up"]:
+	if event_type in ["boss_defeated", "boss_lost", "gear_obtained", "gear_equipped", "gear_unequipped", "hunt_changed", "level_up", "loadout_applied", "relic_equipped"]:
 		if boss_panel != null and boss_panel.visible:
 			boss_panel.refresh()
 
