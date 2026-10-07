@@ -3,6 +3,7 @@ extends Node
 
 signal event_emitted(event: Dictionary)
 
+const LoadoutsScript = preload("res://src/state/build_loadouts.gd")
 const PolicyScript = preload("res://src/data/adventure_policy.gd")
 const GoalsScript = preload("res://src/state/adventure_goals.gd")
 const ChronicleScript = preload("res://src/state/chronicle.gd")
@@ -98,6 +99,7 @@ var equipped: Dictionary = {
 var recent_events: Array[String] = []
 var chronicle = ChronicleScript.new()
 var goals = GoalsScript.new()
+var loadouts = LoadoutsScript.new()
 var adventure_policy: String = PolicyScript.DEFAULT
 var outing_policy: String = PolicyScript.DEFAULT
 var outing_hunt: String = ""
@@ -292,6 +294,7 @@ func to_save_dict() -> Dictionary:
 		"companion_bond_xp": companion_bond_xp.duplicate(true),
 		"chronicle": chronicle.to_save_dict(),
 		"goals": goals.to_save_dict(),
+		"loadouts": loadouts.to_save_dict(),
 		"adventure_policy": adventure_policy,
 		"outing_policy": outing_policy,
 		"outing_hunt": outing_hunt,
@@ -301,6 +304,7 @@ func to_save_dict() -> Dictionary:
 func load_save_dict(data: Dictionary) -> void:
 	chronicle.load_save_dict(data.get("chronicle", {}))
 	goals.load_save_dict(data.get("goals", {}))
+	loadouts.load_save_dict(data.get("loadouts", {}))
 	adventure_policy = str(data.get("adventure_policy", PolicyScript.DEFAULT))
 	if not PolicyScript.valid(adventure_policy):
 		adventure_policy = PolicyScript.DEFAULT

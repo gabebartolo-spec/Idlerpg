@@ -20,6 +20,7 @@ run_test tests/test_save_resilience.gd
 run_test tests/test_chronicle.gd
 run_test tests/test_goals.gd
 run_test tests/test_policies.gd
+run_test tests/test_loadouts.gd
 run_test tests/test_gear.gd
 run_test tests/test_talents.gd
 run_test tests/test_companions.gd

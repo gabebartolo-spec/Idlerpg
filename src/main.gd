@@ -10,6 +10,7 @@ const CharacterVisualScript = preload("res://src/view/character_visual.gd")
 const GearScreenScript = preload("res://src/ui/gear_screen.gd")
 const TalentScreenScript = preload("res://src/ui/talent_screen.gd")
 const GachaScreenScript = preload("res://src/ui/gacha_screen.gd")
+const LoadoutScreenScript = preload("res://src/ui/loadout_screen.gd")
 const AdventureScreenScript = preload("res://src/ui/adventure_screen.gd")
 const SheetScript = preload("res://src/ui/sheet.gd")
 const ChronicleScreenScript = preload("res://src/ui/chronicle_screen.gd")
@@ -55,6 +56,7 @@ var talent_panel: Control
 var boss_panel: Control
 var chronicle_panel: Control
 var adventure_panel: Control
+var loadout_panel: Control
 var return_highlights: VBoxContainer
 var talent_button: Button
 var talent_proc_pulse: float = 0.0
@@ -456,6 +458,10 @@ func _build_ui() -> void:
 	chronicle_button.pressed.connect(func() -> void: _toggle_sheet(chronicle_panel))
 	chronicle_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	pursuits.add_child(chronicle_button)
+	var loadout_button := UiStyleScript.button("Builds")
+	loadout_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	loadout_button.pressed.connect(func() -> void: _toggle_sheet(loadout_panel))
+	pursuits.add_child(loadout_button)
 
 	var actions := HBoxContainer.new()
 	actions.add_theme_constant_override("separation", 8)
@@ -536,6 +542,12 @@ func _build_ui() -> void:
 	gacha_collection_view = gacha_panel.collection_view
 	gacha_history_view = gacha_panel.history_view
 
+	loadout_panel = LoadoutScreenScript.new()
+	loadout_panel.visible = false
+	canvas.add_child(loadout_panel)
+	loadout_panel.setup(sim, game)
+	loadout_panel.changed.connect(_on_gear_changed)
+
 	adventure_panel = AdventureScreenScript.new()
 	adventure_panel.visible = false
 	canvas.add_child(adventure_panel)
@@ -611,7 +623,7 @@ func _refresh_wallet(_tokens: int) -> void:
 
 # Only one sheet, drawer or report is open at a time.
 func _close_drawers() -> void:
-	for sheet in [equipment_panel, talent_panel, boss_panel, gacha_panel, adventure_panel, chronicle_panel, dev_panel, return_panel]:
+	for sheet in [equipment_panel, talent_panel, boss_panel, gacha_panel, adventure_panel, loadout_panel, chronicle_panel, dev_panel, return_panel]:
 		if sheet != null:
 			sheet.visible = false
 
@@ -862,11 +874,11 @@ func _on_sim_event(event: Dictionary) -> void:
 		if equipment_panel != null and equipment_panel.visible:
 			_rebuild_equipment_panel()
 
-	if event_type in ["talent_unlocked", "talents_reset", "level_up"]:
+	if event_type in ["talent_unlocked", "talents_reset", "level_up", "loadout_applied"]:
 		if talent_panel != null and talent_panel.visible:
 			talent_panel.refresh()
 
-	if event_type in ["boss_defeated", "boss_lost", "gear_obtained", "gear_equipped", "gear_unequipped", "hunt_changed", "level_up"]:
+	if event_type in ["boss_defeated", "boss_lost", "gear_obtained", "gear_equipped", "gear_unequipped", "hunt_changed", "level_up", "loadout_applied"]:
 		if boss_panel != null and boss_panel.visible:
 			boss_panel.refresh()
 
