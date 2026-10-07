@@ -74,6 +74,13 @@ The first quest is intentionally tiny: leave Mossgate, defeat three goblins, tra
 - active companion and bond persistence;
 - no manual companion abilities or companion-management spreadsheet.
 
+### Adventure preparation
+- three permanent goals with one tracked pursuit and once-only completion rewards;
+- autonomous Safe farming, Push progression and Targeted hunt policies;
+- three free named equipment/talent/companion/relic loadouts with atomic application;
+- one equipped relic slot, three effect families and guaranteed free travel/health alternatives;
+- rules, migration and Android checklist: `docs/ADVENTURE_AND_BUILDS.md`.
+
 ### Gacha collection
 - Gear Cache, Companion Pact and Relic Vault;
 - 1x and 10x pulls;

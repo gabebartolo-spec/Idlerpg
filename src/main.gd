@@ -10,6 +10,7 @@ const CharacterVisualScript = preload("res://src/view/character_visual.gd")
 const GearScreenScript = preload("res://src/ui/gear_screen.gd")
 const TalentScreenScript = preload("res://src/ui/talent_screen.gd")
 const GachaScreenScript = preload("res://src/ui/gacha_screen.gd")
+const RelicScreenScript = preload("res://src/ui/relic_screen.gd")
 const LoadoutScreenScript = preload("res://src/ui/loadout_screen.gd")
 const AdventureScreenScript = preload("res://src/ui/adventure_screen.gd")
 const SheetScript = preload("res://src/ui/sheet.gd")
@@ -57,6 +58,7 @@ var boss_panel: Control
 var chronicle_panel: Control
 var adventure_panel: Control
 var loadout_panel: Control
+var relic_panel: Control
 var return_highlights: VBoxContainer
 var talent_button: Button
 var talent_proc_pulse: float = 0.0
@@ -78,6 +80,8 @@ func _ready() -> void:
 	# Each save gets its own run of hunt rolls, fixed from here on.
 	if sim.drop_seed == 0:
 		sim.drop_seed = 1 + randi() % 0x7ffffffe
+	if not sim.active_relic.is_empty() and not sim.owns_relic(sim.active_relic, game):
+		sim.active_relic = ""
 	if not sim.active_companion.is_empty() and game.collection_count("companions", sim.active_companion) <= 0:
 		sim.clear_active_companion()
 	sim.event_emitted.connect(_on_sim_event)
@@ -415,6 +419,7 @@ func _build_ui() -> void:
 	top_column.add_child(hero_label)
 
 	activity_label = Label.new()
+	activity_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	activity_label.add_theme_font_size_override("font_size", 18)
 	top_column.add_child(activity_label)
 
@@ -462,6 +467,10 @@ func _build_ui() -> void:
 	loadout_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	loadout_button.pressed.connect(func() -> void: _toggle_sheet(loadout_panel))
 	pursuits.add_child(loadout_button)
+	var relic_button := UiStyleScript.button("Relics")
+	relic_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	relic_button.pressed.connect(func() -> void: _toggle_sheet(relic_panel))
+	pursuits.add_child(relic_button)
 
 	var actions := HBoxContainer.new()
 	actions.add_theme_constant_override("separation", 8)
@@ -541,6 +550,12 @@ func _build_ui() -> void:
 	gacha_panel.companion_changed.connect(_on_companion_changed)
 	gacha_collection_view = gacha_panel.collection_view
 	gacha_history_view = gacha_panel.history_view
+
+	relic_panel = RelicScreenScript.new()
+	relic_panel.visible = false
+	canvas.add_child(relic_panel)
+	relic_panel.setup(sim, game)
+	relic_panel.changed.connect(_on_gear_changed)
 
 	loadout_panel = LoadoutScreenScript.new()
 	loadout_panel.visible = false
@@ -623,7 +638,7 @@ func _refresh_wallet(_tokens: int) -> void:
 
 # Only one sheet, drawer or report is open at a time.
 func _close_drawers() -> void:
-	for sheet in [equipment_panel, talent_panel, boss_panel, gacha_panel, adventure_panel, loadout_panel, chronicle_panel, dev_panel, return_panel]:
+	for sheet in [equipment_panel, talent_panel, boss_panel, gacha_panel, adventure_panel, loadout_panel, relic_panel, chronicle_panel, dev_panel, return_panel]:
 		if sheet != null:
 			sheet.visible = false
 
@@ -687,6 +702,7 @@ func _show_return_report(report: Dictionary) -> void:
 func _open_chronicle_route(route: String) -> void:
 	_close_drawers()
 	match route:
+		"relics": relic_panel.open()
 		"gear": equipment_panel.open()
 		"boss": boss_panel.open()
 		"talents": talent_panel.open()
@@ -864,6 +880,11 @@ func _on_sim_event(event: Dictionary) -> void:
 
 	if adventure_panel != null and adventure_panel.visible:
 		adventure_panel.refresh()
+	if event_type in ["relic_obtained", "relic_equipped", "loadout_applied"]:
+		if relic_panel != null and relic_panel.visible:
+			relic_panel.refresh()
+		if gacha_panel != null and gacha_panel.visible:
+			gacha_panel.refresh()
 
 	if event_type == "talent_proc":
 		talent_proc_pulse = 0.28
@@ -878,7 +899,7 @@ func _on_sim_event(event: Dictionary) -> void:
 		if talent_panel != null and talent_panel.visible:
 			talent_panel.refresh()
 
-	if event_type in ["boss_defeated", "boss_lost", "gear_obtained", "gear_equipped", "gear_unequipped", "hunt_changed", "level_up", "loadout_applied"]:
+	if event_type in ["boss_defeated", "boss_lost", "gear_obtained", "gear_equipped", "gear_unequipped", "hunt_changed", "level_up", "loadout_applied", "relic_equipped"]:
 		if boss_panel != null and boss_panel.visible:
 			boss_panel.refresh()
 

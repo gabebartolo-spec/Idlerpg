@@ -52,7 +52,7 @@ func refresh() -> void:
 	mark_tabs(tabs, mode)
 	track_button.text = "Track goal" if mode == "goals" else "Use next outing"
 	if mode == "policies":
-		subtitle_label.text = "Current outing · " + sim.policy_reason()
+		subtitle_label.text = "Next outing policy"
 		for id in Policy.POLICIES:
 			cards[id] = Policy.POLICIES[id]
 			var row := make_row(id, 128.0)
@@ -63,7 +63,7 @@ func refresh() -> void:
 			list.content.add_child(row)
 		refresh_detail()
 		return
-	subtitle_label.text = "Three pursuits · one tracked · no daily reset"
+	subtitle_label.text = "Three permanent pursuits"
 	for card in sim.goals.cards(sim):
 		var id := str(card["id"])
 		cards[id] = card

@@ -9,7 +9,7 @@ func save_current(index: int, name: String, sim: Node) -> bool:
 	name = name.strip_edges().left(32)
 	if index < 0 or index >= COUNT or name.is_empty():
 		return false
-	presets[str(index)] = {"name": name, "equipment": sim.equipped.duplicate(), "talents": sim.unlocked_talents.duplicate(), "companion": sim.active_companion}
+	presets[str(index)] = {"name": name, "equipment": sim.equipped.duplicate(), "talents": sim.unlocked_talents.duplicate(), "companion": sim.active_companion, "relic": sim.active_relic}
 	return true
 
 func preview(index: int, sim: Node, game: Node, available: bool = false) -> Dictionary:
@@ -51,7 +51,13 @@ func preview(index: int, sim: Node, game: Node, available: bool = false) -> Dict
 		companion = sim.active_companion if available else ""
 		if game.collection_count("companions", companion) <= 0:
 			companion = ""
-	return {"ok": available or missing.is_empty(), "error": "Missing pieces: " + ", ".join(missing) if not missing.is_empty() else "Ready. Applies equipment, talents and companion together.", "missing": missing, "equipment": equipment, "talents": talents, "companion": companion, "name": str(saved.get("name", "Build"))}
+	var relic := str(saved.get("relic", ""))
+	if not relic.is_empty() and not sim.RelicScript.valid(relic):
+		return {"ok": false, "error": "This preset contains an unknown relic.", "missing": missing}
+	if not relic.is_empty() and not sim.owns_relic(relic, game):
+		missing.append(relic)
+		relic = sim.active_relic if available and sim.owns_relic(sim.active_relic, game) else ""
+	return {"ok": available or missing.is_empty(), "error": "Missing pieces: " + ", ".join(missing) if not missing.is_empty() else "Ready. Applies equipment, talents, companion and relic together.", "missing": missing, "equipment": equipment, "talents": talents, "companion": companion, "relic": relic, "name": str(saved.get("name", "Build"))}
 
 func apply(index: int, sim: Node, game: Node, available: bool = false) -> Dictionary:
 	var plan := preview(index, sim, game, available)
@@ -62,6 +68,7 @@ func apply(index: int, sim: Node, game: Node, available: bool = false) -> Dictio
 	sim.equipped = plan["equipment"].duplicate()
 	sim.unlocked_talents = plan["talents"].duplicate()
 	sim.active_companion = plan["companion"]
+	sim.active_relic = plan["relic"]
 	sim.hero_hp = mini(sim.hero_hp, sim.effective_max_hp())
 	sim._emit_event("loadout_applied", "Applied %s." % plan["name"])
 	return plan

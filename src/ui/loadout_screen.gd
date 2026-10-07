@@ -47,7 +47,7 @@ func apply(available: bool) -> void:
 
 func refresh() -> void:
 	mark_tabs(tabs, index)
-	subtitle_label.text = "Three free slots · atomic changes · free respec"
+	subtitle_label.text = "Three free slots"
 	var saved: Dictionary = sim.loadouts.presets.get(str(index), {})
 	name_input.text = str(saved.get("name", "Build %d" % (index + 1)))
 	var plan: Dictionary = sim.loadouts.preview(index, sim, game)
@@ -58,6 +58,7 @@ func refresh() -> void:
 			if not str(item).is_empty():
 				pieces.append(str(item))
 		detail.text += "\n\nGear: %s\n%d talents\nCompanion: %s" % [", ".join(pieces) if not pieces.is_empty() else "None", saved.get("talents", {}).size(), str(saved.get("companion", "")) if not str(saved.get("companion", "")).is_empty() else "None"]
+		detail.text += "\nRelic: " + str(saved.get("relic", "None"))
 	apply_button.disabled = not bool(plan["ok"])
 	var fallback: Dictionary = sim.loadouts.preview(index, sim, game, true)
 	available_button.visible = not plan["missing"].is_empty()

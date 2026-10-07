@@ -17,6 +17,7 @@ extends RefCounted
 const GameStateScript = preload("res://src/game.gd")
 const AdventurerSimScript = preload("res://src/sim/adventurer_sim.gd")
 const GearCatalogScript = preload("res://src/data/gear_catalog.gd")
+const Relics = preload("res://src/data/relic_catalog.gd")
 const CompanionCatalogScript = preload("res://src/data/companion_catalog.gd")
 const TalentCatalogScript = preload("res://src/data/talent_catalog.gd")
 
@@ -226,6 +227,7 @@ func _check_in(account: Account, day: int) -> void:
 				if int(_gear_score[item_name]) > int(_gear_score.get(sim.equipped_item(_gear_slot[item_name]), 0)):
 					sim.equip_gear(item_name)
 
+	_choose_relic(account)
 	var pattern: Array = inputs["pull_pattern"]
 	var cost: int = game.SUMMON_COST
 	while game.gacha_tokens >= cost:
@@ -250,7 +252,24 @@ func _check_in(account: Account, day: int) -> void:
 				account.useful_draws[day] += 1
 		else:
 			account.relic_draws[day] += 1
+			if _choose_relic(account):
+				account.useful_draws[day] += 1
 
+
+# Uses the existing documented attack/HP score; this scripted player does not value
+# travel effects. Real build preference is a player-research question.
+func _choose_relic(account: Account) -> bool:
+	var weights: Dictionary = inputs["upgrade_score"]
+	var selected: String = account.sim.active_relic
+	var best: int = Relics.attack(selected) * int(weights["attack"]) + Relics.hp(selected) * int(weights["hp"])
+	for name in Relics.ITEMS:
+		var score: int = Relics.attack(name) * int(weights["attack"]) + Relics.hp(name) * int(weights["hp"])
+		if account.sim.owns_relic(name, account.game) and score > best:
+			selected = name
+			best = score
+	if selected == account.sim.active_relic:
+		return false
+	return account.sim.equip_relic(selected, account.game)
 
 # Adds a gear item, equips it if it beats what is worn, and salvages a duplicate.
 # Returns true if it was an upgrade.
