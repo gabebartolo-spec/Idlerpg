@@ -36,6 +36,16 @@ func _init() -> void:
 	content.minimum_size_changed.connect(_layout)
 	add_child(content)
 	resized.connect(_layout)
+	visibility_changed.connect(_cancel_gesture)
+
+func _cancel_gesture() -> void:
+	_touch = -1
+	_dragging = false
+	velocity = 0.0
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_APPLICATION_FOCUS_OUT or what == NOTIFICATION_APPLICATION_PAUSED:
+		_cancel_gesture()
 
 func max_offset() -> float:
 	return max(0.0, content.size.y - size.y)
@@ -47,6 +57,9 @@ func scroll_to(value: float) -> void:
 
 func is_scrolling() -> bool:
 	return _dragging
+
+func is_interacting() -> bool:
+	return _touch != -1 or abs(velocity) >= 8.0
 
 # Rows must not handle input themselves: the list decides what each touch means.
 func _mute(node: Node) -> void:
@@ -61,7 +74,7 @@ func _layout() -> void:
 
 func _input(event: InputEvent) -> void:
 	if not is_visible_in_tree():
-		_touch = -1
+		_cancel_gesture()
 		return
 
 	if event is InputEventScreenTouch:
@@ -70,12 +83,15 @@ func _input(event: InputEvent) -> void:
 			if _touch == -1 and get_global_rect().has_point(touch.position):
 				_touch = touch.index
 				_touch_start = touch.position
-				_dragging = false
+				# A touch catches a moving list; it must not also select the row.
+				_dragging = abs(velocity) >= 8.0
 				velocity = 0.0
 				get_viewport().set_input_as_handled()
 		elif touch.index == _touch:
 			_touch = -1
-			if not _dragging:
+			if touch.canceled:
+				_cancel_gesture()
+			elif not _dragging and touch.position.distance_to(_touch_start) <= DRAG_THRESHOLD:
 				velocity = 0.0
 				_tap(touch.position)
 			_dragging = false
@@ -84,7 +100,7 @@ func _input(event: InputEvent) -> void:
 		var drag := event as InputEventScreenDrag
 		if drag.index != _touch:
 			return
-		if not _dragging and abs(drag.position.y - _touch_start.y) > DRAG_THRESHOLD:
+		if not _dragging and drag.position.distance_to(_touch_start) > DRAG_THRESHOLD:
 			_dragging = true
 		if _dragging:
 			scroll_to(offset - drag.relative.y)
@@ -93,13 +109,20 @@ func _input(event: InputEvent) -> void:
 	elif event is InputEventMouseButton:
 		var button := event as InputEventMouseButton
 		if button.pressed and get_global_rect().has_point(button.position):
+			if button.button_index not in [MOUSE_BUTTON_WHEEL_DOWN, MOUSE_BUTTON_WHEEL_UP]:
+				return
+			velocity = 0.0
 			if button.button_index == MOUSE_BUTTON_WHEEL_DOWN:
-				scroll_to(offset + WHEEL_STEP)
+				scroll_to(offset + WHEEL_STEP * button.factor)
 			elif button.button_index == MOUSE_BUTTON_WHEEL_UP:
-				scroll_to(offset - WHEEL_STEP)
+				scroll_to(offset - WHEEL_STEP * button.factor)
+			get_viewport().set_input_as_handled()
 
 func _process(delta: float) -> void:
 	# Carry a flick on after the finger lifts.
+	if not is_visible_in_tree():
+		_cancel_gesture()
+		return
 	if _touch != -1 or abs(velocity) < 8.0:
 		return
 	var before := offset

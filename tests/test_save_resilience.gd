@@ -64,6 +64,7 @@ func _run() -> void:
 	_test_interrupted_write()
 	_test_clock_rollback()
 	_test_save_failure()
+	_test_safe_replacement()
 	for path in paths:
 		_remove(path)
 	print("Save resilience tests complete: %d failure(s)" % failures)
@@ -203,7 +204,55 @@ func _test_unreadable() -> void:
 	_write(newer, JSON.stringify({"version": 99, "saved_unix": 4000, "sim": {}, "game": {}}))
 	var newer_report: Dictionary = PersistenceScript.load_and_advance(loaded[0], loaded[1], 4000, newer)
 	_check(bool(newer_report.get("save_lost", false)) and str(newer_report.get("error", "")).contains("newer"), "a save from a newer version is refused, with the reason")
-	_check(FileAccess.file_exists(newer + ".unreadable"), "and kept, so an older build cannot overwrite it")
+	_check(FileAccess.file_exists(newer), "newer saves stay in place for a compatible build")
+	_check(not PersistenceScript.save(loaded[0], loaded[1], 5000, newer), "an older build refuses to overwrite a newer save")
+
+func _test_safe_replacement() -> void:
+	var pair := _pair()
+	var malformed := _path("malformed")
+	var payload := {"version": 3, "saved_unix": 6000, "sim": pair[0].to_save_dict(), "game": pair[1].to_save_dict()}
+	for bad_version in ["3", 3.5, true, null]:
+		payload["version"] = bad_version
+		_write(malformed, JSON.stringify(payload))
+		_check(not PersistenceScript._read(malformed)["ok"], "malformed version %s is rejected" % str(bad_version))
+	payload["version"] = 3
+	for bad_time in ["6000", 6000.5, -1, true, null]:
+		payload["saved_unix"] = bad_time
+		_write(malformed, JSON.stringify(payload))
+		_check(not PersistenceScript._read(malformed)["ok"], "malformed timestamp %s is rejected" % str(bad_time))
+
+	var archive := _path("archives")
+	_write(archive + ".unreadable", "first damaged save")
+	_write(archive, "second damaged save")
+	_check(PersistenceScript.save(pair[0], pair[1], 6000, archive), "a direct save archives a damaged primary before replacing it")
+	_check(_text(archive + ".unreadable") == "first damaged save" and _text(archive + ".unreadable.2") == "second damaged save", "multiple damaged saves preserve distinct archives")
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(archive + ".unreadable.2"))
+	_check(PersistenceScript._read(archive)["ok"], "the flushed replacement is readable")
+
+	var newer := _path("newer_backup")
+	PersistenceScript.save(pair[0], pair[1], 6000, newer + ".bak")
+	var future := JSON.stringify({"version": 99, "saved_unix": 7000, "sim": {}, "game": {}})
+	_write(newer, future)
+	var report: Dictionary = PersistenceScript.load_and_advance(pair[0], pair[1], 8000, newer)
+	_check(not report["loaded"] and report.get("newer_version", false) and _text(newer) == future, "a future primary cannot be downgraded through an older backup")
+	_check(PersistenceScript._read(newer + ".bak")["ok"], "refusing a future primary preserves its backup too")
+	_write(newer + ".tmp", future)
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(newer))
+	_check(not PersistenceScript.save(pair[0], pair[1], 8000, newer) and _text(newer + ".tmp") == future, "saving preserves a future interrupted-write file")
+	_write(newer, JSON.stringify({"version": 99, "different_schema": {}}))
+	_check(PersistenceScript._read(newer).get("newer", false) and not PersistenceScript.save(pair[0], pair[1], 8000, newer), "future formats are protected even when their sections differ from this build")
+
+	var destination := _path("rename_destination")
+	_write(destination, "must survive")
+	_check(PersistenceScript._rename(destination, destination) == OK and _text(destination) == "must survive", "renaming a file to itself preserves it")
+	_check(PersistenceScript._rename(destination + ".missing", destination) != OK and _text(destination) == "must survive", "a missing rename source never deletes its destination")
+	var blocked := _path("blocked_rename")
+	DirAccess.make_dir_absolute(ProjectSettings.globalize_path(blocked))
+	_write(blocked + "/keep.txt", "must survive")
+	_write(destination, "replacement")
+	_check(PersistenceScript._rename(destination, blocked) != OK and _text(destination) == "replacement" and _text(blocked + "/keep.txt") == "must survive", "a blocked rename keeps the source and destination intact")
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(blocked + "/keep.txt"))
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(blocked))
 
 func _test_interrupted_write() -> void:
 	var path := _path("interrupted")

@@ -6,6 +6,7 @@ signal event_emitted(event: Dictionary)
 const GearCatalogScript = preload("res://src/data/gear_catalog.gd")
 const TalentCatalogScript = preload("res://src/data/talent_catalog.gd")
 const CompanionCatalogScript = preload("res://src/data/companion_catalog.gd")
+const ChronicleScript = preload("res://src/state/chronicle.gd")
 const BossCatalogScript = preload("res://src/data/boss_catalog.gd")
 const HuntCatalogScript = preload("res://src/data/hunt_catalog.gd")
 
@@ -76,6 +77,7 @@ var wolves_killed: int = 0
 var briarlings_killed: int = 0
 var thornback_killed: bool = false
 var total_kills: int = 0
+var chronicle = ChronicleScript.new()
 var deaths: int = 0
 
 var last_loot: String = ""
@@ -233,6 +235,7 @@ func _repeat_counts(counts: Dictionary, before: Dictionary, after: Dictionary, r
 
 func to_save_dict() -> Dictionary:
 	return {
+		"chronicle": chronicle.to_save_dict(),
 		"hero_position": [hero_position.x, hero_position.y, hero_position.z],
 		"hero_level": hero_level,
 		"hero_xp": hero_xp,
@@ -377,6 +380,18 @@ func load_save_dict(data: Dictionary) -> void:
 
 	hero_hp = clampi(saved_hp, 0, effective_max_hp())
 	recent_events.clear()
+	chronicle.load_save_dict(data.get("chronicle", {}))
+	if not data.has("chronicle"):
+		# Do not invent historical milestones or call old ownership a new discovery.
+		if total_kills > 0:
+			chronicle.seen["first_kill"] = true
+		if thornback_rank > 0:
+			chronicle.seen["first_boss"] = true
+		for item in gear_inventory:
+			chronicle.seen["gear:" + str(item)] = true
+		for companion in companion_bond_xp:
+			for bond in range(1, companion_bond_level(str(companion)) + 1):
+				chronicle.seen["bond:%s:%d" % [companion, bond]] = true
 
 func report_counters() -> Dictionary:
 	return {
@@ -540,6 +555,7 @@ func _grant_companion_bond_xp(amount: int) -> void:
 	companion_bond_xp[active_companion] = companion_bond_xp_for(active_companion) + amount
 	var new_level := companion_bond_level(active_companion)
 	if new_level > old_level:
+		chronicle.remember("bond:%s:%d" % [active_companion, new_level], "%s reached bond %d." % [active_companion, new_level], "companion", active_companion, 90, hero_level, quest_cycles_completed)
 		_emit_event(
 			"companion_bond_up",
 			"%s reached bond %d." % [active_companion, new_level],
@@ -622,6 +638,11 @@ func effective_attack_interval() -> float:
 func add_gear(item_name: String) -> bool:
 	if not GearCatalogScript.has_item(item_name):
 		return false
+	var worn: String = str(equipped.get(GearCatalogScript.slot(item_name), ""))
+	var attack_gain := GearCatalogScript.attack_bonus(item_name) - GearCatalogScript.attack_bonus(worn)
+	var hp_gain := GearCatalogScript.hp_bonus(item_name) - GearCatalogScript.hp_bonus(worn)
+	if (attack_gain >= 0 and hp_gain >= 0 and (attack_gain > 0 or hp_gain > 0)) or not GearCatalogScript.effect(item_name).is_empty():
+		chronicle.remember("gear:" + item_name, "Found %s: a build option worth inspecting." % item_name, "gear", item_name, 80, hero_level, quest_cycles_completed)
 	gear_inventory[item_name] = int(gear_inventory.get(item_name, 0)) + 1
 	_emit_event("gear_obtained", "Found %s." % item_name, {"gear": item_name})
 	return true
@@ -988,6 +1009,7 @@ func _finish_boss_fight(won: bool) -> void:
 func _defeat_enemy() -> void:
 	var defeated_kind: String = enemy_kind
 	total_kills += 1
+	chronicle.remember("first_kill", "First victory: defeated %s." % _enemy_display_name(defeated_kind), "chronicle", "", 60, hero_level, quest_cycles_completed)
 
 	match defeated_kind:
 		"goblin":
@@ -1007,6 +1029,7 @@ func _defeat_enemy() -> void:
 			last_loot = "Thornback Tusk"
 			_grant_enemy_xp(BossCatalogScript.xp(thornback_rank))
 			_finish_boss_fight(true)
+			chronicle.remember("first_boss", "First victory over Old Thornback, at rank %d." % thornback_rank, "boss", "", 100, hero_level, quest_cycles_completed)
 			_emit_event(
 				"boss_defeated",
 				"%s fell at rank %d. It will return stronger." % [BossCatalogScript.NAME, thornback_rank],
@@ -1126,6 +1149,8 @@ func _complete_quest() -> void:
 
 func _die() -> void:
 	deaths += 1
+	if enemy_max_hp > 0 and enemy_hp > 0 and enemy_hp * 5 <= enemy_max_hp:
+		chronicle.remember("close:" + enemy_kind, "Nearly defeated %s: %d health remained." % [_enemy_title(enemy_kind), enemy_hp], "boss" if enemy_kind == "thornback" else "talents", "", 70, hero_level, quest_cycles_completed)
 	if enemy_kind == "thornback":
 		thornback_lost = true
 		boss_retry_mark = _build_signature()

@@ -27,6 +27,7 @@ var row_actions: Dictionary = {}
 var list: Control
 var detail_text: Label
 var act_button: Button
+var refresh_clock: float = 0.0
 
 func setup(sim_node: Node) -> void:
 	sim = sim_node
@@ -34,6 +35,8 @@ func setup(sim_node: Node) -> void:
 	refresh()
 
 func select(key: String) -> void:
+	if not row_actions.has(key):
+		return
 	selected = key
 	restyle_rows(rows, selected)
 	refresh_detail()
@@ -77,6 +80,7 @@ func _build() -> void:
 func refresh() -> void:
 	if list == null:
 		return
+	var previous_action: Dictionary = row_actions.get(selected, {}).duplicate()
 	subtitle_label.text = "%s · rank %d" % [BossCatalogScript.NAME, sim.thornback_rank]
 
 	clear_list(list)
@@ -113,6 +117,8 @@ func refresh() -> void:
 		list.content.add_child(row)
 
 	if not rows.has(selected):
+		selected = ""
+	elif not previous_action.is_empty() and row_actions.get(selected, {}) != previous_action:
 		selected = ""
 	restyle_rows(rows, selected)
 	refresh_detail()
@@ -155,7 +161,10 @@ func _hunt_row(key: String, hunt_id: String) -> Control:
 		state.text = "%d / %d" % [sim.hunt_kills(hunt_id), int(hunt["pity"])]
 	line.add_child(state)
 
-	row_actions[key] = {"action": "" if owned or hunting else "hunt", "target": hunt_id}
+	if owned and sim.equipped_item(GearCatalogScript.slot(item_name)) != item_name:
+		row_actions[key] = {"action": "equip", "target": item_name, "hunt": hunt_id}
+	else:
+		row_actions[key] = {"action": "" if owned or hunting else "hunt", "target": hunt_id, "hunt": hunt_id}
 	return row
 
 func refresh_detail() -> void:
@@ -170,7 +179,7 @@ func refresh_detail() -> void:
 	var entry: Dictionary = row_actions.get(selected, {})
 	var action := str(entry.get("action", ""))
 	if selected.begins_with("hunt:"):
-		var hunt: Dictionary = HuntCatalogScript.HUNTS[str(entry["target"])]
+		var hunt: Dictionary = HuntCatalogScript.HUNTS[str(entry.get("hunt", entry["target"]))]
 		var item_name := str(hunt["item"])
 		detail_text.text = "%s %s" % [GearCatalogScript.summary(item_name), GearCatalogScript.effect_text(item_name)]
 		if sim.gear_count(item_name) > 0:
@@ -190,3 +199,11 @@ func refresh_detail() -> void:
 		"talents":
 			act_button.text = "Open talents"
 			act_button.disabled = false
+
+func _process(delta: float) -> void:
+	if not is_visible_in_tree() or sim == null:
+		return
+	refresh_clock += delta
+	if refresh_clock >= 1.0 and not list.is_interacting():
+		refresh_clock = 0.0
+		refresh()

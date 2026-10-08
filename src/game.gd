@@ -6,6 +6,7 @@ signal draw_finished(banner_id: String, results: Array)
 
 const SUMMON_COST: int = 10
 const STARTING_TOKENS: int = 250
+const RARITY_CHANCES := {"Common": 68, "Rare": 22, "Epic": 9, "Legendary": 1}
 
 const BANNERS: Dictionary = {
 	"gear": {
@@ -272,10 +273,10 @@ func _roll_rarity(pity_count: int) -> String:
 		return "Legendary"
 
 	var roll: float = rng.randf()
-	if roll < 0.01:
+	if roll < float(RARITY_CHANCES["Legendary"]) / 100.0:
 		return "Legendary"
-	if roll < 0.10:
+	if roll < float(RARITY_CHANCES["Legendary"] + RARITY_CHANCES["Epic"]) / 100.0:
 		return "Epic"
-	if roll < 0.32:
+	if roll < float(100 - RARITY_CHANCES["Common"]) / 100.0:
 		return "Rare"
 	return "Common"

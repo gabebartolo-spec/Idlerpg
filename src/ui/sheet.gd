@@ -15,6 +15,11 @@ const ROW_HEIGHT := 96.0
 
 var subtitle_label: Label
 
+func _unhandled_input(event: InputEvent) -> void:
+	if is_visible_in_tree() and event.is_action_pressed("ui_cancel"):
+		close()
+		get_viewport().set_input_as_handled()
+
 func open() -> void:
 	visible = true
 	refresh()
@@ -29,7 +34,7 @@ func refresh() -> void:
 	pass
 
 # Builds the frame and returns the column a screen fills, top to bottom.
-func build_sheet(title: String) -> VBoxContainer:
+func build_sheet(title: String, world_share: float = WORLD_SHARE) -> VBoxContainer:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 
@@ -37,14 +42,14 @@ func build_sheet(title: String) -> VBoxContainer:
 	world_area.flat = true
 	world_area.focus_mode = Control.FOCUS_NONE
 	world_area.anchor_right = 1.0
-	world_area.anchor_bottom = WORLD_SHARE
+	world_area.anchor_bottom = world_share
 	for state in ["normal", "hover", "pressed"]:
 		world_area.add_theme_stylebox_override(state, StyleBoxEmpty.new())
 	world_area.pressed.connect(close)
 	add_child(world_area)
 
 	var sheet := PanelContainer.new()
-	sheet.anchor_top = WORLD_SHARE
+	sheet.anchor_top = world_share
 	sheet.anchor_right = 1.0
 	sheet.anchor_bottom = 1.0
 	var surface := Style.box(Style.SURFACE, 22.0, 20.0)

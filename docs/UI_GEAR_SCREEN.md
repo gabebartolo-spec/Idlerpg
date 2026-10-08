@@ -38,6 +38,11 @@ Implemented in `src/ui/touch_list.gd`, used by every list on the gear, talent an
 5. **Touch targets are at least 80 px** on the 720 px canvas, about 8 mm on a phone
    (`TOUCH` in `src/ui/ui_style.gd`).
 6. **Actions do not scroll.** Anything you act with stays pinned and on screen.
+7. **Sideways swipes and cancelled touches never select rows.** Losing focus cancels
+   a pending gesture. Hiding a list stops its flick momentum while preserving its position.
+8. **Escape returns to the adventure** from a management sheet.
+9. **Filtering away the selected gear clears its actions.** Switching to All keeps a
+   selection that is still visible, so an off-screen item cannot be equipped by mistake.
 
 ## Layout
 
@@ -111,6 +116,75 @@ underneath.
   are hidden here.
 
 Screenshots: `art/review/ui_5_talents.png` to `ui_9_gacha_history.png`.
+
+## Management polish, 8 October 2026
+
+Fifteen additional improvements, covered by `tests/test_ui.gd`:
+
+1. Gear can be locked or unlocked directly on its comparison bar, including world loot.
+2. Locked items carry a visible mark in gear rows.
+3. Gear browsing shows the current gold and token balances.
+4. The last worn copy explains that it must be taken off before disposal.
+5. Retapping the active gear filter preserves selection and scroll position.
+6. Summon buttons show token units and disable when the wallet cannot afford them;
+   infinite-token debug mode still works.
+7. Normal one- and ten-pulls show every result, including common duplicates.
+8. Each banner keeps its own last results for the current app session; changing banners
+   no longer shows results from the previous banner. These previews are not save data.
+9. Owned favourites appear before other owned collection items.
+10. Unowned collection items cannot be selected, locked or favourited through stale actions.
+11. Collected gear details show attack, health and any item effect.
+12. Reset talents disables when there is nothing to refund.
+13. Retapping the active talent branch preserves its selection and scroll position.
+14. Mouse-wheel input stops an existing flick, respects fractional wheel movement and is
+    consumed by the list under the pointer.
+15. Touching a moving list stops its flick without selecting a row; a second tap can select.
+
+These changes preserve the earlier gesture fixes. Real Android thumb testing remains open.
+
+## Additional batch of 30, 8 October 2026
+
+The following are additional to the earlier five and fifteen fixes. Regression coverage
+is in `tests/test_ui.gd`, `tests/test_save_resilience.gd` and `tests/test_launch.gd`.
+
+1. Gear sorting can put stat upgrades first (both stats at least as good, one better).
+2. Gear can be filtered to the equipped items only.
+3. Gear favourites can be toggled directly, including world items.
+4. Favourites sort ahead of other gear within the current sort priority.
+5. The selected gear's copy count is visible.
+6. World gear names its source in the comparison details.
+7. Zero-token world salvage is disabled; its handler also refuses to destroy the item.
+8. Epic and Legendary disposal requires a second press within five seconds; closing,
+   changing the selection/filter or locking the item cancels the confirmation.
+9. Gear's gold and token balances refresh while the sheet stays open.
+10. Programmatic selection cannot expose actions for an item outside the gear filter.
+11. Summon results label duplicate copy numbers.
+12. History rows name their banner on a separate line.
+13. Base rarity odds are published from the same constants used by the draw logic;
+    the existing Legendary guarantee remains separate from base odds.
+14. Relic details explicitly say they have no gameplay effect yet.
+15. Tapping a summon result opens that item's collection details.
+16. Collection scroll position is remembered separately for each banner for this app session.
+17. Talent branch tabs show learned/total counts.
+18. The Learn button states its one-point cost.
+19. Owned hunt rewards can be equipped from their hunt row.
+20. Boss/hunt state refreshes while open, waits for gestures/flicks to finish, and clears
+    selections whose actions changed.
+21. Save versions must be numeric whole numbers.
+22. Save timestamps must be nonnegative numeric whole numbers.
+23. Save writes flush before validation and replacement.
+24. Saving refuses to replace newer-version primary, temporary or backup data.
+25. Loading refuses a newer save instead of falling back to an older one; the return
+    message tells the player to update and says their save is untouched.
+26. Repeated damaged saves get distinct numbered recovery archives.
+27. Direct saving archives a damaged primary rather than deleting it.
+28. Failed archival prevents replacement of the damaged primary.
+29. A missing rename source cannot delete the destination; same-path rename is harmless.
+30. A failed destination removal prevents a rename from proceeding.
+
+The gear sheet now leaves 26% of the portrait view to the world; gacha leaves 30%; other
+management sheets keep 34%. Extra browsing controls and odds occupy that space while
+keeping two list rows and pinned actions visible. Android/device verification remains open.
 
 ## What is still a plain drawer
 

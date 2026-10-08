@@ -6,7 +6,7 @@ extends RefCounted
 # These saves are for single-player continuity. They are files on the player's device and
 # a device clock, so nothing here can be trusted as online or competitive state.
 
-const SAVE_VERSION := 3
+const SAVE_VERSION := 4
 const DEFAULT_PATH := "user://idle_rpg_save.json"
 const MAX_OFFLINE_SECONDS := 7 * 24 * 60 * 60
 
@@ -20,11 +20,15 @@ const UNREADABLE_SUFFIX := ".unreadable"
 # backwards, so winding the device clock back cannot be used to bank offline time.
 static var _latest_unix: Dictionary = {}
 
-# Every file that can hold save data for `path`: the save and the files kept beside it.
+# Standard save companions. Numbered unreadable archives are retained independently.
 static func files_for(path: String = DEFAULT_PATH) -> Array[String]:
 	return [path, path + TEMP_SUFFIX, path + BACKUP_SUFFIX, path + UNREADABLE_SUFFIX]
 
 static func save(sim: Node, game: Node, now_unix: int = -1, path: String = DEFAULT_PATH) -> bool:
+	# An older build must not replace progress written by a newer build.
+	for existing in [path, path + TEMP_SUFFIX, path + BACKUP_SUFFIX]:
+		if FileAccess.file_exists(existing) and bool(_read(existing).get("newer", false)):
+			return false
 	if now_unix < 0:
 		now_unix = int(Time.get_unix_time_from_system())
 	now_unix = maxi(now_unix, int(_latest_unix.get(path, 0)))
@@ -44,6 +48,7 @@ static func save(sim: Node, game: Node, now_unix: int = -1, path: String = DEFAU
 		return false
 	# Full precision, so the clocks read back exactly and play resumes as it would have.
 	file.store_string(JSON.stringify(payload, "", true, true))
+	file.flush()
 	var write_error := file.get_error()
 	file.close()
 	if write_error != OK or not bool(_read(temp)["ok"]):
@@ -57,7 +62,8 @@ static func save(sim: Node, game: Node, now_unix: int = -1, path: String = DEFAU
 			if _rename(path, path + BACKUP_SUFFIX) != OK:
 				return false
 		else:
-			DirAccess.remove_absolute(ProjectSettings.globalize_path(path))
+			if _keep_unreadable(path).is_empty():
+				return false
 	if _rename(temp, path) != OK:
 		return false
 	_latest_unix[path] = now_unix
@@ -85,6 +91,11 @@ static func load_and_advance(sim: Node, game: Node, now_unix: int = -1, path: St
 			continue
 		found_any = true
 		var result: Dictionary = _read(source)
+		if bool(result.get("newer", false)):
+			report["error"] = result["error"]
+			report["save_lost"] = true
+			report["newer_version"] = true
+			return report
 		if bool(result["ok"]):
 			data = result["data"]
 			used = source
@@ -100,7 +111,8 @@ static func load_and_advance(sim: Node, game: Node, now_unix: int = -1, path: St
 		report["error"] = first_error
 		report["save_lost"] = true
 		if FileAccess.file_exists(path):
-			report["kept_copy"] = _rename(path, path + UNREADABLE_SUFFIX) == OK
+			var kept := _keep_unreadable(path)
+			report["kept_copy"] = not kept.is_empty()
 		return report
 
 	var saved_version := int(data["version"])
@@ -108,6 +120,7 @@ static func load_and_advance(sim: Node, game: Node, now_unix: int = -1, path: St
 	sim.load_save_dict(data["sim"])
 	game.load_save_dict(data["game"])
 
+	var chronicle_mark: int = sim.chronicle.sequence
 	var before: Dictionary = sim.report_counters()
 	var saved_unix: int = int(data.get("saved_unix", now_unix))
 	var elapsed_actual: int = max(0, now_unix - saved_unix)
@@ -121,6 +134,7 @@ static func load_and_advance(sim: Node, game: Node, now_unix: int = -1, path: St
 	var after: Dictionary = sim.report_counters()
 	report = _build_report(before, after, elapsed_actual, elapsed_simulated)
 	report["catch_up_msec"] = catch_up_msec
+	report["highlights"] = sim.chronicle.highlights_since(chronicle_mark)
 	if used != path:
 		report["recovered_from_backup"] = true
 		if not first_error.is_empty():
@@ -149,14 +163,33 @@ static func _read(path: String) -> Dictionary:
 	if json.parse(text) != OK or not (json.data is Dictionary):
 		return {"ok": false, "error": "The save is damaged."}
 	var data: Dictionary = json.data
-	if not (data.get("sim") is Dictionary) or not (data.get("game") is Dictionary):
-		return {"ok": false, "error": "The save is incomplete."}
-	var version := int(data.get("version", 0))
+	if not _whole_number(data.get("version")):
+		return {"ok": false, "error": "The save version is invalid."}
+	var version := int(data["version"])
 	if version < 1:
 		return {"ok": false, "error": "The save has no version."}
 	if version > SAVE_VERSION:
-		return {"ok": false, "error": "The save is from a newer version of the game."}
+		return {"ok": false, "newer": true, "error": "The save is from a newer version of the game."}
+	if not (data.get("sim") is Dictionary) or not (data.get("game") is Dictionary):
+		return {"ok": false, "error": "The save is incomplete."}
+	if not _whole_number(data.get("saved_unix")) or float(data["saved_unix"]) < 0.0:
+		return {"ok": false, "error": "The save timestamp is invalid."}
 	return {"ok": true, "data": data, "error": ""}
+
+static func _whole_number(value: Variant) -> bool:
+	if typeof(value) not in [TYPE_INT, TYPE_FLOAT]:
+		return false
+	var number := float(value)
+	return is_finite(number) and number == floorf(number) and abs(number) < float(0x7fffffffffffffff)
+
+# Each damaged file gets its own archive; never replace a previous recovery copy.
+static func _keep_unreadable(path: String) -> String:
+	var target := path + UNREADABLE_SUFFIX
+	var index := 2
+	while FileAccess.file_exists(target) or DirAccess.dir_exists_absolute(ProjectSettings.globalize_path(target)):
+		target = path + UNREADABLE_SUFFIX + ".%d" % index
+		index += 1
+	return target if _rename(path, target) == OK else ""
 
 # Brings an older save up to the current format, one version at a time.
 static func _migrate(data: Dictionary) -> Dictionary:
@@ -170,14 +203,24 @@ static func _migrate(data: Dictionary) -> Dictionary:
 		# "sim". A version 2 save has none, and the simulation starts them from nothing:
 		# rank 0, the default hunt, and world items already owned counted as discovered.
 		version = 3
+	if version == 3:
+		# Version 4 adds the chronicle. Load seeds old milestones without making events.
+		version = 4
 	data["version"] = version
 	return data
 
 static func _rename(from: String, to: String) -> Error:
-	var target := ProjectSettings.globalize_path(to)
+	if not FileAccess.file_exists(from):
+		return ERR_FILE_NOT_FOUND
+	var source := ProjectSettings.globalize_path(from).simplify_path()
+	var target := ProjectSettings.globalize_path(to).simplify_path()
+	if source == target or (OS.has_feature("windows") and source.to_lower() == target.to_lower()):
+		return OK
 	if FileAccess.file_exists(to):
-		DirAccess.remove_absolute(target)
-	return DirAccess.rename_absolute(ProjectSettings.globalize_path(from), target)
+		var removed := DirAccess.remove_absolute(target)
+		if removed != OK:
+			return removed
+	return DirAccess.rename_absolute(source, target)
 
 static func _build_report(before: Dictionary, after: Dictionary, elapsed_actual: int, elapsed_simulated: int) -> Dictionary:
 	var before_inventory: Dictionary = before.get("inventory", {})

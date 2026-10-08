@@ -10,6 +10,8 @@ const CharacterVisualScript = preload("res://src/view/character_visual.gd")
 const GearScreenScript = preload("res://src/ui/gear_screen.gd")
 const TalentScreenScript = preload("res://src/ui/talent_screen.gd")
 const GachaScreenScript = preload("res://src/ui/gacha_screen.gd")
+const ChronicleScreenScript = preload("res://src/ui/chronicle_screen.gd")
+const ReturnScreenScript = preload("res://src/ui/return_screen.gd")
 const BossScreenScript = preload("res://src/ui/boss_screen.gd")
 const UiStyleScript = preload("res://src/ui/ui_style.gd")
 
@@ -53,7 +55,8 @@ var boss_panel: Control
 var talent_button: Button
 var talent_proc_pulse: float = 0.0
 var dev_panel: VBoxContainer
-var return_panel: PanelContainer
+var chronicle_panel: Control
+var return_panel: Control
 var return_label: Label
 var return_talent_button: Button
 var pending_return_report: Dictionary = {}
@@ -439,33 +442,9 @@ func _build_ui() -> void:
 	bottom_column.add_theme_constant_override("separation", 8)
 	bottom.add_child(bottom_column)
 
-	return_panel = PanelContainer.new()
-	return_panel.visible = false
-	bottom_column.add_child(return_panel)
-
-	var return_column := VBoxContainer.new()
-	return_column.add_theme_constant_override("separation", 6)
-	return_panel.add_child(return_column)
-
-	var return_title := Label.new()
-	return_title.text = "While you were away"
-	return_title.add_theme_font_size_override("font_size", 20)
-	return_column.add_child(return_title)
-
-	return_label = Label.new()
-	return_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	return_column.add_child(return_label)
-
-	return_talent_button = Button.new()
-	return_talent_button.text = "Spend talent point"
-	return_talent_button.visible = false
-	return_talent_button.pressed.connect(_open_talents_from_return)
-	return_column.add_child(return_talent_button)
-
-	var return_close := Button.new()
-	return_close.text = "Back to the adventure"
-	return_close.pressed.connect(_close_return_report)
-	return_column.add_child(return_close)
+	var chronicle_button := UiStyleScript.button("Chronicle")
+	chronicle_button.pressed.connect(func() -> void: _toggle_sheet(chronicle_panel))
+	bottom_column.add_child(chronicle_button)
 
 	var actions := HBoxContainer.new()
 	actions.add_theme_constant_override("separation", 8)
@@ -514,6 +493,19 @@ func _build_ui() -> void:
 		dev_panel.add_theme_constant_override("separation", 6)
 		bottom_column.add_child(dev_panel)
 		_build_dev_tools(dev_panel)
+
+	chronicle_panel = ChronicleScreenScript.new()
+	chronicle_panel.visible = false
+	canvas.add_child(chronicle_panel)
+	chronicle_panel.setup(sim)
+	chronicle_panel.destination_requested.connect(_open_chronicle_destination)
+	return_panel = ReturnScreenScript.new()
+	return_panel.visible = false
+	canvas.add_child(return_panel)
+	return_panel.setup()
+	return_panel.destination_requested.connect(_open_chronicle_destination)
+	return_panel.talents_requested.connect(_open_talents_from_return)
+	return_talent_button = return_panel.talent_button
 
 	# Management screens are sheets of their own, drawn over the world (src/ui/).
 	equipment_panel = GearScreenScript.new()
@@ -590,7 +582,7 @@ func _refresh_wallet(_tokens: int) -> void:
 
 # Only one sheet, drawer or report is open at a time.
 func _close_drawers() -> void:
-	for sheet in [equipment_panel, talent_panel, boss_panel, gacha_panel, dev_panel, return_panel]:
+	for sheet in [equipment_panel, talent_panel, boss_panel, gacha_panel, chronicle_panel, dev_panel, return_panel]:
 		if sheet != null:
 			sheet.visible = false
 
@@ -627,15 +619,37 @@ func _dev_stress_pull() -> void:
 	_summon(100)
 
 func _show_return_report(report: Dictionary) -> void:
-	if return_panel == null or return_label == null:
+	if return_panel == null:
 		return
-	return_label.text = _format_return_report(report)
+	_close_drawers()
+	return_panel.show_report(report, _format_return_report(report))
+	return_label = return_panel.summary
 	if return_talent_button != null:
 		var earned_points: int = int(report.get("talent_points", 0))
 		return_talent_button.visible = earned_points > 0 and sim.talent_points_available() > 0
 		return_talent_button.text = "Spend talent point" if sim.talent_points_available() == 1 else "Spend talent points"
-	_close_drawers()
 	return_panel.visible = true
+
+func _open_chronicle_destination(route: String, target: String) -> void:
+	_close_drawers()
+	match route:
+		"gear":
+			equipment_panel.worn_only = false
+			equipment_panel.selected = ""
+			equipment_panel.set_slot_filter("")
+			equipment_panel.open()
+			equipment_panel.select(target)
+		"boss":
+			boss_panel.open()
+		"talents":
+			talent_panel.open()
+		"companion":
+			gacha_panel.select_banner("companions")
+			gacha_panel.show_mode("collection")
+			gacha_panel.open()
+			gacha_panel.select_item(target)
+		_:
+			chronicle_panel.open()
 
 func _open_talents_from_return() -> void:
 	_close_drawers()
@@ -695,6 +709,8 @@ func _close_return_report() -> void:
 
 func _format_return_report(report: Dictionary) -> String:
 	var lines: Array[String] = []
+	if bool(report.get("newer_version", false)):
+		return "Your save belongs to a newer game version. Update the game to continue. Your existing save was left untouched; this build cannot replace it."
 	if bool(report.get("save_lost", false)):
 		lines.append("Your save could not be read, so a new adventure has started.")
 		lines.append(str(report.get("error", "")))
@@ -727,7 +743,7 @@ func _format_return_report(report: Dictionary) -> String:
 	if talent_points_earned > 0:
 		lines.append("%d talent point%s ready." % [talent_points_earned, "" if talent_points_earned == 1 else "s"])
 	if deaths_while_away > 0:
-		lines.append("Defeated %d time%s, but recovered." % [deaths_while_away, "" if deaths_while_away == 1 else "s"])
+		lines.append("Defeated %d time%s. Recovery takes place in Mossgate." % [deaths_while_away, "" if deaths_while_away == 1 else "s"])
 	var boss_ranks := int(report.get("boss_ranks", 0))
 	if boss_ranks > 0:
 		lines.append("Beat Old Thornback %d time%s. It is now rank %d." % [boss_ranks, "" if boss_ranks == 1 else "s", sim.thornback_rank])
@@ -753,7 +769,7 @@ func _format_return_report(report: Dictionary) -> String:
 		lines.append("Dev: catch-up took %d ms." % int(report.get("catch_up_msec", 0)))
 
 	if lines.size() == 1:
-		lines.append("No major events. Your adventurer kept moving.")
+		lines.append("No new milestones during this return.")
 
 	return "\n".join(lines)
 
