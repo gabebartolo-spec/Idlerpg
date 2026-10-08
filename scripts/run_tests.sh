@@ -18,6 +18,7 @@ run_test tests/test_earned_income.gd
 run_test tests/test_journal.gd
 run_test tests/test_identity.gd
 run_test tests/test_fishing.gd
+run_test tests/test_practice.gd
 run_test tests/test_adventurer_sim.gd
 run_test tests/test_launch.gd
 run_test tests/test_persistence.gd

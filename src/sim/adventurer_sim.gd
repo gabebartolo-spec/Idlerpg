@@ -3,6 +3,7 @@ extends Node
 
 signal event_emitted(event: Dictionary)
 const FishingScript = preload("res://src/state/fishing.gd")
+const PracticeScript = preload("res://src/state/practice_dungeon.gd")
 const FishingCatalog = preload("res://src/data/fishing_catalog.gd")
 
 const IdentityScript = preload("res://src/state/adventurer_identity.gd")
@@ -105,6 +106,7 @@ var equipped: Dictionary = {
 var recent_events: Array[String] = []
 var identity = IdentityScript.new()
 var fishing = FishingScript.new()
+var practice = PracticeScript.new()
 var journal = JournalScript.new()
 var income = IncomeScript.new()
 var chronicle = ChronicleScript.new()
@@ -139,6 +141,8 @@ func advance(delta: float) -> void:
 
 	income.advance(delta)
 	match activity:
+		"practice":
+			_advance_practice(delta)
 		"fishing":
 			_advance_fishing(delta)
 		"travelling", "returning":
@@ -317,6 +321,7 @@ func to_save_dict() -> Dictionary:
 		"companion_bond_xp": companion_bond_xp.duplicate(true),
 		"identity": identity.to_save_dict(),
 		"fishing": fishing.to_save_dict(),
+		"practice": practice.to_save_dict(),
 		"journal": journal.to_save_dict(),
 		"income": income.to_save_dict(),
 		"chronicle": chronicle.to_save_dict(),
@@ -451,6 +456,7 @@ func load_save_dict(data: Dictionary) -> void:
 
 	identity.load_save_dict(data.get("identity", {}), self)
 	fishing.load_save_dict(data.get("fishing", {}))
+	practice.load_save_dict(data.get("practice", {}))
 	if activity == "fishing" and not fishing.requested:
 		_begin_quest_cycle()
 	if not data.has("journal"):
@@ -490,6 +496,8 @@ func set_adventure_policy(id: String) -> bool:
 	return true
 
 func policy_reason() -> String:
+	if activity == "practice":
+		return "Bran and Iris are NPC practice allies. Your selected role and build are fixed for this run."
 	if activity == "fishing":
 		return "Passive catches continue while away. Resume adventures whenever you choose."
 	return PolicyScript.reason(outing_policy, outing_hunt, quest_cycles_completed == 0)
@@ -517,6 +525,7 @@ func report_counters() -> Dictionary:
 	return {
 		"earned_tokens": income.total,
 		"fish_catches": fishing.catches,
+		"practice_clears": practice.clears,
 		"level": hero_level,
 		"gold": gold,
 		"total_kills": total_kills,
@@ -903,6 +912,8 @@ func take_damage(amount: int, telegraphed: bool = false) -> void:
 
 func current_activity_text() -> String:
 	match activity:
+		"practice":
+			return "Practice dungeon · room %d/3 · party %d/%d HP" % [mini(practice.room + 1, 3), practice.hp, practice.max_hp]
 		"fishing":
 			return "Fishing at Mossgate Pond · %d catches" % fishing.catches
 		"travelling":
@@ -921,6 +932,8 @@ func current_activity_text() -> String:
 			return "Waiting in Mossgate"
 
 func set_fishing(enabled: bool) -> void:
+	if enabled:
+		practice.requested = false
 	fishing.requested = enabled
 	if not enabled and activity == "fishing":
 		hero_position = TOWN_POSITION
@@ -941,12 +954,50 @@ func prepare_stew() -> bool:
 	_emit_event("stew_prepared", "Prepared Pond Stew for a practice dungeon. Heals 12 party health once.")
 	return true
 
+func request_practice(role: String) -> bool:
+	if practice.active or not practice.Catalog.ROLES.has(role):
+		return false
+	practice.selected_role = role
+	practice.requested = true
+	fishing.requested = false
+	if activity == "fishing":
+		hero_position = TOWN_POSITION
+		_begin_quest_cycle()
+	else:
+		_emit_event("practice_selected", "Practice dungeon queued after this outing.")
+	return true
+
+func stop_practice() -> void:
+	practice.abort()
+	if activity == "practice":
+		hero_position = TOWN_POSITION
+		_begin_quest_cycle()
+	_emit_event("practice_stopped", "Practice stopped. Unused stew and earned progress kept.")
+
+func _advance_practice(delta: float) -> void:
+	var used_before: bool = practice.stew_used
+	var result: Dictionary = practice.advance(delta)
+	if practice.stew_used and not used_before:
+		fishing.prepared = maxi(0, fishing.prepared - 1)
+	if result.is_empty():
+		return
+	var first: bool = bool(result["won"]) and not practice.first_reward_claimed
+	if first:
+		practice.first_reward_claimed = true
+		gold += 25
+	# Resume before publishing completion; event-triggered saves see a settled state.
+	hero_position = TOWN_POSITION
+	_begin_quest_cycle()
+	_emit_event("practice_completed", ("Practice cleared. +25 gold for your first victory." if first else str(result["reason"])), {"won": result["won"], "first": first, "gold": 25 if first else 0})
+
 func _advance_fishing(delta: float) -> void:
 	var gained: Dictionary = fishing.advance(delta)
 	for item in gained:
 		_emit_event("fish_caught", "Caught %s at Mossgate Pond." % item, {"fish": item, "amount": gained[item]})
 
 func current_quest_text() -> String:
+	if activity == "practice":
+		return "Moss Sentinel practice · %s role" % practice.Catalog.ROLES[practice.role]["name"]
 	if activity == "fishing":
 		return "Mossgate Pond · prepare stew for practice adventures"
 	if quest_kind == "briarfen":
@@ -993,6 +1044,16 @@ func get_snapshot() -> Dictionary:
 
 func _begin_quest_cycle() -> void:
 	cycle_starts += 1
+	if practice.requested:
+		activity = "practice"
+		activity_timer = 0.0
+		enemy_kind = ""
+		enemy_attack_clock = 0.0
+		hero_attack_clock = 0.0
+		hero_position = practice.Catalog.POSITION
+		practice.start(effective_attack(), effective_max_hp(), fishing.prepared > 0)
+		_emit_event("practice_started", "Entered the practice dungeon with Bran and Iris (NPC allies).")
+		return
 	if fishing.requested:
 		activity = "fishing"
 		activity_timer = 0.0

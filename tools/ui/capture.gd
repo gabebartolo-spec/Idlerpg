@@ -165,6 +165,16 @@ func _run() -> void:
 	await _snap("fishing_prepared")
 	main.call("_close_drawers")
 	await _snap("fishing_watch")
+	sim.request_practice("protection")
+	main.call("_toggle_sheet", main.get("practice_panel"))
+	await _snap("practice_preparation")
+	main.call("_close_drawers")
+	await _snap("practice_npc_watch")
+	sim.simulate_offline(60.0)
+	main.call("_toggle_sheet", main.get("practice_panel"))
+	await _snap("practice_recap")
+	main.get("practice_panel").list.scroll_to(main.get("practice_panel").list.max_offset())
+	await _snap("practice_contributions")
 
 	main.free()
 	for path in PersistenceScript.files_for():

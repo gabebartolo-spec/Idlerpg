@@ -3,6 +3,7 @@ extends Node
 const IdentityScreenScript = preload("res://src/ui/identity_screen.gd")
 const JournalScreenScript = preload("res://src/ui/journal_screen.gd")
 const FishingScreenScript = preload("res://src/ui/fishing_screen.gd")
+const PracticeScreenScript = preload("res://src/ui/practice_screen.gd")
 const GameStateScript = preload("res://src/game.gd")
 const AdventurerSimScript = preload("res://src/sim/adventurer_sim.gd")
 const PersistenceScript = preload("res://src/state/persistence.gd")
@@ -32,6 +33,9 @@ var sim: Node
 
 var world: Node3D
 var hero_visual: Node3D
+var practice_stage: Node3D
+var practice_allies: Array[Node3D] = []
+var practice_foes: Array[Node3D] = []
 var enemy_visual: Node3D
 var companion_visual: Node3D
 var camera: Camera3D
@@ -61,6 +65,7 @@ var boss_panel: Control
 var identity_panel: Control
 var journal_panel: Control
 var fishing_panel: Control
+var practice_panel: Control
 var chronicle_panel: Control
 var adventure_panel: Control
 var loadout_panel: Control
@@ -211,6 +216,7 @@ func _build_world() -> void:
 
 	hero_visual = _build_hero()
 	world.add_child(hero_visual)
+	_build_practice_stage()
 
 	companion_visual = Node3D.new()
 	companion_visual.name = "Companion"
@@ -302,17 +308,64 @@ func _build_hero() -> Node3D:
 	hero.add_child(talent_proc_visual)
 	return hero
 
+func _build_practice_stage() -> void:
+	practice_stage = Node3D.new()
+	practice_stage.position = preload("res://src/data/practice_catalog.gd").POSITION
+	practice_stage.visible = false
+	world.add_child(practice_stage)
+	var floor_mesh := MeshInstance3D.new()
+	var floor_box := BoxMesh.new()
+	floor_box.size = Vector3(5.0, 0.05, 4.5)
+	floor_mesh.mesh = floor_box
+	floor_mesh.position.y = 0.025
+	floor_mesh.material_override = _material(Color(0.35, 0.38, 0.34))
+	practice_stage.add_child(floor_mesh)
+	for index in 2:
+		var ally: Node3D = CharacterVisualScript.new()
+		ally.setup("hero")
+		ally.show_identity("slate" if index == 0 else "moss", false)
+		ally.position = Vector3(-1.4 if index == 0 else 1.4, 0.0, 0.5)
+		ally.face(Vector3(0, 0, -1))
+		practice_stage.add_child(ally)
+		practice_allies.append(ally)
+		var label := Label3D.new()
+		label.text = "Bran\nNPC protection" if index == 0 else "Iris\nNPC support"
+		label.font_size = 32
+		label.pixel_size = 0.006
+		label.position.y = 2.0
+		label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+		ally.add_child(label)
+	for model_id in ["goblin", "briarling", "thornback"]:
+		var foe: Node3D = CharacterVisualScript.new()
+		foe.setup(model_id)
+		foe.position = Vector3(0, 0, -1.7)
+		foe.set_state("attack")
+		foe.visible = false
+		practice_stage.add_child(foe)
+		practice_foes.append(foe)
+
 func _sync_world(delta: float) -> void:
+	practice_stage.visible = sim.activity == "practice"
+	if practice_stage.visible:
+		for ally in practice_allies:
+			ally.set_state("attack")
+		for index in practice_foes.size():
+			practice_foes[index].visible = index == sim.practice.room
+		hero_visual.face(Vector3(0, 0, -1))
 	var fighting: bool = sim.activity == "fighting" and not sim.enemy_kind.is_empty()
 	var enemy_position: Vector3 = sim.hero_position + Vector3(1.15, 0.0, -0.45) * float(ENEMY_REACH.get(sim.enemy_kind, 1.0))
 
-	if fighting:
+	if sim.activity == "fishing":
+		hero_visual.face(Vector3.LEFT)
+	elif sim.activity == "practice":
+		hero_visual.face(Vector3(0, 0, -1))
+	elif fighting:
 		hero_visual.face(enemy_position - sim.hero_position)
 	else:
 		hero_visual.face(sim.hero_position - hero_visual.position)
 	hero_visual.show_identity(sim.identity.palette, sim.thornback_rank > 0)
 	hero_visual.position = sim.hero_position
-	hero_visual.set_state(str(ACTIVITY_POSES.get(sim.activity, "idle")))
+	hero_visual.set_state("attack" if sim.activity == "practice" else str(ACTIVITY_POSES.get(sim.activity, "idle")))
 	var pulse_scale: float = 1.06 if talent_proc_pulse > 0.0 else 1.0
 	hero_visual.scale = Vector3.ONE * pulse_scale
 	if talent_proc_visual != null:
@@ -503,6 +556,10 @@ func _build_ui() -> void:
 	relic_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	relic_button.pressed.connect(func() -> void: _toggle_sheet(relic_panel))
 	pursuits.add_child(relic_button)
+	var practice_button := UiStyleScript.button("Practice")
+	practice_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	practice_button.pressed.connect(func() -> void: _toggle_sheet(practice_panel))
+	pursuits.add_child(practice_button)
 
 	var actions := HBoxContainer.new()
 	actions.add_theme_constant_override("separation", 8)
@@ -616,6 +673,11 @@ func _build_ui() -> void:
 	canvas.add_child(fishing_panel)
 	fishing_panel.setup(sim)
 	fishing_panel.changed.connect(_save_now)
+	practice_panel = PracticeScreenScript.new()
+	practice_panel.visible = false
+	canvas.add_child(practice_panel)
+	practice_panel.setup(sim)
+	practice_panel.changed.connect(_save_now)
 	chronicle_panel = ChronicleScreenScript.new()
 	chronicle_panel.visible = false
 	canvas.add_child(chronicle_panel)
@@ -674,7 +736,7 @@ func _refresh_wallet(_tokens: int) -> void:
 
 # Only one sheet, drawer or report is open at a time.
 func _close_drawers() -> void:
-	for sheet in [equipment_panel, talent_panel, boss_panel, gacha_panel, adventure_panel, loadout_panel, relic_panel, chronicle_panel, journal_panel, identity_panel, fishing_panel, dev_panel, return_panel]:
+	for sheet in [equipment_panel, talent_panel, boss_panel, gacha_panel, adventure_panel, loadout_panel, relic_panel, chronicle_panel, journal_panel, identity_panel, fishing_panel, practice_panel, dev_panel, return_panel]:
 		if sheet != null:
 			sheet.visible = false
 
@@ -728,6 +790,8 @@ func _open_chronicle_route(route: String) -> void:
 func _open_chronicle_destination(route: String, target: String) -> void:
 	_close_drawers()
 	match route:
+		"practice":
+			practice_panel.open()
 		"fishing":
 			fishing_panel.open()
 		"journal":
@@ -838,6 +902,8 @@ func _format_return_report(report: Dictionary) -> String:
 		lines.append("+%d earned summon tokens." % int(report["tokens"]))
 	if int(report.get("fish_catches", 0)) > 0:
 		lines.append("%d passive catches at Mossgate Pond." % int(report["fish_catches"]))
+	if int(report.get("practice_clears", 0)) > 0:
+		lines.append("%d practice dungeon clear(s) with NPC allies." % int(report["practice_clears"]))
 	if quests > 0:
 		lines.append("%d quest%s completed." % [quests, "" if quests == 1 else "s"])
 	if kills > 0:
