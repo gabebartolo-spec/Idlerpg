@@ -6,4 +6,6 @@ Keep the same signing key as your existing installed build. If Android rejects a
 
 Record the exact source commit and compute the APK SHA-256, for example with PowerShell `Get-FileHash -Algorithm SHA256 -LiteralPath '<your APK path>'`. Complete EVIDENCE.md on a real phone before distributing broadly.
 
+The Android preset's resources have separately passed exported-pack launch, model/icon, chest and fresh-save progression checks. This catches packaging omissions; it does not replace your APK export or phone playtest. There is no requirement to set up the desktop SDK for this resource check.
+
 Guild play needs a separately deployed reachable HTTPS service. Set its address in More → Guild → Connection. A successful APK export does not establish that the service is reachable or that device play has been checked.
