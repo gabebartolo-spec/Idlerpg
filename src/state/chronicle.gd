@@ -10,12 +10,12 @@ var sequence: int = 0
 func remember(key: String) -> void:
 	seen[key] = true
 
-func record(key: String, message: String, route: String, priority: int) -> void:
+func record(key: String, message: String, route: String, priority: int, target: String = "") -> void:
 	if seen.has(key):
 		return
 	remember(key)
 	sequence += 1
-	entries.append({"id": sequence, "key": key, "message": message, "route": route, "priority": priority})
+	entries.append({"id": sequence, "key": key, "message": message, "route": route, "priority": priority, "target": target})
 	if entries.size() > LIMIT:
 		entries.pop_front()
 
@@ -23,7 +23,7 @@ func observe(event: Dictionary) -> void:
 	var kind := str(event.get("type", ""))
 	match kind:
 		"relic_obtained":
-			record("relic:" + str(event["relic"]), str(event["message"]), "relics", 75)
+			record("relic:" + str(event["relic"]), str(event["message"]), "relics", 75, str(event["relic"]))
 		"goal_completed":
 			record("goal:" + str(event["goal"]), str(event["message"]), str(event["route"]), 85)
 		"enemy_defeated":
@@ -35,9 +35,9 @@ func observe(event: Dictionary) -> void:
 			record("boss:first", "First boss victory! " + str(event["message"]), "boss", 100)
 		"gear_obtained":
 			if bool(event.get("useful", false)):
-				record("gear:" + str(event["gear"]), "A build option: " + str(event["message"]), "gear", 80)
+				record("gear:" + str(event["gear"]), "A build option: " + str(event["message"]), "gear", 80, str(event["gear"]))
 		"companion_bond_up":
-			record("bond:%s:%d" % [event["companion"], event["bond_level"]], str(event["message"]), "companions", 70)
+			record("bond:%s:%d" % [event["companion"], event["bond_level"]], str(event["message"]), "companions", 70, str(event["companion"]))
 		"boss_lost":
 			if bool(event.get("close", false)):
 				record("close:thornback", "Nearly won: " + str(event["message"]) + " Review your boss preparation.", "boss", 90)
@@ -77,7 +77,7 @@ func load_save_dict(data: Dictionary) -> void:
 		var id := int(raw["id"])
 		if id <= 0 or (not entries.is_empty() and id <= int(entries.back()["id"])):
 			continue
-		entries.append({"id": id, "key": str(raw["key"]), "message": str(raw["message"]), "route": str(raw["route"]), "priority": int(raw["priority"])})
+		entries.append({"id": id, "key": str(raw["key"]), "message": str(raw["message"]), "route": str(raw["route"]), "priority": int(raw["priority"]), "target": str(raw.get("target", ""))})
 		sequence = maxi(sequence, id)
 		remember(str(raw["key"]))
 	while entries.size() > LIMIT:

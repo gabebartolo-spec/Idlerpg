@@ -5,6 +5,7 @@ var sim: Node
 var list: Control
 var selected: String = ""
 var routes: Dictionary = {}
+var targets: Dictionary = {}
 var rows: Dictionary = {}
 var act_button: Button
 
@@ -27,6 +28,7 @@ func refresh() -> void:
 		return
 	clear_list(list)
 	routes.clear()
+	targets.clear()
 	rows.clear()
 	selected = ""
 	act_button.disabled = true
@@ -40,6 +42,7 @@ func refresh() -> void:
 	for entry in entries:
 		var key := str(entry["id"])
 		routes[key] = str(entry["route"])
+		targets[key] = str(entry.get("target", ""))
 		var row := make_row(key, 112.0)
 		rows[key] = row
 		var words := Style.label(str(entry["message"]), 22)

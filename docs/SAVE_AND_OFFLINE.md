@@ -22,7 +22,7 @@ Beside `user://idle_rpg_save.json`:
 
 ## Saving
 
-1. The new save is written to the `.tmp` file and read back to check it is complete.
+1. The new save is written to the `.tmp` file, flushed, and read back to check it is complete.
 2. The current save becomes the `.bak` file, but only if it still reads correctly, so a
    damaged save never replaces a good backup.
 3. The `.tmp` file becomes the save.
@@ -47,13 +47,19 @@ What the player sees on the return screen:
 | The device clock is behind the save | "The device clock is behind your last save, so no time away was counted." |
 | The return could not be saved | "This return could not be saved yet." |
 
-When nothing can be read, the save is renamed to `.unreadable` before the new game writes
-anything. A save from a newer build is treated the same way, so installing an older build
-cannot overwrite it.
+When nothing can be read, a damaged save is renamed to `.unreadable` before the new game
+writes anything. Existing archives are preserved with numbered suffixes such as
+`.unreadable.2`. Direct saves also preserve damaged primaries this way and stop if archival
+fails. Versions and timestamps reject strings, fractions, booleans and invalid numbers.
+
+A save from a newer build stays in place. Loading stops before falling back to older data,
+and saving refuses to replace newer primary, temporary or backup data. The return screen
+tells the player to update the game to continue. Rename helpers check the source before
+removing a destination and return immediately if destination removal fails.
 
 ## Versions
 
-`SAVE_VERSION` is 3. `_migrate` in `src/state/persistence.gd` upgrades older saves one
+`SAVE_VERSION` is 4. `_migrate` in `src/state/persistence.gd` upgrades older saves one
 version at a time, and a loaded save is immediately rewritten in the current format.
 
 | Version | Change |
@@ -61,6 +67,7 @@ version at a time, and a loaded save is immediately rewritten in the current for
 | 1 | first format |
 | 2 | the gacha generator's seed and state are saved in `game` |
 | 3 | Old Thornback's rank, the boss fight tally and world hunts are saved in `sim`; numbers are written at full precision |
+| 4 | bounded chronicle milestones, deduplication IDs and event sequence; legacy history is not fabricated |
 
 A version 1 save loads with all its progress. It has no generator state, so it keeps a
 freshly randomised generator, exactly as before.

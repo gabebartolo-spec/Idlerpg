@@ -23,6 +23,14 @@ var sim: Node
 var game: Node
 var selected: String = ""
 var slot_filter: String = ""
+var upgrades_first: bool = false
+var worn_only: bool = false
+var pending_disposal: String = ""
+var confirmation_seconds: float = 0.0
+var sort_button: Button
+var worn_button: Button
+var favourite_button: Button
+var inventory_caption: String = ""
 
 var list: Control
 var stats_label: Label
@@ -32,6 +40,7 @@ var detail_compare: Label
 var equip_button: Button
 var sell_button: Button
 var salvage_button: Button
+var lock_button: Button
 var slot_buttons: Dictionary = {}
 var rows: Dictionary = {}
 
@@ -39,15 +48,26 @@ func setup(sim_node: Node, game_node: Node) -> void:
 	sim = sim_node
 	game = game_node
 	_build()
+	visibility_changed.connect(_cancel_disposal)
 	refresh()
 
 func select(item_name: String) -> void:
+	if item_name not in visible_items():
+		return
+	_cancel_disposal()
 	selected = item_name
 	_restyle_rows()
 	refresh_detail()
 
 func set_slot_filter(slot_name: String) -> void:
+	if not slot_name.is_empty() and slot_name not in SLOTS:
+		return
+	if slot_name == slot_filter:
+		return
 	slot_filter = slot_name
+	_cancel_disposal()
+	if not selected.is_empty() and not slot_name.is_empty() and GearCatalogScript.slot(selected) != slot_name:
+		selected = ""
 	list.scroll_to(0.0)
 	refresh()
 
@@ -55,11 +75,22 @@ func visible_items() -> Array[String]:
 	var names: Array[String] = []
 	for item_name in sim.owned_gear_names():
 		if slot_filter.is_empty() or GearCatalogScript.slot(item_name) == slot_filter:
+			if worn_only and sim.equipped_item(GearCatalogScript.slot(item_name)) != item_name:
+				continue
 			names.append(item_name)
 	names.sort_custom(_before)
 	return names
 
 func _before(a: String, b: String) -> bool:
+	if upgrades_first:
+		var delta_a := _change(a, str(sim.equipped_item(GearCatalogScript.slot(a))))
+		var delta_b := _change(b, str(sim.equipped_item(GearCatalogScript.slot(b))))
+		var better_a := delta_a.x >= 0 and delta_a.y >= 0 and delta_a != Vector2i.ZERO
+		var better_b := delta_b.x >= 0 and delta_b.y >= 0 and delta_b != Vector2i.ZERO
+		if better_a != better_b:
+			return better_a
+	if game.is_favourite(a) != game.is_favourite(b):
+		return game.is_favourite(a)
 	var slot_a := SLOTS.find(GearCatalogScript.slot(a))
 	var slot_b := SLOTS.find(GearCatalogScript.slot(b))
 	if slot_a != slot_b:
@@ -71,7 +102,7 @@ func _before(a: String, b: String) -> bool:
 	return a < b
 
 func _build() -> void:
-	var column := build_sheet("Gear")
+	var column := build_sheet("Gear", 0.26)
 	stats_label = subtitle_label
 
 	var slots := HBoxContainer.new()
@@ -86,10 +117,21 @@ func _build() -> void:
 		chip.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		chip.add_theme_font_size_override("font_size", 15)
 		chip.add_theme_color_override("font_color", Style.TEXT)
+		chip.tooltip_text = str(SLOT_LABELS[slot_name])
 		chip.pressed.connect(set_slot_filter.bind(slot_name))
 		slots.add_child(chip)
 		slot_buttons[slot_name] = chip
 
+	var browse := HBoxContainer.new()
+	column.add_child(browse)
+	sort_button = Style.button("By slot")
+	sort_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	sort_button.pressed.connect(_toggle_sort)
+	browse.add_child(sort_button)
+	worn_button = Style.button("Show worn")
+	worn_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	worn_button.pressed.connect(_toggle_worn)
+	browse.add_child(worn_button)
 	caption_label = Style.label("", 18, Style.MUTED)
 	column.add_child(caption_label)
 
@@ -98,9 +140,20 @@ func _build() -> void:
 	add_line(column)
 
 	# Comparison and actions stay pinned under the list, always within reach.
+	var selection_row := HBoxContainer.new()
+	column.add_child(selection_row)
 	detail_name = Style.label("", 22)
+	detail_name.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	detail_name.clip_text = true
-	column.add_child(detail_name)
+	selection_row.add_child(detail_name)
+	favourite_button = Style.button("☆")
+	favourite_button.custom_minimum_size.x = Style.TOUCH
+	favourite_button.tooltip_text = "Favourite this item"
+	favourite_button.pressed.connect(_toggle_favourite)
+	selection_row.add_child(favourite_button)
+	lock_button = Style.button("Lock")
+	lock_button.pressed.connect(_toggle_lock)
+	selection_row.add_child(lock_button)
 	detail_compare = Style.label("", 19, Style.MUTED)
 	detail_compare.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	detail_compare.custom_minimum_size = Vector2(0.0, 56.0)
@@ -126,7 +179,7 @@ func _build() -> void:
 func refresh() -> void:
 	if list == null:
 		return
-	if not selected.is_empty() and sim.gear_count(selected) <= 0:
+	if not selected.is_empty() and selected not in visible_items():
 		selected = ""
 
 	stats_label.text = "Attack %d · Health %d" % [sim.effective_attack(), sim.effective_max_hp()]
@@ -141,11 +194,14 @@ func refresh() -> void:
 			chip.add_theme_stylebox_override(state, style)
 
 	var names := visible_items()
-	caption_label.text = "%s · %d item%s" % [
+	inventory_caption = "%s · %d item%s" % [
 		"All gear" if slot_filter.is_empty() else str(SLOT_LABELS[slot_filter]),
 		names.size(),
 		"" if names.size() == 1 else "s"
 	]
+	_refresh_balances()
+	sort_button.text = "Upgrades first" if upgrades_first else "By slot"
+	worn_button.text = "Show all" if worn_only else "Show worn"
 
 	clear_list(list)
 	rows.clear()
@@ -188,6 +244,10 @@ func _make_row(item_name: String) -> Control:
 	var about := Style.label("%s %s · %s" % [
 		GearCatalogScript.rarity(item_name), str(SLOT_LABELS[slot_name]).to_lower(), _stats(item_name)
 	], 17, Style.MUTED)
+	if game.is_locked(item_name):
+		about.text = "Locked · " + about.text
+	if game.is_favourite(item_name):
+		about.text = "★ " + about.text
 	about.clip_text = true
 	words.add_child(about)
 
@@ -212,6 +272,10 @@ func refresh_detail() -> void:
 		return
 	var has_item: bool = not selected.is_empty() and sim.gear_count(selected) > 0
 	equip_button.disabled = not has_item
+	favourite_button.disabled = not has_item
+	favourite_button.text = "★" if has_item and game.is_favourite(selected) else "☆"
+	lock_button.disabled = not has_item
+	lock_button.text = "Unlock" if has_item and game.is_locked(selected) else "Lock"
 	if not has_item:
 		detail_name.text = "Tap an item to compare it"
 		detail_name.add_theme_color_override("font_color", Style.MUTED)
@@ -227,7 +291,8 @@ func refresh_detail() -> void:
 	var slot_name: String = GearCatalogScript.slot(selected)
 	var worn: String = str(sim.equipped_item(slot_name))
 	var is_worn: bool = worn == selected
-	detail_name.text = "%s · %s" % [selected, _stats(selected)]
+	detail_name.text = "%s ×%d · %s" % [selected, sim.gear_count(selected), _stats(selected)]
+	detail_name.tooltip_text = GearCatalogScript.source_text(selected)
 	detail_name.add_theme_color_override("font_color", Style.rarity_colour(GearCatalogScript.rarity(selected)))
 
 	var locked: bool = game.is_locked(selected)
@@ -240,16 +305,30 @@ func refresh_detail() -> void:
 		detail_compare.add_theme_color_override("font_color", _change_colour(change))
 	if locked:
 		detail_compare.text += " · Locked"
+	elif not sim.can_dispose_gear(selected):
+		detail_compare.text += " · Take off before disposing of your last copy"
 	var effect_text: String = GearCatalogScript.effect_text(selected)
 	if not effect_text.is_empty():
 		detail_compare.text += "\n" + effect_text
+	var source_text := GearCatalogScript.source_text(selected)
+	if not source_text.is_empty():
+		detail_compare.text += "\nSource: " + source_text
 
 	equip_button.text = "Take off" if is_worn else "Equip"
 	sell_button.text = "Sell +%dg" % GearCatalogScript.sell_value(selected)
 	salvage_button.text = "Salvage +%d" % GearCatalogScript.salvage_tokens(selected)
 	var can_dispose: bool = sim.can_dispose_gear(selected) and not locked
 	sell_button.disabled = not can_dispose
-	salvage_button.disabled = not can_dispose
+	salvage_button.disabled = not can_dispose or GearCatalogScript.salvage_tokens(selected) <= 0
+	if GearCatalogScript.salvage_tokens(selected) <= 0:
+		salvage_button.text = "No tokens"
+		salvage_button.tooltip_text = "World loot gives no salvage tokens. Sell it for gold instead."
+	else:
+		salvage_button.tooltip_text = ""
+	if pending_disposal == "sell":
+		sell_button.text = "Confirm sell"
+	elif pending_disposal == "salvage":
+		salvage_button.text = "Confirm salvage"
 
 func _stats(item_name: String) -> String:
 	var parts: Array[String] = []
@@ -297,17 +376,78 @@ func _equip_selected() -> void:
 		gear_changed.emit()
 
 func _sell_selected() -> void:
-	if selected.is_empty() or game.is_locked(selected):
+	if selected.is_empty() or game.is_locked(selected) or not sim.can_dispose_gear(selected):
+		return
+	if not _confirm_disposal("sell"):
 		return
 	if bool(sim.sell_gear(selected).get("ok", false)):
 		refresh()
 		gear_changed.emit()
 
 func _salvage_selected() -> void:
-	if selected.is_empty() or game.is_locked(selected):
+	if selected.is_empty() or game.is_locked(selected) or not sim.can_dispose_gear(selected) or GearCatalogScript.salvage_tokens(selected) <= 0:
+		return
+	if not _confirm_disposal("salvage"):
 		return
 	var result: Dictionary = sim.salvage_gear(selected)
 	if bool(result.get("ok", false)):
 		game.grant_tokens(int(result.get("tokens", 0)))
 		refresh()
 		gear_changed.emit()
+
+func _toggle_lock() -> void:
+	if selected.is_empty() or sim.gear_count(selected) <= 0:
+		return
+	game.set_locked(selected, not game.is_locked(selected))
+	_cancel_disposal()
+	refresh()
+	gear_changed.emit()
+
+func _toggle_favourite() -> void:
+	if selected.is_empty() or sim.gear_count(selected) <= 0:
+		return
+	game.set_favourite(selected, not game.is_favourite(selected))
+	refresh()
+	gear_changed.emit()
+
+func _toggle_sort() -> void:
+	upgrades_first = not upgrades_first
+	_cancel_disposal()
+	list.scroll_to(0.0)
+	refresh()
+
+func _toggle_worn() -> void:
+	worn_only = not worn_only
+	_cancel_disposal()
+	list.scroll_to(0.0)
+	refresh()
+
+func _confirm_disposal(action: String) -> bool:
+	if GearCatalogScript.rarity(selected) not in ["Epic", "Legendary"]:
+		return true
+	if pending_disposal == action and confirmation_seconds > 0.0:
+		pending_disposal = ""
+		confirmation_seconds = 0.0
+		return true
+	pending_disposal = action
+	confirmation_seconds = 5.0
+	refresh_detail()
+	return false
+
+func _cancel_disposal() -> void:
+	pending_disposal = ""
+	confirmation_seconds = 0.0
+	if detail_name != null:
+		refresh_detail()
+
+func _refresh_balances() -> void:
+	caption_label.text = inventory_caption + " · Gold %d · Tokens %s" % [sim.gold, "∞" if game.dev_infinite_tokens else str(game.gacha_tokens)]
+
+func _process(delta: float) -> void:
+	if not is_visible_in_tree() or sim == null:
+		return
+	_refresh_balances()
+	if confirmation_seconds > 0.0:
+		confirmation_seconds -= delta
+		if confirmation_seconds <= 0.0:
+			_cancel_disposal()

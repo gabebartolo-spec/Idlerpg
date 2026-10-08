@@ -31,6 +31,8 @@ func setup(sim_node: Node) -> void:
 	refresh()
 
 func show_branch(branch_id: String) -> void:
+	if branch_id == branch:
+		return
 	branch = branch_id
 	selected = ""
 	list.scroll_to(0.0)
@@ -85,8 +87,15 @@ func refresh() -> void:
 	if list == null:
 		return
 	var points: int = sim.talent_points_available()
+	reset_button.disabled = sim.talent_points_spent() == 0
 	subtitle_label.text = "%d point%s to spend · %s" % [points, "" if points == 1 else "s", sim.build_summary()]
 	mark_tabs(tabs, branch)
+	for branch_id in tabs:
+		var learned := 0
+		for talent_id in TalentCatalogScript.nodes_for_branch(branch_id):
+			if sim.has_talent(talent_id):
+				learned += 1
+		(tabs[branch_id] as Button).text = "%s %d/%d" % [TalentCatalogScript.branch_label(branch_id), learned, TalentCatalogScript.nodes_for_branch(branch_id).size()]
 
 	clear_list(list)
 	rows.clear()
@@ -130,7 +139,7 @@ func refresh_detail() -> void:
 	detail_name.text = TalentCatalogScript.talent_name(selected)
 	detail_name.add_theme_color_override("font_color", Style.ACCENT if sim.has_talent(selected) else Style.TEXT)
 	detail_text.text = "%s %s." % [TalentCatalogScript.description(selected), _state_text(selected)]
-	learn_button.text = "Learned" if sim.has_talent(selected) else "Learn"
+	learn_button.text = "Learned" if sim.has_talent(selected) else "Learn · 1 point"
 	learn_button.disabled = not sim.can_unlock_talent(selected)
 
 func _state_text(talent_id: String) -> String:
@@ -149,6 +158,8 @@ func _state_colour(talent_id: String) -> Color:
 	return Style.BETTER if sim.can_unlock_talent(talent_id) else Style.MUTED
 
 func _reset() -> void:
+	if sim.talent_points_spent() == 0:
+		return
 	sim.reset_talents()
 	refresh()
 	talents_changed.emit()

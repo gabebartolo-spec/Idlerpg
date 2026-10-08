@@ -100,6 +100,25 @@ func _run() -> void:
 	gear.set_slot_filter("weapon")
 	gear.select("Briarhook")
 	await _snap("gear_world_item")
+	gear.set_slot_filter("")
+	gear.select("Crownblade")
+	gear._toggle_favourite()
+	gear._toggle_sort()
+	await _snap("gear_upgrades")
+	gear._toggle_worn()
+	await _snap("gear_worn")
+	gear._toggle_worn()
+	gear.select("Crownblade")
+	gear._sell_selected()
+	await _snap("gear_confirm_sale")
+	gear._cancel_disposal()
+
+	main.call("_toggle_sheet", main.get("chronicle_panel"))
+	await _snap("chronicle")
+	main.call("_show_return_report", {"loaded": true, "elapsed_actual": 7200, "quests": 24, "kills": 120, "gold": 950,
+		"highlights": sim.chronicle.highlights_since(0), "levels": 3, "talent_points": 3,
+		"gear": {"Briarheart Charm": 1, "Crownblade": 1}})
+	await _snap("return_highlights")
 
 	main.free()
 	for path in PersistenceScript.files_for():

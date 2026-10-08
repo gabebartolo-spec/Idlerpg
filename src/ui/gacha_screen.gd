@@ -13,6 +13,7 @@ signal collection_changed
 const ArtCatalogScript = preload("res://src/data/art_catalog.gd")
 const RelicCatalogScript = preload("res://src/data/relic_catalog.gd")
 const CompanionCatalogScript = preload("res://src/data/companion_catalog.gd")
+const GearCatalogScript = preload("res://src/data/gear_catalog.gd")
 
 const BANNERS := [["gear", "Gear"], ["companions", "Companions"], ["relics", "Relics"]]
 const MODES := [["summon", "Summon"], ["collection", "Collection"], ["history", "History"]]
@@ -25,6 +26,8 @@ var game: Node
 var banner: String = "gear"
 var mode: String = "summon"
 var selected_item: String = ""
+var banner_results: Dictionary = {}
+var collection_offsets: Dictionary = {}
 
 var mode_tabs: Dictionary = {}
 var banner_tabs: Dictionary = {}
@@ -56,13 +59,26 @@ func show_mode(next_mode: String) -> void:
 	refresh()
 
 func select_banner(banner_id: String) -> void:
+	if banner_id == banner or not game.BANNERS.has(banner_id):
+		return
+	collection_offsets[banner] = collection_list.offset
 	if banner_id != banner:
 		selected_item = ""
 		collection_list.scroll_to(0.0)
 	banner = banner_id
+	var result: Dictionary = banner_results.get(banner, {})
+	_show_results(str(result.get("summary", "Pick a banner and summon.")), result.get("items", []))
 	refresh()
+	_restore_collection_position(banner_id)
+
+func _restore_collection_position(banner_id: String) -> void:
+	await get_tree().process_frame
+	if banner == banner_id:
+		collection_list.scroll_to(float(collection_offsets.get(banner_id, 0.0)))
 
 func select_item(item_name: String) -> void:
+	if _owned_count(banner, item_name) <= 0:
+		return
 	selected_item = item_name
 	restyle_rows(rows, selected_item)
 	refresh_detail()
@@ -70,6 +86,9 @@ func select_item(item_name: String) -> void:
 func refresh_wallet() -> void:
 	if subtitle_label != null:
 		subtitle_label.text = "Tokens: ∞ (dev)" if game.dev_infinite_tokens else "Tokens: %d" % game.gacha_tokens
+	if summon_one != null:
+		summon_one.disabled = not game.dev_infinite_tokens and game.gacha_tokens < game.SUMMON_COST
+		summon_ten.disabled = not game.dev_infinite_tokens and game.gacha_tokens < game.SUMMON_COST * 10
 
 func summon(count: int) -> void:
 	var response: Dictionary = game.pull(banner, count)
@@ -90,13 +109,15 @@ func summon(count: int) -> void:
 			new_count += 1
 		if banner == "gear":
 			sim.add_gear(item_name)
-		if is_new or rarity == "Epic" or rarity == "Legendary":
+		if count <= 10 or is_new or rarity == "Epic" or rarity == "Legendary":
 			highlights.append(result)
 
-	_show_results("Pulled %d · %d new · %d common · %d rare · %d epic · %d legendary" % [
+	var summary := "Pulled %d · %d new · %d common · %d rare · %d epic · %d legendary" % [
 		results.size(), new_count, rarity_counts["Common"], rarity_counts["Rare"],
 		rarity_counts["Epic"], rarity_counts["Legendary"]
-	], highlights)
+	]
+	banner_results[banner] = {"summary": summary, "items": highlights.duplicate(true)}
+	_show_results(summary, highlights)
 	refresh()
 	summoned.emit()
 
@@ -127,21 +148,21 @@ func use_item() -> void:
 	companion_changed.emit()
 
 func toggle_favourite() -> void:
-	if selected_item.is_empty():
+	if selected_item.is_empty() or _owned_count(banner, selected_item) <= 0:
 		return
 	game.set_favourite(selected_item, not game.is_favourite(selected_item))
 	refresh()
 	collection_changed.emit()
 
 func toggle_lock() -> void:
-	if selected_item.is_empty():
+	if selected_item.is_empty() or _owned_count(banner, selected_item) <= 0:
 		return
 	game.set_locked(selected_item, not game.is_locked(selected_item))
 	refresh()
 	collection_changed.emit()
 
 func _build() -> void:
-	var column := build_sheet("Gacha")
+	var column := build_sheet("Gacha", 0.30)
 	mode_tabs = add_tabs(column, MODES, show_mode)
 	banner_tabs = add_tabs(column, BANNERS, select_banner)
 	banner_label = Style.label("", 19, Style.MUTED)
@@ -150,15 +171,16 @@ func _build() -> void:
 
 	summon_view = _view(column)
 	results_list = add_list(summon_view)
+	results_list.row_tapped.connect(_on_result_row)
 	add_line(summon_view)
 	var summon_row := HBoxContainer.new()
 	summon_row.add_theme_constant_override("separation", 10)
 	summon_view.add_child(summon_row)
-	summon_one = Style.button("Summon ×1 · %d" % game.SUMMON_COST)
+	summon_one = Style.button("Summon ×1 · %d tokens" % game.SUMMON_COST)
 	summon_one.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	summon_one.pressed.connect(summon.bind(1))
 	summon_row.add_child(summon_one)
-	summon_ten = Style.button("Summon ×10 · %d" % (game.SUMMON_COST * 10), true)
+	summon_ten = Style.button("Summon ×10 · %d tokens" % (game.SUMMON_COST * 10), true)
 	summon_ten.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	summon_ten.pressed.connect(summon.bind(10))
 	summon_row.add_child(summon_ten)
@@ -225,6 +247,8 @@ func refresh() -> void:
 		game.banner_label(banner), _owned_unique(), game.banner_item_count(banner),
 		pity, "" if pity == 1 else "s"
 	]
+	var chances: Dictionary = game.RARITY_CHANCES
+	banner_label.text += "\nBase odds: %d%% common · %d%% rare · %d%% epic · %d%% legendary" % [chances["Common"], chances["Rare"], chances["Epic"], chances["Legendary"]]
 	if mode == "collection":
 		_rebuild_collection()
 	elif mode == "history":
@@ -248,7 +272,7 @@ func _show_results(summary: String, highlights: Array) -> void:
 		title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		title.clip_text = true
 		line.add_child(title)
-		line.add_child(Style.label("New · %s" % rarity if bool(result.get("is_new", false)) else rarity, 18, Style.MUTED))
+		line.add_child(Style.label("New · %s" % rarity if bool(result.get("is_new", false)) else "%s · copy %d" % [rarity, int(result.get("copy", 1))], 18, Style.MUTED))
 		results_list.content.add_child(row)
 	if highlights.size() > MAX_HIGHLIGHTS:
 		results_list.content.add_child(Style.label("and %d more" % (highlights.size() - MAX_HIGHLIGHTS), 18, Style.MUTED))
@@ -264,9 +288,10 @@ func _rebuild_collection() -> void:
 	# What you own comes first; what is still to find follows, dimmed.
 	var names: Array[String] = []
 	for owned in [true, false]:
-		for item_name in game.collection_items(banner):
-			if (_owned_count(banner, item_name) > 0) == owned:
-				names.append(item_name)
+		for favourite in [true, false]:
+			for item_name in game.collection_items(banner):
+				if (_owned_count(banner, item_name) > 0) == owned and game.is_favourite(item_name) == favourite:
+					names.append(item_name)
 	for item_name in names:
 		var rarity: String = game.item_rarity(banner, item_name)
 		var count: int = _owned_count(banner, item_name)
@@ -343,6 +368,13 @@ func refresh_detail() -> void:
 		use_button.text = "Unequip relic" if sim.active_relic == selected_item else "Equip relic"
 	else:
 		detail_text.text = "%s from the %s." % [game.item_rarity(banner, selected_item), game.banner_label(banner)]
+		if banner == "relics":
+			detail_text.text += " Collection only: relics have no gameplay effect yet."
+		if banner == "gear":
+			detail_text.text = "+%d attack · +%d health" % [GearCatalogScript.attack_bonus(selected_item), GearCatalogScript.hp_bonus(selected_item)]
+			var effect_text := GearCatalogScript.effect_text(selected_item)
+			if not effect_text.is_empty():
+				detail_text.text += "\n" + effect_text
 	favourite_button.text = "Unfavourite" if game.is_favourite(selected_item) else "Favourite"
 	lock_button.text = "Unlock" if game.is_locked(selected_item) else "Lock"
 
@@ -368,7 +400,18 @@ func _rebuild_history() -> void:
 		var title := Style.label(str(entry.get("name", "?")), 21, Style.rarity_colour(rarity))
 		title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		title.clip_text = true
-		line.add_child(title)
+		var words := VBoxContainer.new()
+		words.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		words.add_child(title)
+		words.add_child(Style.label(game.banner_label(str(entry.get("banner", ""))), 17, Style.MUTED))
+		line.add_child(words)
 		var copy: int = int(entry.get("copy", 1))
 		line.add_child(Style.label("New · %s" % rarity if bool(entry.get("is_new", false)) else "%s · copy %d" % [rarity, copy], 18, Style.MUTED))
+		row.tooltip_text = game.banner_label(str(entry.get("banner", "")))
 		history_list.content.add_child(row)
+
+func _on_result_row(row: Control) -> void:
+	if not row.has_meta("key"):
+		return
+	show_mode("collection")
+	select_item(str(row.get_meta("key")))

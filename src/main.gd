@@ -13,7 +13,7 @@ const GachaScreenScript = preload("res://src/ui/gacha_screen.gd")
 const RelicScreenScript = preload("res://src/ui/relic_screen.gd")
 const LoadoutScreenScript = preload("res://src/ui/loadout_screen.gd")
 const AdventureScreenScript = preload("res://src/ui/adventure_screen.gd")
-const SheetScript = preload("res://src/ui/sheet.gd")
+const ReturnScreenScript = preload("res://src/ui/return_screen.gd")
 const ChronicleScreenScript = preload("res://src/ui/chronicle_screen.gd")
 const BossScreenScript = preload("res://src/ui/boss_screen.gd")
 const UiStyleScript = preload("res://src/ui/ui_style.gd")
@@ -59,7 +59,6 @@ var chronicle_panel: Control
 var adventure_panel: Control
 var loadout_panel: Control
 var relic_panel: Control
-var return_highlights: VBoxContainer
 var talent_button: Button
 var talent_proc_pulse: float = 0.0
 var dev_panel: VBoxContainer
@@ -574,25 +573,15 @@ func _build_ui() -> void:
 	chronicle_panel.visible = false
 	canvas.add_child(chronicle_panel)
 	chronicle_panel.setup(sim)
-	chronicle_panel.route_requested.connect(_open_chronicle_route)
+	chronicle_panel.route_requested.connect(func(route: String) -> void: _open_chronicle_destination(route, str(chronicle_panel.targets.get(chronicle_panel.selected, ""))))
 
-	return_panel = SheetScript.new()
+	return_panel = ReturnScreenScript.new()
 	return_panel.visible = false
 	canvas.add_child(return_panel)
-	var return_column: VBoxContainer = return_panel.build_sheet("While you were away")
-	return_panel.subtitle_label.text = "Your adventurer kept living"
-	var return_list: Control = return_panel.add_list(return_column)
-	return_label = UiStyleScript.label("", 22)
-	return_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	return_list.content.add_child(return_label)
-	return_highlights = VBoxContainer.new()
-	return_highlights.add_theme_constant_override("separation", 12)
-	return_list.content.add_child(return_highlights)
-	return_list.content.move_child(return_highlights, 0)
-	return_talent_button = UiStyleScript.button("Spend talent points", true)
-	return_talent_button.visible = false
-	return_talent_button.pressed.connect(_open_talents_from_return)
-	return_column.add_child(return_talent_button)
+	return_panel.setup()
+	return_panel.destination_requested.connect(_open_chronicle_destination)
+	return_panel.talents_requested.connect(_open_talents_from_return)
+	return_talent_button = return_panel.talent_button
 
 func _rebuild_equipment_panel() -> void:
 	if equipment_panel != null and equipment_panel.visible:
@@ -675,43 +664,42 @@ func _dev_stress_pull() -> void:
 	_summon(100)
 
 func _show_return_report(report: Dictionary) -> void:
-	if return_panel == null or return_label == null:
+	if return_panel == null:
 		return
-	return_label.text = _format_return_report(report)
-	for child in return_highlights.get_children():
-		return_highlights.remove_child(child)
-		child.queue_free()
-	for entry in report.get("highlights", []):
-		var route := str(entry.get("route", ""))
-		if route.is_empty():
-			var words := UiStyleScript.label(str(entry["message"]), 20)
-			words.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-			return_highlights.add_child(words)
-		else:
-			var action := UiStyleScript.button(str(entry["message"]) + "  · Review")
-			action.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-			action.pressed.connect(_open_chronicle_route.bind(route))
-			return_highlights.add_child(action)
+	_close_drawers()
+	return_panel.show_report(report, _format_return_report(report))
+	return_label = return_panel.summary
 	if return_talent_button != null:
 		var earned_points: int = int(report.get("talent_points", 0))
 		return_talent_button.visible = earned_points > 0 and sim.talent_points_available() > 0
 		return_talent_button.text = "Spend talent point" if sim.talent_points_available() == 1 else "Spend talent points"
-	_close_drawers()
 	return_panel.visible = true
 
 func _open_chronicle_route(route: String) -> void:
+	_open_chronicle_destination(route, "")
+
+func _open_chronicle_destination(route: String, target: String) -> void:
 	_close_drawers()
 	match route:
-		"relics": relic_panel.open()
-		"gear": equipment_panel.open()
-		"boss": boss_panel.open()
-		"talents": talent_panel.open()
-		"companions":
+		"gear":
+			equipment_panel.worn_only = false
+			equipment_panel.selected = ""
+			equipment_panel.set_slot_filter("")
+			equipment_panel.open()
+			equipment_panel.select(target)
+		"relics":
+			relic_panel.open()
+		"boss":
+			boss_panel.open()
+		"talents":
+			talent_panel.open()
+		"companion", "companions":
 			gacha_panel.select_banner("companions")
 			gacha_panel.show_mode("collection")
-			if not sim.active_companion.is_empty():
-				gacha_panel.select_item(sim.active_companion)
 			gacha_panel.open()
+			gacha_panel.select_item(target if not target.is_empty() else sim.active_companion)
+		_:
+			chronicle_panel.open()
 
 func _open_talents_from_return() -> void:
 	_close_drawers()
@@ -771,6 +759,8 @@ func _close_return_report() -> void:
 
 func _format_return_report(report: Dictionary) -> String:
 	var lines: Array[String] = []
+	if bool(report.get("newer_version", false)):
+		return "Your save belongs to a newer game version. Update the game to continue. Your existing save was left untouched; this build cannot replace it."
 	if bool(report.get("save_lost", false)):
 		lines.append("Your save could not be read, so a new adventure has started.")
 		lines.append(str(report.get("error", "")))
@@ -803,7 +793,7 @@ func _format_return_report(report: Dictionary) -> String:
 	if talent_points_earned > 0:
 		lines.append("%d talent point%s ready." % [talent_points_earned, "" if talent_points_earned == 1 else "s"])
 	if deaths_while_away > 0:
-		lines.append("Defeated %d time%s, but recovered." % [deaths_while_away, "" if deaths_while_away == 1 else "s"])
+		lines.append("Defeated %d time%s. Recovery takes place in Mossgate." % [deaths_while_away, "" if deaths_while_away == 1 else "s"])
 	var boss_ranks := int(report.get("boss_ranks", 0))
 	if boss_ranks > 0:
 		lines.append("Beat Old Thornback %d time%s. It is now rank %d." % [boss_ranks, "" if boss_ranks == 1 else "s", sim.thornback_rank])
@@ -829,7 +819,7 @@ func _format_return_report(report: Dictionary) -> String:
 		lines.append("Dev: catch-up took %d ms." % int(report.get("catch_up_msec", 0)))
 
 	if lines.size() == 1:
-		lines.append("No major events. Your adventurer kept moving.")
+		lines.append("No new milestones during this return.")
 
 	return "\n".join(lines)
 

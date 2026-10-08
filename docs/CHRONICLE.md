@@ -24,3 +24,12 @@ Godot 4.7.2 tests cover milestone deduplication and bounds, legacy migration, JS
 ## Android verification still required
 
 Record device, OS and exact build SHA. Check an empty journal, a populated journal, a return with no milestones and a long return with three highlights. Swipe each long list down and back up, confirm review controls stay reachable, verify gear/boss/companion destinations and Back to adventure, then suspend/resume and reopen again to check history and duplicate prevention. Record catch-up timing and screenshots. R00/R02's existing device checks remain open; R03 remains VERIFY until device evidence exists.
+
+## Return-sheet integration
+
+The dedicated return component shows up to three highlights, a scrollable total report,
+a pinned talent action and a Read the chronicle button. Optional saved `target` fields
+link newly recorded gear and companion entries to their actual item rather than opening
+only the general screen. Older entries without a target still open the correct screen.
+These additive fields retain the current save format 8 and its goals, policies, builds
+and relics. No existing progression or milestone schema is replaced.
