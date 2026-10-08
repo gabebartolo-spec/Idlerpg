@@ -1011,7 +1011,7 @@ func _advance_practice(delta: float) -> void:
 	_emit_event("practice_completed", ("Practice cleared. +25 gold for your first victory." if first else str(result["reason"])), {"won": result["won"], "first": first, "gold": 25 if first else 0})
 
 func request_expedition(route: String) -> bool:
-	if expedition.active or not expedition.Catalog.ROUTES.has(route):
+	if expedition.active or not expedition.Catalog.ROUTES.has(route) or not expedition.Catalog.locked_reason(route, expedition.claimed_routes).is_empty():
 		return false
 	expedition.selected_route = route
 	expedition.requested = true
@@ -1042,13 +1042,17 @@ func _advance_expedition(delta: float) -> void:
 	if expedition.active:
 		var points: Array = expedition.Catalog.WAYPOINTS[expedition.route]
 		var from: Vector3 = expedition.Catalog.POSITION if expedition.node == 0 else points[expedition.node - 1]
-		hero_position = from.lerp(points[expedition.node], float(expedition.remainder_usec) / float(expedition.Catalog.NODE_USEC))
+		hero_position = from.lerp(points[expedition.node], float(expedition.remainder_usec) / float(expedition.Catalog.node_usec(expedition.route)))
 	# All grants and route progress settle before an event can trigger a save.
 	var first := false
 	for encounter in result["events"]:
 		gold += int(encounter["gold"])
 		first = first or bool(encounter["first"])
 	if result["finished"]:
+		if bool(expedition.recap["won"]):
+			var look: String = expedition.Catalog.ROUTES[expedition.route].get("look", "")
+			if not look.is_empty():
+				wardrobe.grant(look, "expedition:" + expedition.route)
 		hero_position = TOWN_POSITION
 		_begin_quest_cycle()
 	for encounter in result["events"]:

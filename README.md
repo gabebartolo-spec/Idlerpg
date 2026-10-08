@@ -22,6 +22,7 @@ The authoritative simulation owns what happens. The 3D world visualises it. Ther
 The first quest is intentionally tiny: leave Mossgate, defeat three goblins, travel to the wolves, defeat two, return to town, collect the reward, rest, then head out again.
 
 ### World expansion
+- **Lanternwood** adds two progressive 15- and 30-minute autonomous expedition trails, original lantern moth/root keeper models, woodland landmarks and permanent earned Lantern Crook/Keeper Crown looks (`docs/LANTERNWOOD.md`). Find them through **More → Expeditions** after the disclosed earlier route clears;
 - **Briarfen** is the first additional zone after the opening Greenway errand;
 - new Briarling enemy family;
 - named boss **Old Thornback**;

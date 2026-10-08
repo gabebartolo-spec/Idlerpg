@@ -51,9 +51,13 @@ VIEWS = {
 
 
 def gear_items():
-    """Item name -> slot, read from the game's gear catalogue."""
+    """Combat gear and cosmetic-only item name -> slot. Looks gain no combat stats."""
     with open(GEAR_CATALOG, encoding="utf-8") as handle:
-        return dict(re.findall(r'^\s*"([^"]+)":\s*\{"slot":\s*"(\w+)"', handle.read(), re.MULTILINE))
+        items = dict(re.findall(r'^\s*"([^"]+)":\s*\{"slot":\s*"(\w+)"', handle.read(), re.MULTILINE))
+    with open(os.path.join(ROOT, "src", "data", "appearance_catalog.gd"), encoding="utf-8") as handle:
+        for slot, item in re.findall(r'"slot": "(\w+)", "item": "([^"]+)"', handle.read()):
+            items.setdefault(item, slot)
+    return items
 
 
 def companion_names():

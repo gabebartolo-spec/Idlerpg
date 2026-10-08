@@ -171,6 +171,8 @@ Versions 10–12 add the earned-token remainder and wallet claim cursor, permane
 
 ## Opt-in audio (format 18)
 
+Format 19 recognizes Lanternwood's two additional expedition routes, their longer node clocks and earned cosmetic mappings. Existing routes retain their minute-long node clocks and clear flags. Cosmetic ownership settles alongside completion gold before a completion event can save; no old save is credited with an invented clear. See [Lanternwood](LANTERNWOOD.md).
+
 `game.presentation` adds independent music and reward-sound booleans, both off
 for new/legacy saves. Existing text/motion choices survive the addition.
 Audio playback never changes simulation or catch-up results.

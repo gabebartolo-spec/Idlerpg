@@ -41,15 +41,18 @@ func refresh() -> void:
 					words(str(line))
 			words("Trail notes", true)
 			words("Current adventure: " + sim.current_quest_text() + "\n" + sim.policy_reason())
-			words("An expedition takes five minutes, with one encounter each minute. It starts after your current outing. Attack, health and thorn protection are fixed when you leave.")
+			words("Expeditions last 5, 15 or 30 minutes, with five encounters each. They start after your current outing. Attack, health and thorn protection are fixed when you leave. Lantern Hollow opens after Gentle Greenway; Keeper's Rise opens after Hollow and Causeway.")
 			for route in Trails.ROUTES.values():
 				words(route["name"], true)
 				words(route["clue"])
-				words("First safe return: %d gold. Later returns: %d gold. The cache adds 8 gold; you keep it even if you leave early." % [route["first_gold"], route["repeat_gold"]])
+				words("First safe return: %d final gold. Later returns: %d final gold. Cache gold is kept even if you leave early; the trail screen includes it in the advertised total." % [route["first_gold"], route["repeat_gold"]])
+				if route.has("look"):
+					words("First clear permanently unlocks " + str(preload("res://src/data/appearance_catalog.gd").LOOKS[route["look"]]["name"]) + " in Wardrobe. No combat stats; no appearance is equipped automatically.")
 				for node in route["nodes"]:
 					var entry: Dictionary = Trails.ENCOUNTERS[node]
 					words(entry["name"] + ": " + entry["text"])
 			words("Bridge: 10 damage. Wolves: at least 4 damage, reduced by attack. Thorn guardian: 24 damage, or 12 with Thornward. One prepared stew restores 12 health when it fits; unused stew stays in your pack.")
+			words("Lantern moths: max(6, 24 − attack) damage. Root keeper: max(14, 38 − attack). Elder keeper: max(22, 66 − attack). Thornward halves keeper and tunnel damage. Briar tunnel: 16 damage. Mooncaps restore 8 health. Lamplighter cache: 12 gold.")
 		"practice":
 			words("Meet your allies", true)
 			words("Bran and Iris are NPC allies. Bran has 36 health, deals 3 damage and blocks 2 each turn. Iris has 24 health, deals 2 damage and heals 3 every third turn. Your combined health forms one party pool.")

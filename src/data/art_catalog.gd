@@ -4,6 +4,7 @@ extends RefCounted
 # Lookups over the generated art manifest (src/data/art_manifest.gd).
 
 const ArtManifestScript = preload("res://src/data/art_manifest.gd")
+const Appearance = preload("res://src/data/appearance_catalog.gd")
 const MATTE_NAME := "pal_matte"
 
 static var _matte: StandardMaterial3D
@@ -49,6 +50,10 @@ static func _apply_matte(node: Node) -> void:
 
 static func item_model(item_name: String) -> String:
 	return str(ArtManifestScript.ITEMS.get(item_name, {}).get("model", ""))
+
+static func item_grip_degrees(item_name: String) -> Vector3:
+	var look := Appearance.for_item(item_name)
+	return Appearance.LOOKS.get(look, {}).get("grip_degrees", Vector3.ZERO)
 
 static func companion_model(companion_name: String) -> String:
 	return str(ArtManifestScript.COMPANIONS.get(companion_name, {}).get("model", ""))

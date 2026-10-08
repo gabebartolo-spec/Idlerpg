@@ -121,7 +121,7 @@ func refresh() -> void:
 	wear_button.disabled = selected.is_empty() or not sim.wardrobe.owned.has(selected) or sim.wardrobe.equipped.get(slot, "") == selected
 	wear_button.text = "Wearing" if not selected.is_empty() and sim.wardrobe.equipped.get(slot, "") == selected else "Wear this look"
 	clear_button.disabled = not sim.wardrobe.equipped.has(slot)
-	detail.text = "Tap a look to preview" if selected.is_empty() else ("Owned · no stat changes" if sim.wardrobe.owned.has(selected) else "Collect " + str(Catalog.LOOKS[selected]["item"]))
+	detail.text = "Tap a look to preview" if selected.is_empty() else ("Owned · no stat changes" if sim.wardrobe.owned.has(selected) else str(Catalog.LOOKS[selected].get("clue", "Collect " + str(Catalog.LOOKS[selected]["item"]))))
 	preview.show_identity(sim.identity.palette, sim.thornback_rank > 0)
 	for equipment_slot in Character.SLOT_ATTACH:
 		var item: String = sim.wardrobe.visible_item(equipment_slot, sim.equipped_item(equipment_slot))

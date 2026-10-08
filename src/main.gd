@@ -18,6 +18,7 @@ const TalentCatalogScript = preload("res://src/data/talent_catalog.gd")
 const ArtCatalogScript = preload("res://src/data/art_catalog.gd")
 const CharacterVisualScript = preload("res://src/view/character_visual.gd")
 const TrailAudioScript = preload("res://src/view/trail_audio.gd")
+const LanternHollowScript = preload("res://src/view/lantern_hollow.gd")
 const GearScreenScript = preload("res://src/ui/gear_screen.gd")
 const TalentScreenScript = preload("res://src/ui/talent_screen.gd")
 const GachaScreenScript = preload("res://src/ui/gacha_screen.gd")
@@ -40,6 +41,7 @@ var sim: Node
 
 var world: Node3D
 var trail_audio: Node
+var lantern_hollow: Node3D
 var hero_visual: Node3D
 var practice_stage: Node3D
 var practice_allies: Array[Node3D] = []
@@ -210,6 +212,9 @@ func _build_world() -> void:
 	_build_wolf_den()
 	_build_horizon()
 	_build_briarfen()
+	lantern_hollow = LanternHollowScript.new()
+	world.add_child(lantern_hollow)
+	lantern_hollow.build()
 	var pond := MeshInstance3D.new()
 	var water := CylinderMesh.new()
 	water.top_radius = 1.4
@@ -370,6 +375,7 @@ func _build_practice_stage() -> void:
 
 func _sync_world(delta: float) -> void:
 	var reduced: bool = game.presentation.reduced_motion
+	lantern_hollow.sync(sim, reduced)
 	hero_visual.reduced_motion = reduced
 	practice_stage.visible = sim.activity == "practice"
 	if practice_stage.visible:
@@ -383,7 +389,9 @@ func _sync_world(delta: float) -> void:
 	var fighting: bool = sim.activity == "fighting" and not sim.enemy_kind.is_empty()
 	var enemy_position: Vector3 = sim.hero_position + Vector3(1.15, 0.0, -0.45) * float(ENEMY_REACH.get(sim.enemy_kind, 1.0))
 
-	if sim.activity == "fishing":
+	if lantern_hollow.encounter_visible:
+		hero_visual.face(lantern_hollow.encounter_position - sim.hero_position)
+	elif sim.activity == "fishing":
 		hero_visual.face(Vector3.LEFT)
 	elif sim.activity == "practice":
 		hero_visual.face(Vector3(0, 0, -1))
@@ -393,7 +401,7 @@ func _sync_world(delta: float) -> void:
 		hero_visual.face(sim.hero_position - hero_visual.position)
 	hero_visual.show_identity(sim.identity.palette, sim.thornback_rank > 0)
 	hero_visual.position = sim.hero_position
-	hero_visual.set_state("attack" if sim.activity == "practice" else str(ACTIVITY_POSES.get(sim.activity, "idle")))
+	hero_visual.set_state("attack" if sim.activity == "practice" or lantern_hollow.encounter_visible else str(ACTIVITY_POSES.get(sim.activity, "idle")))
 	var pulse_scale: float = 1.06 if talent_proc_pulse > 0.0 and not reduced else 1.0
 	hero_visual.scale = Vector3.ONE * pulse_scale
 	if talent_proc_visual != null:
@@ -420,7 +428,8 @@ func _sync_world(delta: float) -> void:
 		enemy_visual.visible = false
 		rendered_enemy_kind = ""
 
-	var desired_camera: Vector3 = hero_visual.position + Vector3(7.0, 6.0, 8.0)
+	var woodland: bool = sim.activity == "expedition" and sim.expedition.route in ["hollow", "rise"]
+	var desired_camera: Vector3 = hero_visual.position + (Vector3(5.6, 4.8, 6.4) if woodland else Vector3(7.0, 6.0, 8.0))
 	camera.position = camera.position.lerp(desired_camera, min(1.0, delta * 2.0))
 	camera.look_at(hero_visual.position + Vector3(0.0, 0.7, 0.0), Vector3.UP)
 
@@ -1082,7 +1091,7 @@ func _refresh_sim_ui() -> void:
 func _compact_activity() -> String:
 	match sim.activity:
 		"expedition":
-			return "Exploring · %d/5 stages" % mini(5, sim.expedition.node + 1)
+			return "%s · %d/5" % [sim.expedition.Catalog.ROUTES[sim.expedition.route]["name"], mini(5, sim.expedition.node + 1)]
 		"practice":
 			return "Practice · room %d/3 · %d HP" % [mini(3, sim.practice.room + 1), sim.practice.hp]
 		"fishing":

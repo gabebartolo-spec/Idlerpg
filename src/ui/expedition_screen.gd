@@ -13,7 +13,7 @@ var mode_tabs: Dictionary
 
 func setup(sim_node: Node) -> void:
 	sim = sim_node
-	var column := build_sheet("Expeditions", 0.34)
+	var column := build_sheet("Expeditions", 0.22)
 	status = Style.label("", 22)
 	status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	column.add_child(status)
@@ -24,6 +24,11 @@ func setup(sim_node: Node) -> void:
 		sim.expedition.selected_route = id
 		refresh()
 		changed.emit())
+	var woodland_tabs := add_tabs(column, [["hollow", "Lantern Hollow"], ["rise", "Keeper's Rise"]], func(id: String) -> void:
+		sim.expedition.selected_route = id
+		refresh()
+		changed.emit())
+	tabs.merge(woodland_tabs)
 	list = add_list(column)
 	start_button = Style.button("Explore after this outing", true)
 	start_button.pressed.connect(func() -> void:
@@ -50,17 +55,19 @@ func paragraph(text: String, color: Color = Style.TEXT) -> void:
 
 func refresh() -> void:
 	var state = sim.expedition
-	subtitle_label.text = "5-minute adventures"
+	subtitle_label.text = "Trails of Mossgate"
 	mark_tabs(tabs, state.selected_route)
 	mark_tabs(mode_tabs, mode)
 	tabs["greenway"].get_parent().visible = mode == "route"
+	tabs["hollow"].get_parent().visible = mode == "route"
 	status.visible = state.active or state.requested
-	status.text = "Stage %d/5 · %d/%d HP\nNext in %ds" % [mini(5, state.node + 1), state.hp, state.max_hp, int(ceil(float(Catalog.NODE_USEC - state.remainder_usec) / 1000000.0))] if state.active else "Leaving after this outing"
-	start_button.disabled = state.active or state.requested
+	status.text = "Stage %d/5 · %d/%d HP\nNext in %ds" % [mini(5, state.node + 1), state.hp, state.max_hp, int(ceil(float(Catalog.node_usec(state.route) - state.remainder_usec) / 1000000.0))] if state.active else "Leaving after this outing"
+	var locked := Catalog.locked_reason(state.selected_route, state.claimed_routes)
+	start_button.disabled = state.active or state.requested or not locked.is_empty()
 	start_button.text = "Expedition in progress" if state.active else ("Queued after this outing" if state.requested else "Explore " + str(Catalog.ROUTES[state.selected_route]["name"]))
 	stop_button.disabled = not state.active and not state.requested
 	stop_button.visible = state.active or state.requested
-	var key := JSON.stringify([mode, state.selected_route, state.active, state.node, state.discoveries, state.recap, sim.fishing.prepared, sim.has_gear_effect("thornward")])
+	var key := JSON.stringify([mode, state.selected_route, state.active, state.node, state.discoveries, state.recap, state.claimed_routes, sim.fishing.prepared, sim.has_gear_effect("thornward")])
 	if key == content_key:
 		return
 	content_key = key
@@ -74,11 +81,19 @@ func refresh() -> void:
 			paragraph("%s · %d/5 stages" % [Catalog.ROUTES[state.recap["route"]]["name"], state.recap["nodes"]], Style.MUTED)
 			if state.recap["stew_used"]:
 				paragraph("Stew used", Style.MUTED)
+			var look: String = Catalog.ROUTES[state.recap["route"]].get("look", "")
+			if bool(state.recap["won"]) and not look.is_empty():
+				paragraph("Look earned · " + str(preload("res://src/data/appearance_catalog.gd").LOOKS[look]["name"]), Style.ACCENT)
 		return
 	var selected: Dictionary = Catalog.ROUTES[state.selected_route]
-	paragraph("Easy trail" if state.selected_route == "greenway" else "Risky trail")
-	var reward: int = selected["repeat_gold"] if state.claimed_routes.has(state.selected_route) else selected["first_gold"]
-	paragraph("5 min · %d gold" % (reward + 8), Style.ACCENT)
+	paragraph(str(selected.get("risk", "Easy trail" if state.selected_route == "greenway" else "Risky trail")))
+	paragraph("%d min · %d gold" % [Catalog.node_usec(state.selected_route) * 5 / 60000000, Catalog.total_gold(state.selected_route, not state.claimed_routes.has(state.selected_route))], Style.ACCENT)
+	if not locked.is_empty():
+		paragraph(locked, Style.MUTED)
+	elif selected.has("hint"):
+		paragraph(selected["hint"], Style.MUTED)
 	if state.selected_route == "causeway":
 		paragraph("Bring stew or thorn protection", Style.MUTED)
+	if selected.has("look"):
+		paragraph("Earn " + str(preload("res://src/data/appearance_catalog.gd").LOOKS[selected["look"]]["name"]), Style.ACCENT)
 	paragraph("Stew: %d · Thornward: %s" % [sim.fishing.prepared, "ready" if sim.has_gear_effect("thornward") else "—"], Style.MUTED)

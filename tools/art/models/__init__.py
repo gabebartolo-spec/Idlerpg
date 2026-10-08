@@ -25,4 +25,4 @@ def model(model_id, category, item=None, companion=None):
     return register
 
 
-from . import armour, backdrops, briarfen, characters, companions, enemies, props, weapons  # noqa: E402,F401
+from . import armour, backdrops, briarfen, characters, companions, enemies, props, weapons, lanternwood  # noqa: E402,F401

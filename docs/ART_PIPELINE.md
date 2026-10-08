@@ -34,9 +34,9 @@ this up on outputs you already trust, not for everyday use.
 ## What a build does
 
 1. Runs every builder registered in `tools/art/models/`.
-2. Fails the build if a model breaks a rule (below) or a gear catalogue item has no model.
+2. Fails the build if a model breaks a rule (below) or a gear/cosmetic appearance item has no model.
 3. Exports each model to `assets/models/<category>s/<id>.glb`.
-4. Renders a 256 px transparent icon for every gear item to `assets/icons/<id>.png`.
+4. Renders a 256 px transparent icon for every gear or cosmetic appearance item to `assets/icons/<id>.png`.
 5. Renders labelled review sheets, one per category, to `art/review/`.
 6. Writes `src/data/art_manifest.gd` and deletes outputs whose model no longer exists.
 
@@ -52,6 +52,8 @@ this up on outputs you already trust, not for everyday use.
 
 Budgets live in `tools/art/models/__init__.py`. Colours come only from `tools/art/palette.py`;
 change a colour there and every model that uses it changes on the next build.
+
+Cosmetic-only items can be registered through `src/data/appearance_catalog.gd` rather than the combat gear catalog. They receive the same model/icon validation and manifest mapping. Appearance entries can supply a grip rotation used by both the watch and Wardrobe preview; Lantern Crook remains upright without changing other weapons or combat stats.
 
 Colours are stored per face, so a model needs one matte material however many colours it
 uses. Only the glow colours (`GLOWS` in the palette) get a material of their own. In the game
