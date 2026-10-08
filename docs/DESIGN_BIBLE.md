@@ -7,6 +7,8 @@
 **Status:** implemented P0–P7 prototype; Android verification remains gated
 **Source of truth:** this document defines the intended product unless a newer explicit decision supersedes it.
 
+**9 October 2026 visual coherence rule:** Every region may have distinct flora, architecture, palette, enemies and atmosphere, but **the entire world must appear drawn by the same hand**. The art guide defines fixed global shape/proportion, painterly surface, lighting, animation and detail rules, plus a master style reference sheet and cross-region side-by-side approval gate. Variation in biome is encouraged; divergence in art treatment is not. This is a direction and review requirement, not a claim that the existing assets have passed an audit. See [ART_STYLE_GUIDE.md](ART_STYLE_GUIDE.md) and [ART_PIPELINE.md](ART_PIPELINE.md).
+
 **9 October 2026 visual decision:** **World of Warcraft is the primary visual reference** for the Idle RPG: original painterly, colourful, exaggerated, readable fantasy aesthetics realised with low-poly/mobile-efficient assets. RuneScape and Kingdoms of Amalur are supporting references rather than equal visual targets; voxels may inform individual props but are not the default visual language. Production source of truth: [ART_STYLE_GUIDE.md](ART_STYLE_GUIDE.md). No copied Blizzard IP or WoW-style hotbar clutter. This directs future asset batches; it does not claim existing art has already changed.
 
 **9 October 2026 owner direction — three pillars and token sales:** The game's three reference pillars are **Slayer Legend** (idle power growth and a compelling gacha-token economy), **Idle Slayer** (long-term layered progression) and **World of Warcraft** (RPG identity, builds, loot, world and social play). **Commercial success includes players voluntarily buying gacha tokens**; free summons, enticing paid summon options, worthwhile collection depth and meaningful upgrade paths must coexist. Do not water this objective down to cosmetics-only, but do not force purchases, trivialize free play or make a 15-minute session exhaust all builds and legendary items. The detailed design contract is [THREE_PILLARS.md](THREE_PILLARS.md); address the progression playtest blocker in [issue #45](https://github.com/gabebartolo-spec/Idlerpg/issues/45).
@@ -336,6 +338,8 @@ Desired qualities:
 - strong performance on mid-range Android devices.
 
 The game should look pleasant from a slightly elevated MMO-style camera without demanding expensive animation or shaders.
+
+**World consistency rule:** each region gets its own place identity, but shares the same authored heroic proportions, low-poly shaping, painterly surface finish and visual density. Approve new asset families side by side with the game's approved master art anchors, including a phone-scale check. No asset batch may introduce a visually unrelated style because it was generated with a different model or prompt; see [ART_STYLE_GUIDE.md](ART_STYLE_GUIDE.md).
 
 ## 5.2 World structure
 
