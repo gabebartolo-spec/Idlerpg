@@ -218,6 +218,8 @@ func _run() -> void:
 	await _snap("wardrobe_star_preview")
 	main.call("_close_drawers")
 	await _snap("wardrobe_watch")
+	main.call("_open_chronicle_destination", "options", "")
+	await _snap("final_comfort_options")
 
 	main.free()
 	for path in PersistenceScript.files_for():

@@ -223,8 +223,10 @@ surface and optional journal Field guide are implemented. Original source,
 229-glyph coverage, reproducible builds and portrait renders are documented in
 `docs/TYPOGRAPHY_AND_COPY.md`; 28 local suites pass. A subsequent comfort slice
 adds saved Larger text/Reduced motion preferences and the quieter More menu;
-see `docs/PHONE_COMFORT.md`. Audio, device budgets and Android evidence remain
-open; these are presentation slices, not completion of R27.
+see `docs/PHONE_COMFORT.md`. Original opt-in trail music and reward tones now
+have independent saved switches; see `docs/TRAIL_AUDIO.md`. Device budgets,
+speaker balance and Android evidence remain open; these are presentation
+slices, not completion of R27.
 
 **Payoff:** pleasant watching and usable management. **Scope:** small audio/animation feedback pass, independent sound controls, reduced motion, readable text, accessible contrasts and measured Android performance. **Start:** world/UI/audio modules. **Accept:** disabled effects do not change outcomes; target device frame/loading/memory budgets recorded; long return responsive; touch targets tested. **Validate:** sustained device play, suspend/resume and low-power scenario. **Exclude:** adding systems to mask weak presentation.
 

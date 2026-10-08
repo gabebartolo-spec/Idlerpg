@@ -17,6 +17,7 @@ const GearCatalogScript = preload("res://src/data/gear_catalog.gd")
 const TalentCatalogScript = preload("res://src/data/talent_catalog.gd")
 const ArtCatalogScript = preload("res://src/data/art_catalog.gd")
 const CharacterVisualScript = preload("res://src/view/character_visual.gd")
+const TrailAudioScript = preload("res://src/view/trail_audio.gd")
 const GearScreenScript = preload("res://src/ui/gear_screen.gd")
 const TalentScreenScript = preload("res://src/ui/talent_screen.gd")
 const GachaScreenScript = preload("res://src/ui/gacha_screen.gd")
@@ -38,6 +39,7 @@ var game: Node
 var sim: Node
 
 var world: Node3D
+var trail_audio: Node
 var hero_visual: Node3D
 var practice_stage: Node3D
 var practice_allies: Array[Node3D] = []
@@ -111,6 +113,9 @@ func _ready() -> void:
 	sim.event_emitted.connect(_on_sim_event)
 
 	_build_world()
+	trail_audio = TrailAudioScript.new()
+	add_child(trail_audio)
+	trail_audio.setup(game.presentation)
 	_build_ui()
 	_refresh_wallet(game.gacha_tokens)
 	_refresh_sim_ui()
@@ -704,6 +709,7 @@ func _build_ui() -> void:
 
 func _on_options_changed() -> void:
 	presentation_controller.apply()
+	trail_audio.apply_preferences()
 	_sync_world(0.0)
 	_save_now()
 
@@ -1104,6 +1110,8 @@ func _compact_event(event: Dictionary) -> String:
 
 func _on_sim_event(event: Dictionary) -> void:
 	var event_type := str(event.get("type", ""))
+	if trail_audio != null:
+		trail_audio.play_event(event_type, bool(event.get("won", true)))
 	# Full stories remain in the journal/guide. The normal HUD is a glance.
 	# Important save warnings stay visible until a successful save.
 	if not save_notice and event_type in ["level_up", "gear_obtained", "relic_obtained", "expedition_completed", "practice_completed"]:
