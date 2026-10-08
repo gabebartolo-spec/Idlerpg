@@ -169,6 +169,14 @@ Version 9 adds persisted selected-item pursuits and cosmetic duplicate counters.
 
 Versions 10–12 add the earned-token remainder and wallet claim cursor, permanent field journal, and adventurer identity. Saving settles earned income before serializing both halves. Missing older fields default safely; journal legacy seeding grants no retrospective rewards. Rules and validation: [ADVENTURER_LIFE.md](ADVENTURER_LIFE.md).
 
+## Comfort preferences (format 16)
+
+Larger text and Reduced motion are saved under `game.presentation`, independently
+of combat/economy state. Missing older fields default off, and malformed types
+are ignored. Changes save immediately from Options. The return screen shows
+compact totals and important save notices; the full breakdown is in Details,
+which opens the optional Field guide's Away chapter.
+
 ## Activity additions (formats 13–15)
 
 Fishing, prepared stew, frozen NPC practice runs, and authored expedition routes now persist in the same atomic save. Fractional activity progress and consumed/claimed counters prevent repeated settlements after return or event-time checkpoints. Missing older fields default inactive with no invented rewards. Rules: [fishing/practice](FISHING_AND_PRACTICE.md) and [expeditions](TRAIL_EXPEDITIONS.md).

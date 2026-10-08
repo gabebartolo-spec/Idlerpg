@@ -3,6 +3,9 @@ extends Node
 const IdentityScreenScript = preload("res://src/ui/identity_screen.gd")
 const JournalScreenScript = preload("res://src/ui/journal_screen.gd")
 const FieldGuideScreenScript = preload("res://src/ui/field_guide_screen.gd")
+const OptionsScreenScript = preload("res://src/ui/options_screen.gd")
+const MenuScreenScript = preload("res://src/ui/menu_screen.gd")
+const PresentationControllerScript = preload("res://src/ui/presentation_controller.gd")
 const FishingScreenScript = preload("res://src/ui/fishing_screen.gd")
 const PracticeScreenScript = preload("res://src/ui/practice_screen.gd")
 const ExpeditionScreenScript = preload("res://src/ui/expedition_screen.gd")
@@ -69,6 +72,9 @@ var boss_panel: Control
 var identity_panel: Control
 var journal_panel: Control
 var guide_panel: Control
+var options_panel: Control
+var menu_panel: Control
+var presentation_controller: Node
 var fishing_panel: Control
 var practice_panel: Control
 var expedition_panel: Control
@@ -356,11 +362,15 @@ func _build_practice_stage() -> void:
 		practice_foes.append(foe)
 
 func _sync_world(delta: float) -> void:
+	var reduced: bool = game.presentation.reduced_motion
+	hero_visual.reduced_motion = reduced
 	practice_stage.visible = sim.activity == "practice"
 	if practice_stage.visible:
 		for ally in practice_allies:
+			ally.reduced_motion = reduced
 			ally.set_state("attack")
 		for index in practice_foes.size():
+			practice_foes[index].reduced_motion = reduced
 			practice_foes[index].visible = index == sim.practice.room
 		hero_visual.face(Vector3(0, 0, -1))
 	var fighting: bool = sim.activity == "fighting" and not sim.enemy_kind.is_empty()
@@ -377,10 +387,10 @@ func _sync_world(delta: float) -> void:
 	hero_visual.show_identity(sim.identity.palette, sim.thornback_rank > 0)
 	hero_visual.position = sim.hero_position
 	hero_visual.set_state("attack" if sim.activity == "practice" else str(ACTIVITY_POSES.get(sim.activity, "idle")))
-	var pulse_scale: float = 1.06 if talent_proc_pulse > 0.0 else 1.0
+	var pulse_scale: float = 1.06 if talent_proc_pulse > 0.0 and not reduced else 1.0
 	hero_visual.scale = Vector3.ONE * pulse_scale
 	if talent_proc_visual != null:
-		talent_proc_visual.visible = talent_proc_pulse > 0.0
+		talent_proc_visual.visible = talent_proc_pulse > 0.0 and not reduced
 		if talent_proc_visual.visible:
 			var progress: float = 1.0 - clampf(talent_proc_pulse / 0.28, 0.0, 1.0)
 			talent_proc_visual.scale = Vector3.ONE * (0.85 + progress * 0.45)
@@ -394,8 +404,11 @@ func _sync_world(delta: float) -> void:
 		enemy_visual.position = enemy_position
 		enemy_visual.rotation.y = atan2(sim.hero_position.x - enemy_position.x, sim.hero_position.z - enemy_position.z)
 		# The telegraph: the boss swells and shudders while it winds up.
-		var swell: float = 1.14 + sin(Time.get_ticks_msec() * 0.03) * 0.04 if sim.enemy_winding_up() else 1.0
-		enemy_visual.scale = enemy_visual.scale.lerp(Vector3.ONE * swell, min(1.0, delta * 12.0))
+		var swell: float = 1.14 + (0.0 if reduced else sin(Time.get_ticks_msec() * 0.03) * 0.04) if sim.enemy_winding_up() else 1.0
+		enemy_visual.scale = Vector3.ONE * swell if reduced else enemy_visual.scale.lerp(Vector3.ONE * swell, min(1.0, delta * 12.0))
+		for character in enemy_visual.get_children():
+			if character is CharacterVisualScript:
+				character.reduced_motion = reduced
 	else:
 		enemy_visual.visible = false
 		rendered_enemy_kind = ""
@@ -420,9 +433,10 @@ func _sync_companion_visual(delta: float) -> void:
 	companion_visual.visible = true
 	var desired := hero_visual.position + Vector3(-0.95, 0.0, 0.75)
 	if companion_name in HOVERING_COMPANIONS:
-		desired.y += 0.65 + sin(Time.get_ticks_msec() * 0.006) * 0.08
+		desired.y += 0.65 + (0.0 if game.presentation.reduced_motion else sin(Time.get_ticks_msec() * 0.006) * 0.08)
 	companion_visual.position = companion_visual.position.lerp(desired, min(1.0, delta * 4.0))
 	if companion_character != null:
+		companion_character.reduced_motion = game.presentation.reduced_motion
 		# Companions keep pace with the adventurer and never go down with them.
 		companion_character.rotation.y = hero_visual.rotation.y
 		var pose := str(ACTIVITY_POSES.get(sim.activity, "idle"))
@@ -539,83 +553,28 @@ func _build_ui() -> void:
 	bottom_column.add_theme_constant_override("separation", 8)
 	bottom.add_child(bottom_column)
 
-	var records := HBoxContainer.new()
-	records.add_theme_constant_override("separation", 8)
-	bottom_column.add_child(records)
-	var journal_button := UiStyleScript.button("Field journal")
-	journal_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	journal_button.pressed.connect(func() -> void: _toggle_sheet(journal_panel))
-	records.add_child(journal_button)
-	var identity_button := UiStyleScript.button("Adventurer")
-	identity_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	identity_button.pressed.connect(func() -> void: _toggle_sheet(identity_panel))
-	records.add_child(identity_button)
-	var fishing_button := UiStyleScript.button("Fishing")
-	fishing_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	fishing_button.pressed.connect(func() -> void: _toggle_sheet(fishing_panel))
-	records.add_child(fishing_button)
-	var expedition_button := UiStyleScript.button("Expedition")
-	expedition_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	expedition_button.pressed.connect(func() -> void: _toggle_sheet(expedition_panel))
-	records.add_child(expedition_button)
-	var pursuits := HBoxContainer.new()
-	pursuits.add_theme_constant_override("separation", 8)
-	bottom_column.add_child(pursuits)
-	var adventure_button := UiStyleScript.button("Adventure")
-	adventure_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	adventure_button.pressed.connect(func() -> void: _toggle_sheet(adventure_panel))
-	pursuits.add_child(adventure_button)
-	var chronicle_button := UiStyleScript.button("Chronicle")
-	chronicle_button.pressed.connect(func() -> void: _toggle_sheet(chronicle_panel))
-	chronicle_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	pursuits.add_child(chronicle_button)
-	var loadout_button := UiStyleScript.button("Builds")
-	loadout_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	loadout_button.pressed.connect(func() -> void: _toggle_sheet(loadout_panel))
-	pursuits.add_child(loadout_button)
-	var relic_button := UiStyleScript.button("Relics")
-	relic_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	relic_button.pressed.connect(func() -> void: _toggle_sheet(relic_panel))
-	pursuits.add_child(relic_button)
-	var practice_button := UiStyleScript.button("Practice")
-	practice_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	practice_button.pressed.connect(func() -> void: _toggle_sheet(practice_panel))
-	pursuits.add_child(practice_button)
-
 	var actions := HBoxContainer.new()
 	actions.add_theme_constant_override("separation", 8)
 	bottom_column.add_child(actions)
 
-	var equipment_button := Button.new()
-	equipment_button.text = "Gear"
+	var equipment_button := UiStyleScript.button("Gear")
 	equipment_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	equipment_button.pressed.connect(_toggle_equipment)
 	actions.add_child(equipment_button)
 
-	talent_button = Button.new()
-	talent_button.text = "Talents"
+	talent_button = UiStyleScript.button("Talents")
 	talent_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	talent_button.pressed.connect(_toggle_talents)
 	actions.add_child(talent_button)
 
-	var boss_button := Button.new()
-	boss_button.text = "Boss"
-	boss_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	boss_button.pressed.connect(_toggle_boss)
-	actions.add_child(boss_button)
-
-	var gacha_button := Button.new()
-	gacha_button.text = "Gacha"
+	var gacha_button := UiStyleScript.button("Summon")
 	gacha_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	gacha_button.pressed.connect(_toggle_gacha)
 	actions.add_child(gacha_button)
-
-	if game.dev_tools_available():
-		var dev_button := Button.new()
-		dev_button.text = "Dev"
-		dev_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		dev_button.pressed.connect(_toggle_dev_tools)
-		actions.add_child(dev_button)
+	var more_button := UiStyleScript.button("More")
+	more_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	more_button.pressed.connect(func() -> void: _toggle_sheet(menu_panel))
+	actions.add_child(more_button)
 
 	# These open everything else, so they get a full-size touch target.
 	for child in actions.get_children():
@@ -722,6 +681,24 @@ func _build_ui() -> void:
 	return_panel.destination_requested.connect(_open_chronicle_destination)
 	return_panel.talents_requested.connect(_open_talents_from_return)
 	return_talent_button = return_panel.talent_button
+	menu_panel = MenuScreenScript.new()
+	menu_panel.visible = false
+	canvas.add_child(menu_panel)
+	menu_panel.setup(game.dev_tools_available())
+	menu_panel.route_requested.connect(_open_chronicle_route)
+	options_panel = OptionsScreenScript.new()
+	options_panel.visible = false
+	canvas.add_child(options_panel)
+	options_panel.setup(game.presentation)
+	options_panel.changed.connect(_on_options_changed)
+	presentation_controller = PresentationControllerScript.new()
+	add_child(presentation_controller)
+	presentation_controller.setup(game.presentation, canvas)
+
+func _on_options_changed() -> void:
+	presentation_controller.apply()
+	_sync_world(0.0)
+	_save_now()
 
 func _rebuild_equipment_panel() -> void:
 	if equipment_panel != null and equipment_panel.visible:
@@ -767,7 +744,7 @@ func _refresh_wallet(_tokens: int) -> void:
 
 # Only one sheet, drawer or report is open at a time.
 func _close_drawers() -> void:
-	for sheet in [equipment_panel, talent_panel, boss_panel, gacha_panel, adventure_panel, loadout_panel, relic_panel, chronicle_panel, journal_panel, guide_panel, identity_panel, fishing_panel, practice_panel, expedition_panel, dev_panel, return_panel]:
+	for sheet in [equipment_panel, talent_panel, boss_panel, gacha_panel, adventure_panel, loadout_panel, relic_panel, chronicle_panel, journal_panel, guide_panel, options_panel, menu_panel, identity_panel, fishing_panel, practice_panel, expedition_panel, dev_panel, return_panel]:
 		if sheet != null:
 			sheet.visible = false
 
@@ -822,6 +799,20 @@ func _open_chronicle_route(route: String) -> void:
 func _open_chronicle_destination(route: String, target: String) -> void:
 	_close_drawers()
 	match route:
+		"options":
+			options_panel.open()
+		"identity":
+			identity_panel.open()
+		"adventure":
+			adventure_panel.open()
+		"builds":
+			loadout_panel.open()
+		"dev":
+			if dev_panel != null:
+				dev_panel.visible = true
+		"summon":
+			gacha_panel.show_mode("summon")
+			gacha_panel.open()
 		"guide":
 			if guide_panel.tabs.has(target):
 				guide_panel.chapter = target

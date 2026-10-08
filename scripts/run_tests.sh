@@ -8,8 +8,24 @@ GODOT_BIN="${GODOT_BIN:-godot}"
 
 run_test() {
   local script="$1"
+  shift
   echo "== Running $script =="
-  timeout 30s "$GODOT_BIN" --headless --path . -s "res://$script"
+  local output
+  output=$(mktemp)
+  if ! timeout 30s "$GODOT_BIN" --headless --path . -s "res://$script" -- "$@" >"$output" 2>&1; then
+    cat "$output"
+    rm "$output"
+    return 1
+  fi
+  cat "$output"
+  # Godot can report a runtime script error and still exit zero. Such a run
+  # has not verified the game, even if its assertions reach the final line.
+  if grep -Eq '^ERROR:|^SCRIPT ERROR:' "$output"; then
+    echo "Engine/script errors in $script"
+    rm "$output"
+    return 1
+  fi
+  rm "$output"
 }
 
 run_test tests/test_gacha.gd
@@ -38,5 +54,7 @@ run_test tests/test_boss.gd
 run_test tests/test_hunts.gd
 run_test tests/test_art.gd
 run_test tests/test_ui.gd
+run_test tests/test_ui.gd --large-text
 run_test tests/test_typography.gd
+run_test tests/test_presentation.gd
 run_test tests/test_economy.gd

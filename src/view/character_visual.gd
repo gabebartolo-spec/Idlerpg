@@ -28,6 +28,7 @@ var keepsake_pin: MeshInstance3D
 var identity_palette: String = ""
 var model: Node3D
 var state: String = "idle"
+var reduced_motion: bool = false
 var clock: float = 0.0
 var parts: Dictionary = {}
 var rest: Dictionary = {}
@@ -120,6 +121,13 @@ func _process(delta: float) -> void:
 		parts[part_name].rotation = rest[part_name]
 	model.position = Vector3.ZERO
 	model.rotation = Vector3.ZERO
+	if reduced_motion:
+		# Keep the resolved down pose and world movement, omit optional swings,
+		# breathing, bobbing and wing flaps. Combat is decided by the simulation.
+		if state == "down":
+			model.rotation.x = -PI / 2.0
+			model.position.y = 0.16
+		return
 
 	match state:
 		"walk":

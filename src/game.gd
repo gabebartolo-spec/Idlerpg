@@ -11,6 +11,8 @@ const ROUTE_LIMIT := 30
 const DUPLICATE_REFUND := 1
 const KEEPSAKE_DUPLICATES := 50
 const KEEPSAKES := {"gear": "Cache Curator", "companions": "Pact Keeper", "relics": "Vault Archivist"}
+const PreferencesScript = preload("res://src/state/presentation_preferences.gd")
+var presentation: RefCounted = PreferencesScript.new()
 
 const BANNERS: Dictionary = {
 	"gear": {
@@ -178,6 +180,7 @@ func dev_reset_pity() -> void:
 
 func to_save_dict() -> Dictionary:
 	return {
+		"presentation": presentation.to_save_dict(),
 		"income_claimed": income_claimed,
 		"pursuits": pursuits.duplicate(true),
 		"duplicate_counts": duplicate_counts.duplicate(true),
@@ -194,6 +197,7 @@ func to_save_dict() -> Dictionary:
 	}
 
 func load_save_dict(data: Dictionary) -> void:
+	presentation.load_save_dict(data.get("presentation", {}))
 	income_claimed = maxi(0, int(data.get("income_claimed", 0)))
 	gacha_tokens = max(0, int(data.get("gacha_tokens", STARTING_TOKENS)))
 	var saved_pity: Dictionary = data.get("pity", {})
