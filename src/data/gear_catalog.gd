@@ -37,7 +37,10 @@ const ITEMS := {
 
 	# Hunted in the world (src/data/hunt_catalog.gd). Never on a banner.
 	"Briarhook": {"slot": "weapon", "attack": 4, "hp": 0, "rarity": "Rare", "effect": "opportunist", "source": "hunt"},
-	"Thornback Carapace": {"slot": "chest", "attack": 0, "hp": 10, "rarity": "Epic", "effect": "carapace", "source": "hunt"}
+	"Thornback Carapace": {"slot": "chest", "attack": 0, "hp": 10, "rarity": "Epic", "effect": "carapace", "source": "hunt"},
+	"Mothglass Spear": {"slot": "weapon", "attack": 8, "hp": 0, "rarity": "Epic", "effect": "opportunist", "source": "mothwatch"},
+	"Mooncap Mantle": {"slot": "chest", "attack": 0, "hp": 18, "rarity": "Epic", "effect": "carapace", "source": "moonwell"},
+	"Lamplighter Seal": {"slot": "accessory", "attack": 3, "hp": 10, "rarity": "Epic", "effect": "thornward", "source": "lamplighter"}
 }
 
 # What a world item does beyond its numbers. The rules are in the simulation; these are
@@ -49,6 +52,9 @@ const EFFECTS := {
 }
 
 const SOURCES := {
+	"mothwatch": "Guaranteed chest gear from Mothwatch. Repeats replace a sold copy.",
+	"moonwell": "Guaranteed chest gear from Moonwell. Repeats replace a sold copy.",
+	"lamplighter": "Guaranteed chest gear from the Lamplighter's Circuit. Repeats replace a sold copy.",
 	"boss": "Old Thornback drops one whenever you do not have it.",
 	"hunt": "Hunted in the world. See Boss and hunts."
 }

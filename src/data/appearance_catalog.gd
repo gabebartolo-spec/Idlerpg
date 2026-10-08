@@ -2,6 +2,8 @@ extends RefCounted
 
 # A small, reviewed subset of existing assets. These IDs have no combat stats.
 const LOOKS := {
+	"mothglass_spear": {"name": "Mothglass spear", "slot": "weapon", "item": "Mothglass Spear", "clue": "Open a Mothwatch gear chest", "grip_degrees": Vector3(-70, 0, 0)},
+	"mooncap_mantle": {"name": "Mooncap mantle", "slot": "chest", "item": "Mooncap Mantle", "clue": "Open a Moonwell gear chest"},
 	"trail_blade": {"name": "Trail blade", "slot": "weapon", "item": "Iron Sword"},
 	"goblin_cleaver": {"name": "Goblin cleaver", "slot": "weapon", "item": "Goblin Cleaver"},
 	"wolf_hood": {"name": "Wolf hood", "slot": "head", "item": "Wolfskin Hood"},

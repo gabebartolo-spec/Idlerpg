@@ -31,6 +31,11 @@ func setup(sim_node: Node) -> void:
 		refresh()
 		changed.emit())
 	tabs.merge(woodland_tabs)
+	var long_tabs := add_tabs(column, [["mothwatch", "Mothwatch"], ["moonwell", "Moonwell"], ["lamplighter", "Circuit"]], func(id: String) -> void:
+		sim.expedition.selected_route = id
+		refresh()
+		changed.emit())
+	tabs.merge(long_tabs)
 	list = add_list(column)
 	reward_button = Style.button("Open earned chest", true)
 	reward_button.pressed.connect(func() -> void: route_requested.emit("rewards"))
@@ -66,8 +71,11 @@ func refresh() -> void:
 	mark_tabs(mode_tabs, mode)
 	tabs["greenway"].get_parent().visible = mode == "route"
 	tabs["hollow"].get_parent().visible = mode == "route"
+	tabs["mothwatch"].get_parent().visible = mode == "route" and state.claimed_routes.has("hollow")
 	status.visible = state.active or state.requested
-	status.text = "Stage %d/5 · %d/%d HP\nNext in %ds" % [mini(5, state.node + 1), state.hp, state.max_hp, int(ceil(float(Catalog.node_usec(state.route) - state.remainder_usec) / 1000000.0))] if state.active else "Leaving after this outing"
+	var remaining: int = int(ceil(float(Catalog.node_usec(state.route) - state.remainder_usec) / 1000000.0))
+	var wait := "%dh %dm" % [remaining / 3600, (remaining % 3600) / 60] if remaining >= 3600 else ("%dm" % int(ceil(remaining / 60.0)) if remaining >= 60 else "%ds" % remaining)
+	status.text = "Stage %d/5 · %d/%d HP\nNext in %s" % [mini(5, state.node + 1), state.hp, state.max_hp, wait] if state.active else "Leaving after this outing"
 	var locked := Catalog.locked_reason(state.selected_route, state.claimed_routes)
 	start_button.disabled = state.active or state.requested or not locked.is_empty()
 	start_button.text = "Expedition in progress" if state.active else ("Queued after this outing" if state.requested else "Explore " + str(Catalog.ROUTES[state.selected_route]["name"]))
@@ -93,7 +101,9 @@ func refresh() -> void:
 		return
 	var selected: Dictionary = Catalog.ROUTES[state.selected_route]
 	paragraph(str(selected.get("risk", "Easy trail" if state.selected_route == "greenway" else "Risky trail")))
-	paragraph("%d min · %d gold" % [Catalog.node_usec(state.selected_route) * 5 / 60000000, Catalog.total_gold(state.selected_route, not state.claimed_routes.has(state.selected_route))], Style.ACCENT)
+	var minutes: int = Catalog.node_usec(state.selected_route) * 5 / 60000000
+	var duration := "%dh" % (minutes / 60) if minutes >= 60 else "%d min" % minutes
+	paragraph("%s · %d gold" % [duration, Catalog.total_gold(state.selected_route, not state.claimed_routes.has(state.selected_route))], Style.ACCENT)
 	if not locked.is_empty():
 		paragraph(locked, Style.MUTED)
 	elif selected.has("hint"):
@@ -102,4 +112,18 @@ func refresh() -> void:
 		paragraph("Bring stew or thorn protection", Style.MUTED)
 	if selected.has("look"):
 		paragraph("Earn " + str(preload("res://src/data/appearance_catalog.gd").LOOKS[selected["look"]]["name"]), Style.ACCENT)
+	if selected.has("gear"):
+		var reward: String = selected["gear"]
+		var line := HBoxContainer.new()
+		add_icon(line, preload("res://src/data/art_catalog.gd").item_icon(reward))
+		var words := Style.label(reward, 26, Style.ACCENT)
+		words.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		words.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		line.add_child(words)
+		list.content.add_child(line)
+		var secured: bool = sim.gear_count(reward) > 0
+		for receipt in sim.reward_chests.pending:
+			secured = secured or receipt.get("gear", "") == reward
+		paragraph("Already secured · repeat gold" if secured else "Guaranteed gear chest", Style.MUTED)
+		paragraph("%d/3 clears · mastery" % mini(3, int(state.route_clears.get(state.selected_route, 0))), Style.MUTED)
 	paragraph("Stew: %d · Thornward: %s" % [sim.fishing.prepared, "ready" if sim.has_gear_effect("thornward") else "—"], Style.MUTED)

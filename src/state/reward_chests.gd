@@ -3,18 +3,21 @@ extends RefCounted
 # Earned local receipts. Multiplayer rewards must come from a trusted server later.
 const Trails = preload("res://src/data/expedition_catalog.gd")
 const Looks = preload("res://src/data/appearance_catalog.gd")
+const Gear = preload("res://src/data/gear_catalog.gd")
 var last_run: int = 0
 var pending: Array[Dictionary] = []
 var last_opened: Dictionary = {}
 
-func issue(run: int, route: String, gold: int, look: String) -> bool:
+func issue(run: int, route: String, gold: int, look: String, gear: String = "") -> bool:
 	if run <= last_run or not Trails.ROUTES.has(route) or gold < 0:
 		return false
 	last_run = run
 	for receipt in pending:
 		if receipt["look"] == look:
 			look = ""
-	pending.append({"id": "trail:%d" % run, "run": run, "route": route, "gold": gold, "look": look if Looks.LOOKS.has(look) else ""})
+		if str(receipt.get("gear", "")) == gear:
+			gear = ""
+	pending.append({"id": "trail:%d" % run, "run": run, "route": route, "gold": gold, "look": look if Looks.LOOKS.has(look) else "", "gear": gear if Gear.has_item(gear) and Trails.ROUTES[route].get("gear", "") == gear else ""})
 	return true
 
 func take(id: String) -> Dictionary:
@@ -60,4 +63,5 @@ func _receipt(raw: Variant) -> Dictionary:
 	if run <= 0 or not Trails.ROUTES.has(route) or str(raw.get("id", "")) != "trail:%d" % run:
 		return {}
 	var look := str(raw.get("look", ""))
-	return {"id": "trail:%d" % run, "run": run, "route": route, "gold": maxi(0, int(raw.get("gold", 0))), "look": look if Looks.LOOKS.has(look) else ""}
+	var gear := str(raw.get("gear", ""))
+	return {"id": "trail:%d" % run, "run": run, "route": route, "gold": maxi(0, int(raw.get("gold", 0))), "look": look if Looks.LOOKS.has(look) else "", "gear": gear if Gear.has_item(gear) and Trails.ROUTES[route].get("gear", "") == gear else ""}

@@ -198,3 +198,7 @@ which opens the optional Field guide's Away chapter.
 ## Activity additions (formats 13–15)
 
 Fishing, prepared stew, frozen NPC practice runs, and authored expedition routes now persist in the same atomic save. Fractional activity progress and consumed/claimed counters prevent repeated settlements after return or event-time checkpoints. Missing older fields default inactive with no invented rewards. Rules: [fishing/practice](FISHING_AND_PRACTICE.md) and [expeditions](TRAIL_EXPEDITIONS.md).
+
+## Version 21: earned regional gear and mastery
+
+Format 21 preserves optional gear in fixed trail receipts, departure-snapshotted Hardened/Opportunist effects and per-route clear counts. A legacy clear flag proves one clear only. Missing optional fields never invent gear rewards or repeated clears. Profile mastery titles rely on persistent completed goals. Existing gold, appearance ownership and unopened format20 chests are preserved. See LANTERNWOOD_PURSUITS.md for the new content and verification limits.

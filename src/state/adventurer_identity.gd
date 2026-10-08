@@ -1,6 +1,6 @@
 extends RefCounted
 const PALETTES := {"amber": Color(0.82, 0.49, 0.16), "moss": Color(0.22, 0.49, 0.31), "slate": Color(0.25, 0.40, 0.67)}
-const TITLES := {"scout": "Greenway Scout", "thornbreaker": "Thornbreaker"}
+const TITLES := {"scout": "Greenway Scout", "thornbreaker": "Thornbreaker", "moth_master": "Glasswing Guardian", "moon_master": "Moonwell Keeper", "lamp_master": "Keeper of the Lamps"}
 var adventurer_name: String = "Wayfarer"
 var palette: String = "amber"
 var title: String = ""
@@ -25,6 +25,9 @@ func earned_titles(sim: Node) -> Array[String]:
 		result.append("scout")
 	if sim.thornback_rank > 0:
 		result.append("thornbreaker")
+	for id in ["moth_master", "moon_master", "lamp_master"]:
+		if sim.goals.completed.has(id):
+			result.append(id)
 	return result
 
 func choose_title(id: String, sim: Node) -> bool:

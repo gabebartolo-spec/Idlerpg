@@ -2,6 +2,12 @@ extends RefCounted
 const NODE_USEC := 60000000
 const POSITION := Vector3(3.0, 0.0, 7.5)
 const ENCOUNTERS := {
+	"moth_roost": {"name": "Glasswing roost", "text": "Moonlit wings gather above the old beacon. You wait for an opening, then scatter the roost.", "damage": 26, "attack_reduction": true, "minimum_damage": 5, "model": "lantern_moth"},
+	"fallen_beacon": {"name": "Fallen beacon", "text": "You raise the beacon from its bed of roots. A keeper gives one slow warning strike.", "damage": 36, "attack_reduction": true, "minimum_damage": 12, "telegraphed": true, "model": "root_keeper"},
+	"moonwell": {"name": "Moonwell", "text": "The blue pool mends your bruises. Mooncap cloth dries on the stones beside it.", "heal": 14},
+	"root_flood": {"name": "Root flood", "text": "Floodwater carries splintered roots through the tunnel. Hardened gear protects you from the repeated knocks.", "damage": 24},
+	"lamp_workshop": {"name": "Lamplighter's workshop", "text": "You mend three broken lamps in a quiet workshop, then rest beside their warmth.", "heal": 12},
+	"elder_oath": {"name": "Keeper's oath", "text": "The elder lifts its shield. Hold your ground through the final strike to receive the lamplighter's seal.", "damage": 54, "attack_reduction": true, "minimum_damage": 18, "telegraphed": true, "model": "root_keeper"},
 	"stream": {"name": "Quiet stream", "text": "You follow the stream and cool your hands in the water.", "heal": 3},
 	"camp": {"name": "Abandoned camp", "text": "A dry campfire gives you a sheltered place to rest.", "heal": 6},
 	"wolves": {"name": "Watchful wolves", "text": "You drive the wolves from the trail. A stronger attack makes the passage safer.", "damage": 18},
@@ -17,12 +23,18 @@ const ENCOUNTERS := {
 	"elder_keeper": {"name": "Elder root keeper", "text": "At the old shrine, an elder keeper tests your resolve with a heavy, clearly signalled blow.", "damage": 66, "attack_reduction": true, "minimum_damage": 22, "telegraphed": true, "model": "root_keeper"}
 }
 const ROUTES := {
+	"mothwatch": {"name": "Mothwatch", "clue": "A two-hour vigil among the glasswing moths. Clear Lantern Hollow first. Attack helps against the roost; the final beacon keeper signals its strike. Guaranteed Mothglass Spear if you do not own one, including in an unopened chest.", "nodes": ["lantern_gate", "moth_roost", "mushroom_rest", "lantern_cache", "fallen_beacon"], "node_usec": 1440000000, "first_gold": 160, "repeat_gold": 65, "requires": ["hollow"], "gear": "Mothglass Spear", "risk": "Glasswing vigil", "hint": "Attack or Thornward; bring stew"},
+	"moonwell": {"name": "Moonwell", "clue": "An eight-hour journey through flooded roots to the moonlit pool. Clear Keeper's Rise first. Hardened gear helps against the flood. Guaranteed Mooncap Mantle if you do not own one, including in an unopened chest.", "nodes": ["briar_tunnel", "root_flood", "moonwell", "lantern_cache", "keeper"], "node_usec": 5760000000, "first_gold": 220, "repeat_gold": 90, "requires": ["rise"], "gear": "Mooncap Mantle", "risk": "Flooded roots", "hint": "Health + protection; bring stew"},
+	"lamplighter": {"name": "Lamplighter's Circuit", "clue": "A twenty-four-hour circuit restoring the oldest lamps. Clear Keeper's Rise first. The elder's final strike rewards attack, protection or a sturdy build. Guaranteed Lamplighter Seal if you do not own one, including in an unopened chest. No live attendance required.", "nodes": ["moth_roost", "lamp_workshop", "briar_tunnel", "lantern_cache", "elder_oath"], "node_usec": 17280000000, "first_gold": 340, "repeat_gold": 140, "requires": ["rise"], "gear": "Lamplighter Seal", "risk": "The old lamp circuit", "hint": "Prepare your build; no live choices"},
 	"greenway": {"name": "Gentle Greenway", "clue": "Lower risk. Wolves are the only damaging encounter; streams and camp restore health. Five minutes.", "nodes": ["stream", "camp", "wolves", "stream", "cache"], "first_gold": 35, "repeat_gold": 10},
 	"causeway": {"name": "Shattered Causeway", "clue": "Higher risk: bridge, wolves and a 24-damage thorn burst. Prepare Pond Stew or earned Thornward gear. Five minutes.", "nodes": ["bridge", "wolves", "cache", "guardian", "camp"], "first_gold": 60, "repeat_gold": 20},
 	"hollow": {"name": "Lantern Hollow", "clue": "Clear Gentle Greenway to discover the hollow. Moths reward attack; the Root Keeper rewards Thornward. A prepared beginner with Thornward can succeed.", "nodes": ["lantern_gate", "moths", "mushroom_rest", "lantern_cache", "keeper"], "node_usec": 180000000, "first_gold": 80, "repeat_gold": 25, "requires": ["greenway"], "look": "lantern_crook", "risk": "Woodland trial", "hint": "Attack + Thornward; stew helps"},
 	"rise": {"name": "Keeper's Rise", "clue": "Clear Lantern Hollow and Shattered Causeway first. This deeper trail combines moths, thorns and an elder keeper. Prepare health, attack, Thornward or stew; there is no paid rescue.", "nodes": ["moths", "briar_tunnel", "mushroom_rest", "lantern_cache", "elder_keeper"], "node_usec": 360000000, "first_gold": 130, "repeat_gold": 40, "requires": ["hollow", "causeway"], "look": "keeper_crown", "risk": "Deep woodland", "hint": "Bring Thornward + stew or better gear"}
 }
 const WAYPOINTS := {
+	"mothwatch": [Vector3(12, 0, 10), Vector3(15, 0, 11), Vector3(15, 0, 14), Vector3(18, 0, 14), Vector3(20, 0, 11)],
+	"moonwell": [Vector3(19, 0, 17), Vector3(20, 0, 18), Vector3(22, 0, 18), Vector3(24, 0, 16), Vector3(20, 0, 11)],
+	"lamplighter": [Vector3(15, 0, 11), Vector3(18, 0, 14), Vector3(19, 0, 17), Vector3(24, 0, 16), Vector3(26, 0, 13)],
 	"greenway": [Vector3(3, 0, 6.5), Vector3(4, 0, 6.5), Vector3(5, 0, 5), Vector3(4, 0, 4), Vector3(3, 0, 3)],
 	"causeway": [Vector3(5, 0, 6), Vector3(7, 0, 5), Vector3(9, 0, 4), Vector3(10, 0, 2), Vector3(8, 0, 4)],
 	"hollow": [Vector3(12, 0, 10), Vector3(15, 0, 11), Vector3(15, 0, 14), Vector3(18, 0, 14), Vector3(20, 0, 11)],

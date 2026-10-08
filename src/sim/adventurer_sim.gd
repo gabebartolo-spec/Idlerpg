@@ -196,6 +196,10 @@ func simulate_offline(seconds: float) -> void:
 	# Finish the cycle in progress.
 	var mark := cycle_starts
 	while steps > 0 and cycle_starts == mark:
+		var skipped := _skip_quiet_trail_steps(steps)
+		steps -= skipped
+		if steps == 0:
+			break
 		advance(STEP)
 		steps -= 1
 
@@ -208,6 +212,11 @@ func simulate_offline(seconds: float) -> void:
 		mark = cycle_starts
 		var length := 0
 		while steps > 0 and cycle_starts == mark:
+			var skipped := _skip_quiet_trail_steps(steps)
+			steps -= skipped
+			length += skipped
+			if steps == 0:
+				break
 			advance(STEP)
 			steps -= 1
 			length += 1
@@ -220,6 +229,17 @@ func simulate_offline(seconds: float) -> void:
 			steps -= repeats * length
 
 	_advance_remainder(seconds, total)
+
+func _skip_quiet_trail_steps(remaining: int) -> int:
+	if activity != "expedition" or not expedition.active:
+		return 0
+	# Skip only inert movement before a node. Resolve each encounter on its normal
+	# reference step, preserving events, stew decisions and the post-trail cycle.
+	var quiet: int = (expedition.Catalog.node_usec(expedition.route) - expedition.remainder_usec - 1) / int(round(STEP * 1000000.0))
+	var skipped := mini(remaining, maxi(0, quiet))
+	if skipped > 0:
+		advance(skipped * STEP)
+	return skipped
 
 func _whole_steps(seconds: float) -> int:
 	return int(floor(max(0.0, seconds) / STEP + 0.000001))
@@ -1059,7 +1079,10 @@ func _advance_expedition(delta: float) -> void:
 			var look: String = expedition.Catalog.ROUTES[expedition.route].get("look", "")
 			if wardrobe.owned.has(look):
 				look = ""
-			reward_chests.issue(expedition.run_id, expedition.route, chest_gold, look)
+			var gear: String = expedition.Catalog.ROUTES[expedition.route].get("gear", "")
+			if gear_count(gear) > 0:
+				gear = ""
+			reward_chests.issue(expedition.run_id, expedition.route, chest_gold, look, gear)
 		hero_position = TOWN_POSITION
 		_begin_quest_cycle()
 	for encounter in result["events"]:
@@ -1074,6 +1097,12 @@ func claim_reward_chest(id: String) -> Dictionary:
 	gold += int(receipt["gold"])
 	if not str(receipt["look"]).is_empty():
 		wardrobe.grant(str(receipt["look"]), "expedition:" + str(receipt["route"]))
+	var gear := str(receipt.get("gear", ""))
+	if not gear.is_empty():
+		# Finish every grant before any emitted event can checkpoint this claim.
+		gear_inventory[gear] = int(gear_inventory.get(gear, 0)) + 1
+		discovered[gear] = true
+		wardrobe.acquire_item(gear)
 	_emit_event("chest_opened", "Opened an earned trail chest.", receipt)
 	return receipt
 
@@ -1141,7 +1170,7 @@ func _begin_quest_cycle() -> void:
 		hero_attack_clock = 0.0
 		hero_hp = effective_max_hp()
 		hero_position = expedition.Catalog.POSITION
-		expedition.start(effective_attack(), effective_max_hp(), has_gear_effect("thornward"), fishing.prepared > 0)
+		expedition.start(effective_attack(), effective_max_hp(), has_gear_effect("thornward"), fishing.prepared > 0, has_gear_effect("carapace"), has_gear_effect("opportunist"))
 		_emit_event("expedition_started", "Set out along " + str(expedition.Catalog.ROUTES[expedition.route]["name"]) + ".")
 		return
 	if practice.requested:
