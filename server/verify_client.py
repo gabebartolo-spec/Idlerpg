@@ -16,6 +16,8 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--godot", required=True)
     parser.add_argument("--project", default=".")
+    parser.add_argument("--script", default="tests/test_online_client.gd")
+    parser.add_argument("--render", action="store_true")
     args = parser.parse_args()
     epoch = time.monotonic()
     with tempfile.TemporaryDirectory() as directory:
@@ -35,7 +37,17 @@ def main():
                 if not service.started:
                     raise RuntimeError("Service did not start")
                 env = {**os.environ, "IDLE_TEST_URL": "http://127.0.0.1:" + str(listener.getsockname()[1])}
-                run = subprocess.run([args.godot, "--headless", "--path", args.project, "--script", "res://tests/test_online_client.gd"], env=env, timeout=45, capture_output=True, text=True)
+                mode = ["--rendering-method", "gl_compatibility"] if args.render else ["--headless"]
+                try:
+                    run = subprocess.run([args.godot, *mode, "--path", args.project, "--script", "res://" + args.script], env=env, timeout=45, capture_output=True, text=True)
+                except subprocess.TimeoutExpired as error:
+                    # Preserve Godot diagnostics even when a script error left
+                    # the engine running. communicate() has already killed it.
+                    for output in (error.stdout, error.stderr):
+                        if output:
+                            print(output.decode(errors="replace") if isinstance(output, bytes) else output)
+                    print("Godot verification timed out")
+                    return 1
                 print(run.stdout)
                 print(run.stderr)
                 return run.returncode or (1 if "SCRIPT ERROR" in run.stderr or "ERROR:" in run.stderr else 0)

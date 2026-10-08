@@ -1,6 +1,6 @@
 # First shared asynchronous raid
 
-The persistent service resolves **The Hollow Warden** for three independent accounts. Real Godot HTTP clients demonstrate the shared guild → role preparation → result → private chest loop. The normal player account/guild/raid screens and deployment are still unfinished; this is not yet a multiplayer playtest release.
+The persistent service resolves **The Hollow Warden** for three independent accounts. Real Godot HTTP clients and playable More → Guild controls demonstrate the shared guild → role preparation → result → private chest loop. Deployment and physical phone gates remain open; this is not yet the completed playtest release.
 
 ## A short visit, then leave
 
@@ -26,7 +26,7 @@ Three Trail builds win. Removing any one role loses. Keeper damage and Thornward
 
 Victory secures a personal chest per committed participant: **60 supply gold and the Warden lantern appearance**. Failure secures 15 gold per participant, preserves builds/ownership and permits another free preparation window. Withdrawing before lock earns no chest. Opening credits once even across simultaneous devices or fresh retry keys. Repeated victories add gold without duplicate appearance copies. Leaving never removes rewards.
 
-The Warden lantern has original source geometry in `tools/art/models/lanternwood.py`, a game model/icon and a locked Wardrobe preview. It has no combat stats. Server ownership is authoritative; syncing it into the local wardrobe for offline appearance use/direct Wear belongs to upcoming client integration. Preview fixtures do not fabricate raid victory or ownership.
+The Warden lantern has original source geometry in `tools/art/models/lanternwood.py`, a game model/icon and Wardrobe preview. It has no combat stats. Authenticated server ownership restores it into the local wardrobe for offline use and direct Wear after opening. The live capture earns it against the real disposable service; locked preview fixtures do not fabricate ownership.
 
 ## Versioning and verification
 

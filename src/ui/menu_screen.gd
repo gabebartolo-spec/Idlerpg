@@ -9,7 +9,7 @@ func setup(show_dev: bool) -> void:
 	var column := build_sheet("More")
 	subtitle_label.text = "Your adventure"
 	list = add_list(column)
-	var entries := [["rewards", "Rewards"], ["adventure", "Adventure"], ["expedition", "Expeditions"], ["fishing", "Fishing"],
+	var entries := [["rewards", "Rewards"], ["guild", "Guild"], ["adventure", "Adventure"], ["expedition", "Expeditions"], ["fishing", "Fishing"],
 		["practice", "Practice"], ["boss", "Boss"], ["builds", "Builds"], ["relics", "Relics"],
 		["wardrobe", "Wardrobe"], ["identity", "Adventurer"], ["journal", "Field journal"], ["chronicle", "Chronicle"]]
 	if show_dev:
