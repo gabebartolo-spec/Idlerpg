@@ -26,7 +26,7 @@ func show_report(report: Dictionary, totals: String) -> void:
 		button.alignment = HORIZONTAL_ALIGNMENT_LEFT
 		button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		button.custom_minimum_size.y = 110.0
-		button.pressed.connect(func() -> void: destination_requested.emit(str(event["route"]), str(event["target"])))
+		button.pressed.connect(func() -> void: destination_requested.emit(str(event["route"]), str(event.get("target", ""))))
 		list.content.add_child(button)
 	summary = Style.label(totals, 24)
 	summary.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART

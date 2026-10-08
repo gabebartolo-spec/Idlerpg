@@ -221,3 +221,5 @@ Record device, Android version and build commit with the results.
       lists all scroll both ways.
 - [ ] Collection: about two rows are visible between the tabs and the pinned bar. Is that enough?
 - [ ] Suspend and resume with each sheet open.
+
+Integration with R07: relic collection details now show the real equipped effect and count guaranteed earned alternatives as owned. This supersedes the earlier collection-only disclosure in the 30-improvement checklist.

@@ -1,51 +1,35 @@
-# Adventurer chronicle and return highlights (R03)
+# Adventurer chronicle and return highlights — R03
 
-Open **Chronicle** from the watch view to browse your adventurer's remembered milestones,
-newest first. Each row shows the level and quest cycle when it happened; tap it to open
-the relevant gear, companion, talents or boss screen. A sold item remains part of the
-history, but its link cannot equip or recreate it.
+The chronicle remembers actual simulation milestones, whether watched or resolved offline. Open **Adventurer chronicle** from the watch view. Newest entries appear first; tap one, then use the pinned review action to open relevant management. The journal grants no rewards and never changes combat.
 
-The simulation records actual outcomes:
+Recorded milestones:
 
-- The adventurer's first enemy victory and first Old Thornback victory.
-- A useful gear acquisition: both base stats are at least as good as the worn item and
-  one is better, or the item has a world effect worth inspecting. This is a build option,
-  not a promise that equipping it always wins. Each item can be remembered once.
-- A close defeat, when an enemy survives with at most 20% health. The recorded remaining
-  health is real; one such moment is remembered per enemy kind.
-- Each companion bond level gained through adventure, once per companion and level.
+- First goblin, wolf and briarling victory; the first boss victory has its own entry.
+- First useful find for each gear item: more attack or health than the worn same-slot item, or an authored world effect. This identifies a build option, not an automatic best-choice recommendation.
+- Each companion bond increase, once per companion and bond level.
+- First close Old Thornback defeat: the boss had at most 25% health left. This is a historical loss; the Boss screen reviews current preparation and the most recent fight, not a historical replay.
 
-Stable milestone IDs prevent duplicates even when an old row falls out of history.
-The newest 64 rows are retained. The ID set is bounded by the existing finite item,
-enemy and companion catalogs; boss ranks and repeat kills do not grow it indefinitely.
-Chronicle events grant no currency, items or other rewards.
+The journal keeps up to 128 visible entries with monotonic IDs. Remembered first-event keys survive entry eviction, selling/reacquiring items and reload. The current catalog bounds these keys: ordinary fights, travel, quest cycles and unlimited level-ups do not create entries. There is no dialogue generation or full combat log.
 
-On return, only events generated during that offline interval are considered. The three
-highest-priority events are selected (first boss win, bond, useful gear, close defeat,
-first kill); newer events break ties. The return sheet keeps the existing aggregate
-totals in a scrolling region and provides direct milestone links, talent spending and
-a history button. Opening any destination closes the report, so overlays do not stack.
-A no-event return clears old highlights rather than inventing a story.
+After catch-up, the report selects up to three different milestone kinds from events after the loaded save's sequence. First boss victory takes precedence, then close defeat, useful gear, bond and ordinary first victory. Within a kind, the newest event wins. If fewer kinds occurred, show fewer highlights; never invent filler. Aggregate kills, quests, gold, levels, deaths and loot remain unchanged. Highlights sit above totals in a scrolling portrait sheet; talent spending remains pinned. Opening any management sheet closes the report.
 
-Save format **4** persists history, deduplication IDs and the event sequence. Versions
-1–3 still load. Old kills, boss wins, owned gear and existing bond levels seed their
-IDs without adding fictional historical rows. Unknown past events cannot be recreated.
-Offline highlights are checkpointed with progression before the return report is shown;
-reopening at the same timestamp repeats neither rewards nor highlights, while their
-history rows remain browsable. Save failures continue to be reported visibly.
+Save version 4 stores the history and deduplication keys. Older saves start with an empty journal and remember firsts evidenced by existing loot, boss rank, owned gear and bond progress. They receive no retrospective entries or rewards. Immediate return checkpointing prevents repeating highlights on reopening at the same timestamp. Existing save failure/backup behavior still applies.
 
-Catch-up preserves the same chronological events as watched simulation. Cycle batching
-cannot skip a first milestone or a bond threshold: changed chronicle state prevents
-batching that cycle, and existing bond boundaries still constrain repeat counts.
+Offline batching only repeats cycles whose non-counter saved state is identical, including the chronicle. A cycle with a new milestone is stepped; quiet cycles may still batch. Companion threshold boundaries remain stepped. History and numeric IDs survive actual JSON round-trips.
 
-## Verification
+## Validation
 
-`tests/test_chronicle.gd` checks watched/offline parity, real milestones, inferior gear,
-duplicate and evicted IDs, legacy migration, bounded history, priority selection,
-seven-day catch-up, aggregate totals and reopening without replay.
-`tests/test_launch.gd` checks navigation and exclusive overlays; `tests/test_ui.gd`
-checks touch links versus swipes, scrollable long reports, empty histories and portrait
-layout. `tools/ui/capture.gd` includes chronicle and return screenshots for visual review.
+Godot 4.7.2 tests cover milestone deduplication and bounds, legacy migration, JSON restoration, close-defeat thresholds, aggregate reward preservation, repeated reopening, two-hour stepped/offline parity, seven-day catch-up, journal swipes in both directions and navigation. Existing persistence, boss and game suites remain required. Development-PC seven-day catch-up measured roughly 0.45 seconds; this is not an Android performance claim.
 
-Actual Android readability, touch feel, suspend/resume and device catch-up timing remain
-VERIFY. Record device, OS and build SHA when completing the existing device checklist.
+## Android verification still required
+
+Record device, OS and exact build SHA. Check an empty journal, a populated journal, a return with no milestones and a long return with three highlights. Swipe each long list down and back up, confirm review controls stay reachable, verify gear/boss/companion destinations and Back to adventure, then suspend/resume and reopen again to check history and duplicate prevention. Record catch-up timing and screenshots. R00/R02's existing device checks remain open; R03 remains VERIFY until device evidence exists.
+
+## Return-sheet integration
+
+The dedicated return component shows up to three highlights, a scrollable total report,
+a pinned talent action and a Read the chronicle button. Optional saved `target` fields
+link newly recorded gear and companion entries to their actual item rather than opening
+only the general screen. Older entries without a target still open the correct screen.
+These additive fields retain the current save format 8 and its goals, policies, builds
+and relics. No existing progression or milestone schema is replaced.

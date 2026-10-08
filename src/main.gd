@@ -10,8 +10,11 @@ const CharacterVisualScript = preload("res://src/view/character_visual.gd")
 const GearScreenScript = preload("res://src/ui/gear_screen.gd")
 const TalentScreenScript = preload("res://src/ui/talent_screen.gd")
 const GachaScreenScript = preload("res://src/ui/gacha_screen.gd")
-const ChronicleScreenScript = preload("res://src/ui/chronicle_screen.gd")
+const RelicScreenScript = preload("res://src/ui/relic_screen.gd")
+const LoadoutScreenScript = preload("res://src/ui/loadout_screen.gd")
+const AdventureScreenScript = preload("res://src/ui/adventure_screen.gd")
 const ReturnScreenScript = preload("res://src/ui/return_screen.gd")
+const ChronicleScreenScript = preload("res://src/ui/chronicle_screen.gd")
 const BossScreenScript = preload("res://src/ui/boss_screen.gd")
 const UiStyleScript = preload("res://src/ui/ui_style.gd")
 
@@ -52,10 +55,13 @@ var equipment_panel: Control
 var sell_gear_button: Button
 var talent_panel: Control
 var boss_panel: Control
+var chronicle_panel: Control
+var adventure_panel: Control
+var loadout_panel: Control
+var relic_panel: Control
 var talent_button: Button
 var talent_proc_pulse: float = 0.0
 var dev_panel: VBoxContainer
-var chronicle_panel: Control
 var return_panel: Control
 var return_label: Label
 var return_talent_button: Button
@@ -73,6 +79,8 @@ func _ready() -> void:
 	# Each save gets its own run of hunt rolls, fixed from here on.
 	if sim.drop_seed == 0:
 		sim.drop_seed = 1 + randi() % 0x7ffffffe
+	if not sim.active_relic.is_empty() and not sim.owns_relic(sim.active_relic, game):
+		sim.active_relic = ""
 	if not sim.active_companion.is_empty() and game.collection_count("companions", sim.active_companion) <= 0:
 		sim.clear_active_companion()
 	sim.event_emitted.connect(_on_sim_event)
@@ -410,6 +418,7 @@ func _build_ui() -> void:
 	top_column.add_child(hero_label)
 
 	activity_label = Label.new()
+	activity_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	activity_label.add_theme_font_size_override("font_size", 18)
 	top_column.add_child(activity_label)
 
@@ -442,9 +451,25 @@ func _build_ui() -> void:
 	bottom_column.add_theme_constant_override("separation", 8)
 	bottom.add_child(bottom_column)
 
+	var pursuits := HBoxContainer.new()
+	pursuits.add_theme_constant_override("separation", 8)
+	bottom_column.add_child(pursuits)
+	var adventure_button := UiStyleScript.button("Adventure")
+	adventure_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	adventure_button.pressed.connect(func() -> void: _toggle_sheet(adventure_panel))
+	pursuits.add_child(adventure_button)
 	var chronicle_button := UiStyleScript.button("Chronicle")
 	chronicle_button.pressed.connect(func() -> void: _toggle_sheet(chronicle_panel))
-	bottom_column.add_child(chronicle_button)
+	chronicle_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	pursuits.add_child(chronicle_button)
+	var loadout_button := UiStyleScript.button("Builds")
+	loadout_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	loadout_button.pressed.connect(func() -> void: _toggle_sheet(loadout_panel))
+	pursuits.add_child(loadout_button)
+	var relic_button := UiStyleScript.button("Relics")
+	relic_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	relic_button.pressed.connect(func() -> void: _toggle_sheet(relic_panel))
+	pursuits.add_child(relic_button)
 
 	var actions := HBoxContainer.new()
 	actions.add_theme_constant_override("separation", 8)
@@ -494,19 +519,6 @@ func _build_ui() -> void:
 		bottom_column.add_child(dev_panel)
 		_build_dev_tools(dev_panel)
 
-	chronicle_panel = ChronicleScreenScript.new()
-	chronicle_panel.visible = false
-	canvas.add_child(chronicle_panel)
-	chronicle_panel.setup(sim)
-	chronicle_panel.destination_requested.connect(_open_chronicle_destination)
-	return_panel = ReturnScreenScript.new()
-	return_panel.visible = false
-	canvas.add_child(return_panel)
-	return_panel.setup()
-	return_panel.destination_requested.connect(_open_chronicle_destination)
-	return_panel.talents_requested.connect(_open_talents_from_return)
-	return_talent_button = return_panel.talent_button
-
 	# Management screens are sheets of their own, drawn over the world (src/ui/).
 	equipment_panel = GearScreenScript.new()
 	equipment_panel.visible = false
@@ -537,6 +549,39 @@ func _build_ui() -> void:
 	gacha_panel.companion_changed.connect(_on_companion_changed)
 	gacha_collection_view = gacha_panel.collection_view
 	gacha_history_view = gacha_panel.history_view
+
+	relic_panel = RelicScreenScript.new()
+	relic_panel.visible = false
+	canvas.add_child(relic_panel)
+	relic_panel.setup(sim, game)
+	relic_panel.changed.connect(_on_gear_changed)
+
+	loadout_panel = LoadoutScreenScript.new()
+	loadout_panel.visible = false
+	canvas.add_child(loadout_panel)
+	loadout_panel.setup(sim, game)
+	loadout_panel.changed.connect(_on_gear_changed)
+
+	adventure_panel = AdventureScreenScript.new()
+	adventure_panel.visible = false
+	canvas.add_child(adventure_panel)
+	adventure_panel.setup(sim)
+	adventure_panel.route_requested.connect(_open_chronicle_route)
+	adventure_panel.changed.connect(_save_now)
+
+	chronicle_panel = ChronicleScreenScript.new()
+	chronicle_panel.visible = false
+	canvas.add_child(chronicle_panel)
+	chronicle_panel.setup(sim)
+	chronicle_panel.route_requested.connect(func(route: String) -> void: _open_chronicle_destination(route, str(chronicle_panel.targets.get(chronicle_panel.selected, ""))))
+
+	return_panel = ReturnScreenScript.new()
+	return_panel.visible = false
+	canvas.add_child(return_panel)
+	return_panel.setup()
+	return_panel.destination_requested.connect(_open_chronicle_destination)
+	return_panel.talents_requested.connect(_open_talents_from_return)
+	return_talent_button = return_panel.talent_button
 
 func _rebuild_equipment_panel() -> void:
 	if equipment_panel != null and equipment_panel.visible:
@@ -582,7 +627,7 @@ func _refresh_wallet(_tokens: int) -> void:
 
 # Only one sheet, drawer or report is open at a time.
 func _close_drawers() -> void:
-	for sheet in [equipment_panel, talent_panel, boss_panel, gacha_panel, chronicle_panel, dev_panel, return_panel]:
+	for sheet in [equipment_panel, talent_panel, boss_panel, gacha_panel, adventure_panel, loadout_panel, relic_panel, chronicle_panel, dev_panel, return_panel]:
 		if sheet != null:
 			sheet.visible = false
 
@@ -630,6 +675,9 @@ func _show_return_report(report: Dictionary) -> void:
 		return_talent_button.text = "Spend talent point" if sim.talent_points_available() == 1 else "Spend talent points"
 	return_panel.visible = true
 
+func _open_chronicle_route(route: String) -> void:
+	_open_chronicle_destination(route, "")
+
 func _open_chronicle_destination(route: String, target: String) -> void:
 	_close_drawers()
 	match route:
@@ -639,15 +687,17 @@ func _open_chronicle_destination(route: String, target: String) -> void:
 			equipment_panel.set_slot_filter("")
 			equipment_panel.open()
 			equipment_panel.select(target)
+		"relics":
+			relic_panel.open()
 		"boss":
 			boss_panel.open()
 		"talents":
 			talent_panel.open()
-		"companion":
+		"companion", "companions":
 			gacha_panel.select_banner("companions")
 			gacha_panel.show_mode("collection")
 			gacha_panel.open()
-			gacha_panel.select_item(target)
+			gacha_panel.select_item(target if not target.is_empty() else sim.active_companion)
 		_:
 			chronicle_panel.open()
 
@@ -761,7 +811,7 @@ func _format_return_report(report: Dictionary) -> String:
 		var count := int(gear_found[item_name])
 		gear_parts.append("%s%s" % [item_name, " ×%d" % count if count > 1 else ""])
 	if not gear_parts.is_empty():
-		lines.append("New gear: %s." % ", ".join(gear_parts.slice(0, 4)))
+		lines.append("Gear found: %s." % ", ".join(gear_parts.slice(0, 4)))
 
 	if bool(report.get("capped", false)):
 		lines.append("Prototype catch-up is currently capped at 7 days per return.")
@@ -808,7 +858,7 @@ func _refresh_sim_ui() -> void:
 		sim.effective_max_hp(),
 		sim.gold
 	]
-	activity_label.text = sim.current_activity_text()
+	activity_label.text = sim.current_activity_text() + "\n" + sim.policy_reason()
 	quest_label.text = sim.current_quest_text()
 	if talent_button != null:
 		var points: int = sim.talent_points_available()
@@ -817,6 +867,14 @@ func _refresh_sim_ui() -> void:
 func _on_sim_event(event: Dictionary) -> void:
 	event_label.text = str(event.get("message", ""))
 	var event_type := str(event.get("type", ""))
+
+	if adventure_panel != null and adventure_panel.visible:
+		adventure_panel.refresh()
+	if event_type in ["relic_obtained", "relic_equipped", "loadout_applied"]:
+		if relic_panel != null and relic_panel.visible:
+			relic_panel.refresh()
+		if gacha_panel != null and gacha_panel.visible:
+			gacha_panel.refresh()
 
 	if event_type == "talent_proc":
 		talent_proc_pulse = 0.28
@@ -827,11 +885,11 @@ func _on_sim_event(event: Dictionary) -> void:
 		if equipment_panel != null and equipment_panel.visible:
 			_rebuild_equipment_panel()
 
-	if event_type in ["talent_unlocked", "talents_reset", "level_up"]:
+	if event_type in ["talent_unlocked", "talents_reset", "level_up", "loadout_applied"]:
 		if talent_panel != null and talent_panel.visible:
 			talent_panel.refresh()
 
-	if event_type in ["boss_defeated", "boss_lost", "gear_obtained", "gear_equipped", "gear_unequipped", "hunt_changed", "level_up"]:
+	if event_type in ["boss_defeated", "boss_lost", "gear_obtained", "gear_equipped", "gear_unequipped", "hunt_changed", "level_up", "loadout_applied", "relic_equipped"]:
 		if boss_panel != null and boss_panel.visible:
 			boss_panel.refresh()
 

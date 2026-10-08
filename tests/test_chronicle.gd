@@ -4,6 +4,7 @@ const Sim = preload("res://src/sim/adventurer_sim.gd")
 const Game = preload("res://src/game.gd")
 const Persistence = preload("res://src/state/persistence.gd")
 const Chronicle = preload("res://src/state/chronicle.gd")
+const PATH := "user://test_chronicle.json"
 var failures := 0
 
 func _init() -> void:
@@ -23,78 +24,72 @@ func pair() -> Array:
 	root.add_child(game)
 	return [sim, game]
 
+func clean() -> void:
+	for path in Persistence.files_for(PATH):
+		if FileAccess.file_exists(path):
+			DirAccess.remove_absolute(ProjectSettings.globalize_path(path))
+
 func _run() -> void:
-	var original := pair()
-	var sim: Node = original[0]
-	sim.drop_seed = 123
-	sim.set_active_companion("Stable Hound")
-	var initial: Dictionary = sim.to_save_dict()
-	sim.simulate_elapsed(7200.0)
-	check(sim.chronicle.seen.has("first_kill"), "a real first kill is remembered")
-	check(sim.chronicle.events.size() > 1, "adventure produces meaningful milestones")
-	check(sim.chronicle.seen.has("bond:Stable Hound:2"), "companion bond growth records a real milestone")
+	clean()
+	var original: Node = pair()[0]
+	original.set_active_companion("Stable Hound")
+	var start: Dictionary = original.to_save_dict()
+	var stepped: Node = pair()[0]
 	var offline: Node = pair()[0]
-	offline.load_save_dict(initial)
+	stepped.load_save_dict(start)
+	offline.load_save_dict(start)
+	stepped.simulate_elapsed(7200.0)
 	offline.simulate_offline(7200.0)
-	check(offline.to_save_dict() == sim.to_save_dict(), "watched and offline milestones and progression match")
-	var saved: Dictionary = sim.to_save_dict()
+	check(stepped.to_save_dict() == offline.to_save_dict(), "two-hour offline catch-up preserves authoritative state and milestone IDs")
+	check(offline.chronicle.seen.has("kill:goblin") and offline.chronicle.seen.has("boss:first"), "actual first enemy and boss victories are remembered")
+	check(offline.chronicle.seen.has("gear:Goblin Cleaver") and offline.chronicle.seen.has("bond:Stable Hound:2"), "useful finds and companion bonds are remembered")
 	var restored: Node = pair()[0]
-	restored.load_save_dict(saved)
-	check(restored.chronicle.to_save_dict() == sim.chronicle.to_save_dict(), "history and stable IDs survive reload")
+	restored.load_save_dict(offline.to_save_dict())
+	check(restored.chronicle.to_save_dict() == offline.chronicle.to_save_dict(), "history and stable IDs survive reload")
+	restored.load_save_dict(JSON.parse_string(JSON.stringify(offline.to_save_dict(), "", true, true)))
+	check(restored.chronicle.to_save_dict() == offline.chronicle.to_save_dict(), "JSON round-trip restores journal numeric fields without changing history")
 	var mark: int = restored.chronicle.sequence
-	restored.add_gear("Crownblade")
-	check(restored.chronicle.sequence == mark + 1, "useful gear creates a milestone")
-	restored.add_gear("Crownblade")
-	check(restored.chronicle.sequence == mark + 1, "duplicate gear cannot replay a milestone")
-	restored.equip_gear("Crownblade")
-	restored.add_gear("Iron Sword")
-	check(restored.chronicle.sequence == mark + 1, "inferior gear is not described as a useful upgrade")
-	restored.enemy_kind = "thornback"
-	restored.enemy_max_hp = 100
-	restored.enemy_hp = 10
-	restored._die()
-	check(restored.chronicle.seen.has("close:thornback"), "a real close defeat records remaining enemy health")
-	var boss: Node = pair()[0]
-	boss.hero_level = 10
-	boss._start_fight("thornback")
-	boss.enemy_hp = 1
-	boss._defeat_enemy()
-	check(boss.chronicle.seen.has("first_boss"), "a boss victory records its first-win milestone")
-	boss._start_fight("thornback")
-	boss.enemy_hp = boss.enemy_max_hp
-	boss._die()
-	check(not boss.chronicle.seen.has("close:thornback"), "a decisive loss cannot fabricate a close defeat")
-	var old: Dictionary = saved.duplicate(true)
-	old.erase("chronicle")
-	var migrated: Node = pair()[0]
-	migrated.load_save_dict(old)
-	check(migrated.chronicle.events.is_empty() and migrated.chronicle.seen.has("first_kill"), "legacy progress seeds deduplication without fabricated history")
-	var memory := Chronicle.new()
-	for i in 100:
-		memory.remember(str(i), "Milestone", "chronicle", "", i, 1, 0)
-	check(memory.events.size() == Chronicle.LIMIT, "long histories are bounded")
-	memory.remember("0", "Again", "chronicle", "", 1000, 1, 0)
-	check(memory.sequence == 100, "evicted events cannot replay")
-	var highlights: Array = memory.highlights_since(0)
-	check(highlights.size() == 3 and highlights[0]["id"] == "99", "return selects three highest priority actual events")
-	check(memory.highlights_since(memory.sequence).is_empty(), "a no-event return has no invented highlights")
-	var path := "user://test_chronicle_return.json"
-	for file in Persistence.files_for(path):
-		if FileAccess.file_exists(file):
-			DirAccess.remove_absolute(ProjectSettings.globalize_path(file))
-	var fresh := pair()
-	fresh[0].drop_seed = 123
-	check(Persistence.save(fresh[0], fresh[1], 1000, path), "chronicle start checkpoints")
+	restored.add_gear("Goblin Cleaver")
+	check(restored.chronicle.sequence == mark, "a repeated item does not become another new milestone")
+	var legacy: Dictionary = offline.to_save_dict()
+	legacy.erase("chronicle")
+	restored.load_save_dict(legacy)
+	check(restored.chronicle.entries.is_empty(), "legacy migration fabricates no historical events")
+	restored.add_gear("Goblin Cleaver")
+	check(restored.chronicle.entries.is_empty(), "legacy owned gear is remembered without another NEW claim")
+	var journal := Chronicle.new()
+	for index in 150:
+		journal.record("test:%d" % index, "Milestone", "gear", 80)
+	check(journal.entries.size() == Chronicle.LIMIT and journal.sequence == 150, "visible journal is bounded while IDs remain monotonic")
+	journal.record("test:0", "Repeated", "gear", 80)
+	check(journal.sequence == 150, "evicted firsts cannot be repeated")
+	journal.observe({"type": "boss_lost", "message": "Old Thornback drove you off.", "close": false})
+	check(not journal.seen.has("close:thornback"), "ordinary losses do not become fabricated near victories")
+	journal.observe({"type": "boss_lost", "message": "Old Thornback drove you off.", "close": true})
+	check(journal.seen.has("close:thornback"), "measured close losses have a boss recap route")
+	var close: Node = pair()[0]
+	close._start_fight("thornback")
+	close.enemy_hp = close.enemy_max_hp / 4
+	close._die()
+	check(close.chronicle.seen.has("close:thornback"), "simulation marks a defeat close only at a quarter of boss health or less")
+	var ordinary: Node = pair()[0]
+	ordinary._start_fight("thornback")
+	ordinary._die()
+	check(not ordinary.chronicle.seen.has("close:thornback"), "simulation does not call a full-health boss a close defeat")
+	var saved := pair()
+	check(Persistence.save(saved[0], saved[1], 1000, PATH), "initial checkpoint succeeds")
 	var returned := pair()
-	var report: Dictionary = Persistence.load_and_advance(returned[0], returned[1], 605800, path)
-	check(report["highlights"].size() > 0 and report["highlights"].size() <= 3, "seven-day return selects highlights")
-	check(report["kills"] == returned[0].total_kills, "highlight selection preserves aggregate totals")
-	var returned_again := pair()
-	var again: Dictionary = Persistence.load_and_advance(returned_again[0], returned_again[1], 605800, path)
-	check(again["highlights"].is_empty() and again["kills"] == 0 and again["gear"].is_empty(), "reopening cannot repeat highlights or rewards")
-	check(returned_again[0].chronicle.to_save_dict() == returned[0].chronicle.to_save_dict(), "offline highlights remain browsable after reload")
-	for file in Persistence.files_for(path):
-		if FileAccess.file_exists(file):
-			DirAccess.remove_absolute(ProjectSettings.globalize_path(file))
+	var report := Persistence.load_and_advance(returned[0], returned[1], 1600, PATH)
+	var highlights: Array = report["highlights"]
+	check(not highlights.is_empty() and highlights.size() <= 3, "return selects at most three actual highlights")
+	check(int(report["kills"]) == returned[0].total_kills and int(report["gold"]) == returned[0].gold, "highlight selection preserves aggregate rewards")
+	var again := pair()
+	var repeated := Persistence.load_and_advance(again[0], again[1], 1600, PATH)
+	check(repeated["highlights"].is_empty() and int(repeated["kills"]) == 0, "immediate reopen repeats neither highlights nor rewards")
+	var long_return := pair()
+	var long_report := Persistence.load_and_advance(long_return[0], long_return[1], 1600 + 7 * 86400, PATH)
+	check(long_report["highlights"].size() <= 3 and long_return[0].chronicle.entries.size() <= Chronicle.LIMIT, "seven-day catch-up keeps return and history bounded")
+	print("Seven-day chronicle catch-up: %d ms" % int(long_report["catch_up_msec"]))
+	clean()
 	print("Chronicle tests complete: %d failure(s)" % failures)
 	quit(failures)

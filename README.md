@@ -34,7 +34,8 @@ The first quest is intentionally tiny: leave Mossgate, defeat three goblins, tra
 - authoritative save/restore;
 - same-simulation offline catch-up;
 - duplicate-reward protection;
-- concise "While you were away" report;
+- concise "While you were away" report with up to three real milestone highlights and management links;
+- persistent adventurer chronicle for first victories, useful finds, close boss defeats and companion bonds (`docs/CHRONICLE.md`);
 - debug 10-minute-away simulation;
 - a 7-day catch-up cap, kept for now although catch-up no longer steps through every cycle;
 - saves written safely with a backup, a version migration path and saved gacha state (`docs/SAVE_AND_OFFLINE.md`);
@@ -72,6 +73,13 @@ The first quest is intentionally tiny: leave Mossgate, defeat three goblins, tra
 - passive effects run in the authoritative sim and therefore work offline;
 - active companion and bond persistence;
 - no manual companion abilities or companion-management spreadsheet.
+
+### Adventure preparation
+- three permanent goals with one tracked pursuit and once-only completion rewards;
+- autonomous Safe farming, Push progression and Targeted hunt policies;
+- three free named equipment/talent/companion/relic loadouts with atomic application;
+- one equipped relic slot, three effect families and guaranteed free travel/health alternatives;
+- rules, migration and Android checklist: `docs/ADVENTURE_AND_BUILDS.md`.
 
 ### Gacha collection
 - Gear Cache, Companion Pact and Relic Vault;
