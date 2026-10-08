@@ -53,5 +53,5 @@ jobs:
 
       - name: Verify durable service and live Godot clients
         run: |
-          python -m unittest server.test_service -v
+          python -m unittest server.test_service server.test_raids -v
           python -m server.verify_client --godot "$HOME/godot/godot"

@@ -17,11 +17,14 @@ def main():
     parser.add_argument("--godot", required=True)
     parser.add_argument("--project", default=".")
     args = parser.parse_args()
+    epoch = time.monotonic()
     with tempfile.TemporaryDirectory() as directory:
         with socket.socket() as listener:
             listener.bind(("127.0.0.1", 0))
             listener.listen(128)
-            service = uvicorn.Server(uvicorn.Config(create_app(Path(directory) / "test.sqlite3"), log_level="error", access_log=False))
+            # Only this disposable verification server accelerates time. The
+            # production factory always uses real server time and 24-hour raids.
+            service = uvicorn.Server(uvicorn.Config(create_app(Path(directory) / "test.sqlite3", lambda: 1800000000 + int((time.monotonic() - epoch) * 8640)), log_level="error", access_log=False))
             thread = threading.Thread(target=lambda: service.run(sockets=[listener]), daemon=True)
             thread.start()
             try:

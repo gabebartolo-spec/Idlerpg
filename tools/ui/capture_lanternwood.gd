@@ -87,6 +87,12 @@ func _run() -> void:
 	main.wardrobe_panel.slot = "head"
 	main.wardrobe_panel.select("keeper_crown")
 	await snap("lantern_08_crown")
+	# Locked preview only; this fixture never invents a server raid grant.
+	main.wardrobe_panel.slot = "weapon"
+	main.wardrobe_panel.select("warden_lantern")
+	await process_frame
+	main.wardrobe_panel.list.scroll_to(main.wardrobe_panel.list.max_offset())
+	await snap("raid_01_lantern_preview")
 	main.set_process(false)
 	main.free()
 	await create_timer(.3).timeout

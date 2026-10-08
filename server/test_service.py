@@ -15,7 +15,7 @@ import uvicorn
 from server.app import SESSION_SECONDS, create_app, digest
 
 
-class ServiceTest(unittest.TestCase):
+class HTTPHarness(unittest.TestCase):
     def setUp(self):
         self.directory = tempfile.TemporaryDirectory()
         self.database = Path(self.directory.name) / "test.sqlite3"
@@ -66,6 +66,8 @@ class ServiceTest(unittest.TestCase):
         self.stamp += 300
         return self.post(client, "/v1/outings/" + outing["id"] + "/open")
 
+
+class ServiceTest(HTTPHarness):
     def test_private_profile_and_recovery_across_devices(self):
         a, credentials = self.account()
         b, _ = self.account("Second Walker")

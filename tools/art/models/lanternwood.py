@@ -138,3 +138,17 @@ def keeper_crown():
         part.ball(.08,(sign*.20,-.03,.3),"leaf_light",detail=1,scale=(1.3,.7,.5))
     part.prism([(-.06,.14),(.06,.14),(.05,.25),(0,.29),(-.05,.25)],.04,(0,-.20,0),"window")
     return [part]
+
+
+@model("warden_lantern", "weapon", item="Warden Lantern")
+def warden_lantern():
+    """A hand-carried amber cage with root antlers; raid appearance only."""
+    part = Part("warden_lantern")
+    part.cyl(.045,.25,(0,0,0),"leather",sides=6)
+    part.cyl(.04,.40,(-.13,0,-.12),"bronze",sides=6,rot=(0,-55,0))
+    lamp(part,-.28,0,-.48,1.45)
+    for sign in (-1,1):
+        part.cyl(.028,.34,(-.28+sign*.23,0,-.48),"wood_dark",sides=5,top=.014,rot=(0,sign*24,0))
+        part.ball(.08,(-.28+sign*.27,0,-.30),"leaf_light",detail=1,scale=(1.2,.6,.45))
+    part.prism([(-.06,-.06),(.06,-.06),(.07,.06),(0,.12),(-.07,.06)],.03,(-.28,-.16,-.48),"cloth_cream")
+    return [part]
