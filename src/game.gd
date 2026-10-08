@@ -42,6 +42,7 @@ const BANNERS: Dictionary = {
 	}
 }
 
+var income_claimed: int = 0
 var gacha_tokens: int = STARTING_TOKENS
 var dev_infinite_tokens: bool = false
 var pity: Dictionary = {}
@@ -156,6 +157,13 @@ func dev_add_tokens(amount: int = 10000) -> void:
 	gacha_tokens = max(0, gacha_tokens + amount)
 	wallet_changed.emit(gacha_tokens)
 
+func collect_income(sim: Node) -> int:
+	var amount := maxi(0, int(sim.income.total) - income_claimed)
+	if amount > 0:
+		income_claimed += amount
+		grant_tokens(amount)
+	return amount
+
 func grant_tokens(amount: int) -> void:
 	if amount <= 0:
 		return
@@ -170,6 +178,7 @@ func dev_reset_pity() -> void:
 
 func to_save_dict() -> Dictionary:
 	return {
+		"income_claimed": income_claimed,
 		"pursuits": pursuits.duplicate(true),
 		"duplicate_counts": duplicate_counts.duplicate(true),
 		"gacha_tokens": gacha_tokens,
@@ -185,6 +194,7 @@ func to_save_dict() -> Dictionary:
 	}
 
 func load_save_dict(data: Dictionary) -> void:
+	income_claimed = maxi(0, int(data.get("income_claimed", 0)))
 	gacha_tokens = max(0, int(data.get("gacha_tokens", STARTING_TOKENS)))
 	var saved_pity: Dictionary = data.get("pity", {})
 	var saved_collection: Dictionary = data.get("collection", {})

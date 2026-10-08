@@ -23,6 +23,9 @@ const SLOT_ATTACH := {
 	"accessory": ["attach_accessory"]
 }
 
+var outfit_accent: MeshInstance3D
+var keepsake_pin: MeshInstance3D
+var identity_palette: String = ""
 var model: Node3D
 var state: String = "idle"
 var clock: float = 0.0
@@ -42,6 +45,32 @@ func setup(model_id: String) -> bool:
 			parts[part_name] = part
 			rest[part_name] = part.rotation
 	return true
+
+func show_identity(palette: String, keepsake: bool) -> void:
+	if outfit_accent == null:
+		outfit_accent = MeshInstance3D.new()
+		outfit_accent.name = "OutfitAccent"
+		var sash := BoxMesh.new()
+		sash.size = Vector3(0.62, 0.12, 0.12)
+		outfit_accent.mesh = sash
+		outfit_accent.position = Vector3(0, 0.85, 0.18)
+		model.add_child(outfit_accent)
+		keepsake_pin = MeshInstance3D.new()
+		var pin := SphereMesh.new()
+		pin.radius = 0.07
+		pin.height = 0.14
+		keepsake_pin.mesh = pin
+		keepsake_pin.position = Vector3(0.16, 1.10, 0.20)
+		var metal := StandardMaterial3D.new()
+		metal.albedo_color = Color(0.94, 0.76, 0.22)
+		keepsake_pin.material_override = metal
+		model.add_child(keepsake_pin)
+	if palette != identity_palette:
+		identity_palette = palette
+		var cloth := StandardMaterial3D.new()
+		cloth.albedo_color = preload("res://src/state/adventurer_identity.gd").PALETTES.get(palette, Color(0.82, 0.49, 0.16))
+		outfit_accent.material_override = cloth
+	keepsake_pin.visible = keepsake
 
 func set_state(next_state: String) -> void:
 	if next_state != state:

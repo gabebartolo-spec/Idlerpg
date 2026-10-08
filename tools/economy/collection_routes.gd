@@ -1,6 +1,6 @@
 extends SceneTree
 
-# R10 sensitivity experiment: actual daily simulation and collection code, one seeded
+# R11 sensitivity experiment: actual daily simulation and collection code, one seeded
 # account per cell. Hypothetical token purchases/income, not a live paid product.
 const Game = preload("res://src/game.gd")
 const Sim = preload("res://src/sim/adventurer_sim.gd")
@@ -90,15 +90,16 @@ func cell(income: int, purchases: int) -> Dictionary:
 					salvage += tokens
 		prepare(sim, game)
 		sim.simulate_offline(86400.0)
+		game.collect_income(sim)
 		prepare(sim, game)
-		if game.gacha_tokens != game.STARTING_TOKENS + day * (income + purchases) + refunds + salvage - paid:
+		if game.gacha_tokens != game.STARTING_TOKENS + day * (income + purchases) + sim.income.total + refunds + salvage - paid:
 			failures += 1
 		if day in CHECKPOINTS:
 			var unique := game.collected_unique("gear") + game.collected_unique("companions") + game.collected_unique("relics")
 			checkpoints[str(day)] = {"level": sim.hero_level, "attack": sim.effective_attack(), "health": sim.effective_max_hp(),
 				"boss_rank": sim.thornback_rank, "draws": pulls, "new_items": novelty, "useful_draws": useful,
 				"unique": unique, "saturated": unique == 45, "route_bonuses": bonuses,
-				"tokens_spent": paid, "duplicate_refunds": refunds, "salvage": salvage,
+				"tokens_spent": paid, "duplicate_refunds": refunds, "salvage": salvage, "earned_tokens": sim.income.total,
 				"world_counters_owned": sim.gear_count("Briarheart Charm") > 0 and sim.gear_count("Briarhook") > 0}
 			print("Checkpoint income=%d purchases=%d day=%d" % [income, purchases, day])
 	game.free()
@@ -107,16 +108,16 @@ func cell(income: int, purchases: int) -> Dictionary:
 
 func _run() -> void:
 	if "--render-only" in OS.get_cmdline_user_args():
-		write_tables(JSON.parse_string(FileAccess.get_file_as_string("res://docs/economy/collection_route_results.json")))
+		write_tables(JSON.parse_string(FileAccess.get_file_as_string("res://docs/economy/earned_draw_results.json")))
 		quit()
 		return
 	var results := {"seed": 101, "days": 180, "accounts_per_cell": 1, "starting_tokens": 250,
-		"assumptions": "Daily check-in autopilot; purchases are hypothetical tokens/day. Useful means a draw immediately increased the selected build's attack*2+HP score. No boosts or extra drop access. Travel preference, player enjoyment and population tails are not modeled.", "cells": {}}
+		"assumptions": "Implemented earned income 120/day; supplemental income is hypothetical. Daily check-in autopilot; purchases are hypothetical tokens/day. Useful means a draw immediately increased the selected build's attack*2+HP score. No boosts or extra drop access. Travel preference, player enjoyment and population tails are not modeled.", "cells": {}}
 	for income in [0, 120]:
 		for cohort in {"free": 0, "light": 120, "high": 600}:
 			results["cells"]["%s/income%d" % [cohort, income]] = cell(income, {"free": 0, "light": 120, "high": 600}[cohort])
 	results["ledger_failures"] = failures
-	var file := FileAccess.open("res://docs/economy/collection_route_results.json", FileAccess.WRITE)
+	var file := FileAccess.open("res://docs/economy/earned_draw_results.json", FileAccess.WRITE)
 	file.store_string(JSON.stringify(results, "\t"))
 	file.close()
 	write_tables(results)
@@ -124,9 +125,9 @@ func _run() -> void:
 	quit(failures)
 
 func write_tables(results: Dictionary) -> void:
-	var lines: Array[String] = ["# R10 collection-route sensitivity results", "",
-		"Generated from collection_route_results.json by tools/economy/collection_routes.gd. Seed 101, one account per cell, real daily offline combat through day 180. Zero token ledger failures.", "",
-		"Purchases are hypothetical 0/120/600 tokens per day for free/light/high cohorts; income is either implemented zero or hypothetical 120/day. No live income rule or paid product is introduced. This small deterministic sample is not a population, enjoyment or fairness study.", "",
+	var lines: Array[String] = ["# R11 earned-draw sensitivity results", "",
+		"Generated from earned_draw_results.json by tools/economy/collection_routes.gd. Seed 101, one account per cell, real daily offline combat through day 180. Zero token ledger failures.", "",
+		"Purchases are hypothetical 0/120/600 tokens per day for free/light/high cohorts; every account earns the implemented 120/day through simulation. The income cell suffix adds hypothetical supplemental 0 or 120/day; no paid product is introduced. This small deterministic sample is not a population, enjoyment or fairness study.", "",
 		"Useful = an immediate increase in the autopilot's attack*2+HP build score. New items and route bonuses are counted separately. Saturation = all 45 banner items collected; earned relic alternatives are also available in the game but are not counted as banner draws.", "",
 		"| Cell | Day | Paid draws | New items | Useful draws | Route bonuses | Unique /45 | Saturated |",
 		"|---|---:|---:|---:|---:|---:|---:|---|"]
@@ -143,8 +144,8 @@ func write_tables(results: Dictionary) -> void:
 			var entry: Dictionary = results["cells"][key][str(day)]
 			var free: Dictionary = reference[str(day)]
 			lines.append("| %s | %d | %d | %d | %d | %.4f | %.4f | %d | %s |" % [key, day, entry["level"], entry["attack"], entry["health"], float(entry["attack"]) / float(free["attack"]), float(entry["health"]) / float(free["health"]), entry["boss_rank"], "yes" if entry["world_counters_owned"] else "no"])
-	lines.append_array(["", "The no-income free account stops at 26 draws and 18 unique items. Cells with recurring tokens reach functional saturation by day 30; cumulative useful draws then stop increasing. The cosmetic keepsakes are finite and grant no power. These outcomes support examining earned income in R11 and later cosmetic/journal pursuits, not inflating duplicate stats.", "",
+	lines.append_array(["", "See the checkpoints above for novelty, useful draws and saturation with earned income. This finite catalog eventually saturates; more draws then provide no immediate build improvement. The cosmetic keepsakes are finite and grant no power. Later cosmetic and journal pursuits need separate reward-recognition and desirability studies.", "",
 		"Some purchased cohorts have less modeled power than the free cohort: greedy companion rarity and attack/HP choices do not optimize travel or encounter progression. Uncapped levels dominate long-term stats. This is a limitation of the current autopilot and progression model, not proof that spending is harmless. Boosts, extra drop access, player build choices and population tails are excluded.", ""])
-	var file := FileAccess.open("res://docs/economy/collection_route_tables.md", FileAccess.WRITE)
+	var file := FileAccess.open("res://docs/economy/earned_draw_tables.md", FileAccess.WRITE)
 	file.store_string("\n".join(lines))
 	file.close()

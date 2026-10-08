@@ -1,5 +1,7 @@
 extends Node
 
+const IdentityScreenScript = preload("res://src/ui/identity_screen.gd")
+const JournalScreenScript = preload("res://src/ui/journal_screen.gd")
 const GameStateScript = preload("res://src/game.gd")
 const AdventurerSimScript = preload("res://src/sim/adventurer_sim.gd")
 const PersistenceScript = preload("res://src/state/persistence.gd")
@@ -55,6 +57,8 @@ var equipment_panel: Control
 var sell_gear_button: Button
 var talent_panel: Control
 var boss_panel: Control
+var identity_panel: Control
+var journal_panel: Control
 var chronicle_panel: Control
 var adventure_panel: Control
 var loadout_panel: Control
@@ -96,6 +100,7 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	sim.advance(delta)
+	game.collect_income(sim)
 	talent_proc_pulse = max(0.0, talent_proc_pulse - delta)
 	_sync_world(delta)
 	_refresh_sim_ui()
@@ -294,6 +299,7 @@ func _sync_world(delta: float) -> void:
 		hero_visual.face(enemy_position - sim.hero_position)
 	else:
 		hero_visual.face(sim.hero_position - hero_visual.position)
+	hero_visual.show_identity(sim.identity.palette, sim.thornback_rank > 0)
 	hero_visual.position = sim.hero_position
 	hero_visual.set_state(str(ACTIVITY_POSES.get(sim.activity, "idle")))
 	var pulse_scale: float = 1.06 if talent_proc_pulse > 0.0 else 1.0
@@ -414,6 +420,7 @@ func _build_ui() -> void:
 	top.add_child(top_column)
 
 	hero_label = Label.new()
+	hero_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	hero_label.add_theme_font_size_override("font_size", 22)
 	top_column.add_child(hero_label)
 
@@ -451,6 +458,17 @@ func _build_ui() -> void:
 	bottom_column.add_theme_constant_override("separation", 8)
 	bottom.add_child(bottom_column)
 
+	var records := HBoxContainer.new()
+	records.add_theme_constant_override("separation", 8)
+	bottom_column.add_child(records)
+	var journal_button := UiStyleScript.button("Field journal")
+	journal_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	journal_button.pressed.connect(func() -> void: _toggle_sheet(journal_panel))
+	records.add_child(journal_button)
+	var identity_button := UiStyleScript.button("Adventurer")
+	identity_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	identity_button.pressed.connect(func() -> void: _toggle_sheet(identity_panel))
+	records.add_child(identity_button)
 	var pursuits := HBoxContainer.new()
 	pursuits.add_theme_constant_override("separation", 8)
 	bottom_column.add_child(pursuits)
@@ -569,6 +587,15 @@ func _build_ui() -> void:
 	adventure_panel.route_requested.connect(_open_chronicle_route)
 	adventure_panel.changed.connect(_save_now)
 
+	identity_panel = IdentityScreenScript.new()
+	identity_panel.visible = false
+	canvas.add_child(identity_panel)
+	identity_panel.setup(sim)
+	identity_panel.changed.connect(_save_now)
+	journal_panel = JournalScreenScript.new()
+	journal_panel.visible = false
+	canvas.add_child(journal_panel)
+	journal_panel.setup(sim)
 	chronicle_panel = ChronicleScreenScript.new()
 	chronicle_panel.visible = false
 	canvas.add_child(chronicle_panel)
@@ -627,7 +654,7 @@ func _refresh_wallet(_tokens: int) -> void:
 
 # Only one sheet, drawer or report is open at a time.
 func _close_drawers() -> void:
-	for sheet in [equipment_panel, talent_panel, boss_panel, gacha_panel, adventure_panel, loadout_panel, relic_panel, chronicle_panel, dev_panel, return_panel]:
+	for sheet in [equipment_panel, talent_panel, boss_panel, gacha_panel, adventure_panel, loadout_panel, relic_panel, chronicle_panel, journal_panel, identity_panel, dev_panel, return_panel]:
 		if sheet != null:
 			sheet.visible = false
 
@@ -681,6 +708,9 @@ func _open_chronicle_route(route: String) -> void:
 func _open_chronicle_destination(route: String, target: String) -> void:
 	_close_drawers()
 	match route:
+		"journal":
+			journal_panel.open()
+			journal_panel.select(target)
 		"gear":
 			equipment_panel.worn_only = false
 			equipment_panel.selected = ""
@@ -773,7 +803,7 @@ func _format_return_report(report: Dictionary) -> String:
 		lines.append("The device clock is behind your last save, so no time away was counted.")
 	if bool(report.get("save_failed", false)):
 		lines.append("This return could not be saved yet.")
-	lines.append("Away for %s." % _format_duration(int(report.get("elapsed_actual", 0))))
+	lines.append("%s · Away for %s." % [sim.identity.adventurer_name, _format_duration(int(report.get("elapsed_actual", 0)))])
 
 	var quests := int(report.get("quests", 0))
 	var kills := int(report.get("kills", 0))
@@ -782,6 +812,8 @@ func _format_return_report(report: Dictionary) -> String:
 	var talent_points_earned := int(report.get("talent_points", 0))
 	var deaths_while_away := int(report.get("deaths", 0))
 
+	if int(report.get("tokens", 0)) > 0:
+		lines.append("+%d earned summon tokens." % int(report["tokens"]))
 	if quests > 0:
 		lines.append("%d quest%s completed." % [quests, "" if quests == 1 else "s"])
 	if kills > 0:
@@ -851,8 +883,10 @@ func _show_talent_proc(branch_id: String) -> void:
 	talent_proc_visual.scale = Vector3.ONE * 0.85
 
 func _refresh_sim_ui() -> void:
+	if gacha_panel != null and gacha_panel.visible:
+		gacha_panel.refresh_wallet()
 	hero_label.text = "%s · Lv %d · HP %d/%d · %d gold" % [
-		TalentCatalogScript.CLASS_NAME,
+		sim.identity.display_name(),
 		sim.hero_level,
 		sim.hero_hp,
 		sim.effective_max_hp(),
@@ -880,6 +914,9 @@ func _on_sim_event(event: Dictionary) -> void:
 		talent_proc_pulse = 0.28
 		var talent_id: String = str(event.get("talent", ""))
 		_show_talent_proc(TalentCatalogScript.branch(talent_id))
+	if event_type in ["companion_moment", "companion_proc"]:
+		talent_proc_pulse = 0.28
+		_show_talent_proc("warden")
 
 	if event_type in ["gear_obtained", "gear_equipped", "gear_unequipped", "gear_sold", "gear_salvaged", "talent_unlocked", "talents_reset"]:
 		if equipment_panel != null and equipment_panel.visible:
@@ -896,3 +933,5 @@ func _on_sim_event(event: Dictionary) -> void:
 	if event_type in ["companion_changed", "companion_bond_up"]:
 		if gacha_panel != null and gacha_panel.visible:
 			gacha_panel.refresh()
+	if journal_panel != null and journal_panel.visible and journal_panel.known_count != sim.journal.found.size():
+		journal_panel.refresh()

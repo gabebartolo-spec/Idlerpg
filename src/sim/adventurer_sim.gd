@@ -3,6 +3,9 @@ extends Node
 
 signal event_emitted(event: Dictionary)
 
+const IdentityScript = preload("res://src/state/adventurer_identity.gd")
+const JournalScript = preload("res://src/state/discovery_journal.gd")
+const IncomeScript = preload("res://src/state/earned_income.gd")
 const RelicScript = preload("res://src/data/relic_catalog.gd")
 const LoadoutsScript = preload("res://src/state/build_loadouts.gd")
 const PolicyScript = preload("res://src/data/adventure_policy.gd")
@@ -34,7 +37,7 @@ const OPPORTUNIST_MULTIPLIER := 2.0
 const STEP := 0.1
 # Saved values that only ever count up and never change how a quest cycle plays out,
 # except through the level and bond thresholds checked in _repeatable_cycles.
-const CYCLE_COUNTERS := ["gold", "hero_xp", "total_kills", "deaths", "quest_cycles_completed", "inventory", "companion_bond_xp"]
+const CYCLE_COUNTERS := ["gold", "hero_xp", "total_kills", "deaths", "quest_cycles_completed", "inventory", "companion_bond_xp", "income"]
 
 var hero_position: Vector3 = TOWN_POSITION
 var hero_level: int = 1
@@ -98,6 +101,9 @@ var equipped: Dictionary = {
 	"accessory": ""
 }
 var recent_events: Array[String] = []
+var identity = IdentityScript.new()
+var journal = JournalScript.new()
+var income = IncomeScript.new()
 var chronicle = ChronicleScript.new()
 var goals = GoalsScript.new()
 var loadouts = LoadoutsScript.new()
@@ -128,6 +134,7 @@ func advance(delta: float) -> void:
 	if delta <= 0.0:
 		return
 
+	income.advance(delta)
 	match activity:
 		"travelling", "returning":
 			_advance_travel(delta)
@@ -185,7 +192,7 @@ func simulate_offline(seconds: float) -> void:
 		var after := to_save_dict()
 		var repeats: int = mini(steps / length, _repeatable_cycles(before, after))
 		if repeats > 0:
-			_repeat_cycle(before, after, repeats)
+			_repeat_cycle(before, after, repeats, length)
 			steps -= repeats * length
 
 	_advance_remainder(seconds, total)
@@ -231,7 +238,8 @@ func _repeatable_cycles(before: Dictionary, after: Dictionary) -> int:
 					break
 	return maxi(0, limit)
 
-func _repeat_cycle(before: Dictionary, after: Dictionary, repeats: int) -> void:
+func _repeat_cycle(before: Dictionary, after: Dictionary, repeats: int, length: int) -> void:
+	income.advance(float(repeats * length) * STEP)
 	gold += repeats * (int(after["gold"]) - int(before["gold"]))
 	hero_xp += repeats * (int(after["hero_xp"]) - int(before["hero_xp"]))
 	total_kills += repeats * (int(after["total_kills"]) - int(before["total_kills"]))
@@ -295,6 +303,9 @@ func to_save_dict() -> Dictionary:
 		"last_stand_used": last_stand_used,
 		"active_companion": active_companion,
 		"companion_bond_xp": companion_bond_xp.duplicate(true),
+		"identity": identity.to_save_dict(),
+		"journal": journal.to_save_dict(),
+		"income": income.to_save_dict(),
 		"chronicle": chronicle.to_save_dict(),
 		"goals": goals.to_save_dict(),
 		"loadouts": loadouts.to_save_dict(),
@@ -307,6 +318,8 @@ func to_save_dict() -> Dictionary:
 	}
 
 func load_save_dict(data: Dictionary) -> void:
+	journal.load_save_dict(data.get("journal", {}))
+	income.load_save_dict(data.get("income", {}))
 	chronicle.load_save_dict(data.get("chronicle", {}))
 	goals.load_save_dict(data.get("goals", {}))
 	loadouts.load_save_dict(data.get("loadouts", {}))
@@ -423,6 +436,9 @@ func load_save_dict(data: Dictionary) -> void:
 	hero_hp = clampi(saved_hp, 0, effective_max_hp())
 	recent_events.clear()
 
+	identity.load_save_dict(data.get("identity", {}), self)
+	if not data.has("journal"):
+		journal.seed_legacy(self)
 	if not data.has("earned_relics"):
 		if quest_cycles_completed > 0:
 			earned_relics["Hunter's Knot"] = true
@@ -481,6 +497,7 @@ func _seed_legacy_chronicle() -> void:
 
 func report_counters() -> Dictionary:
 	return {
+		"earned_tokens": income.total,
 		"level": hero_level,
 		"gold": gold,
 		"total_kills": total_kills,
@@ -640,6 +657,8 @@ func _grant_companion_bond_xp(amount: int) -> void:
 	var old_level := companion_bond_level(active_companion)
 	companion_bond_xp[active_companion] = companion_bond_xp_for(active_companion) + amount
 	var new_level := companion_bond_level(active_companion)
+	if old_level < 2 and new_level >= 2 and CompanionCatalogScript.BOND_MOMENTS.has(active_companion):
+		_emit_event("companion_moment", CompanionCatalogScript.BOND_MOMENTS[active_companion], {"companion": active_companion})
 	if new_level > old_level:
 		_emit_event(
 			"companion_bond_up",
@@ -1341,6 +1360,7 @@ func _emit_event(type: String, message: String, details: Dictionary = {}) -> voi
 	if recent_events.size() > 6:
 		recent_events.resize(6)
 
+	journal.observe(event, self)
 	chronicle.observe(event)
 	if type != "goal_completed":
 		for completion in goals.update(self):

@@ -29,8 +29,8 @@ const COMPANIONS := {
 	"Marsh Witch": {
 		"rarity": "Rare",
 		"role": "Hedge healer",
-		"description": "Patches you up after fights. Heal 2 after a kill.",
-		"kill_heal": 2
+		"description": "Recovery specialist. Heal 4 after a kill; no attack or health bonus.",
+		"kill_heal": 4
 	},
 	"Clockwork Raven": {
 		"rarity": "Rare",
@@ -41,14 +41,14 @@ const COMPANIONS := {
 	"Frost Ranger": {
 		"rarity": "Epic",
 		"role": "Hunter",
-		"description": "Adds serious pressure. +3 attack.",
-		"attack": 3
+		"description": "Damage specialist. +5 attack; no health or recovery bonus.",
+		"attack": 5
 	},
 	"Sun Cleric": {
 		"rarity": "Epic",
 		"role": "Protector",
-		"description": "A durable travelling blessing. +14 max health.",
-		"hp": 14
+		"description": "Protection specialist. +24 max health; no attack or travel bonus.",
+		"hp": 24
 	},
 	"Grave Knight": {
 		"rarity": "Epic",
@@ -126,3 +126,9 @@ static func bond_level_for_xp(xp: int) -> int:
 		if xp >= threshold:
 			level += 1
 	return level
+
+const BOND_MOMENTS := {
+	"Frost Ranger": "At the campfire, Frost Ranger sets a spare arrow beside your pack. Tomorrow's trail is yours together.",
+	"Sun Cleric": "Sun Cleric quietly repairs the strap on your shield. A small kindness after ten shared victories.",
+	"Marsh Witch": "Marsh Witch leaves a warm cup of herbs beside your bedroll. For once, the brew tastes almost sweet."
+}

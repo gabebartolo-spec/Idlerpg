@@ -137,6 +137,24 @@ func _run() -> void:
 	game.duplicate_counts["gear"] = 50
 	gacha.refresh()
 	await _snap("collection_keepsake")
+	main.call("_toggle_sheet", main.get("journal_panel"))
+	sim.journal.unlock("campfire_mark", sim)
+	main.get("journal_panel").refresh()
+	await _snap("field_journal")
+	sim.identity.rename("Moss Walker")
+	sim.identity.set_palette("moss")
+	sim.identity.choose_title("thornbreaker", sim)
+	main.call("_toggle_sheet", main.get("identity_panel"))
+	await _snap("adventurer_identity")
+	main.call("_close_drawers")
+	sim.hero_hp = sim.effective_max_hp()
+	sim.activity = "idle"
+	sim.unequip_gear("Knight Mail")
+	await _snap("identity_watch")
+	game.set_dev_infinite_tokens(false)
+	main.call("_toggle_gacha")
+	gacha.show_mode("summon")
+	await _snap("earned_token_countdown")
 
 	main.free()
 	for path in PersistenceScript.files_for():
