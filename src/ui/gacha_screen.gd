@@ -92,7 +92,7 @@ func select_item(item_name: String) -> void:
 func refresh_wallet() -> void:
 	if subtitle_label != null:
 		var seconds: int = int(ceil(float(sim.income.INTERVAL_USEC - sim.income.remainder_usec) / 1000000.0))
-		subtitle_label.text = "Tokens: ∞ (dev)" if game.dev_infinite_tokens else "%d tokens · +1 in %d:%02d" % [game.gacha_tokens, seconds / 60, seconds % 60]
+		subtitle_label.text = "Tokens: ∞ (dev)" if game.dev_infinite_tokens else "%d tokens\n+1 in %d:%02d" % [game.gacha_tokens, seconds / 60, seconds % 60]
 	if summon_one != null:
 		summon_one.disabled = not game.dev_infinite_tokens and game.gacha_tokens < game.SUMMON_COST
 		summon_ten.disabled = not game.dev_infinite_tokens and game.gacha_tokens < game.SUMMON_COST * 10
