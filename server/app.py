@@ -11,6 +11,7 @@ from pathlib import Path
 
 from fastapi import FastAPI, Header, HTTPException, Request
 from pydantic import BaseModel, ConfigDict, Field
+from server import raid_rules
 
 RULES_VERSION = 1
 SESSION_SECONDS = 7 * 86400
@@ -36,6 +37,11 @@ class Build(Input):
 
 class Join(Input):
     invite: str = Field(min_length=12, max_length=12, pattern=r"^[a-f0-9]+$")
+
+
+class Enrollment(Input):
+    role: str
+    build: str
 
 
 def digest(value):
@@ -64,7 +70,7 @@ def create_app(database=None, clock=time.time):
 
     with transaction() as db:
         version = db.execute("PRAGMA user_version").fetchone()[0]
-        if version not in (0, 1):
+        if version not in (0, 1, 2):
             raise RuntimeError("Unsupported database version; refusing to modify it")
         for sql in [
             "CREATE TABLE IF NOT EXISTS accounts(id TEXT PRIMARY KEY, name TEXT NOT NULL, recovery_hash TEXT NOT NULL, gold INTEGER NOT NULL CHECK(gold>=0), created INTEGER NOT NULL)",
@@ -77,9 +83,14 @@ def create_app(database=None, clock=time.time):
             "CREATE TABLE IF NOT EXISTS guilds(id TEXT PRIMARY KEY, name TEXT NOT NULL, invite TEXT NOT NULL UNIQUE, leader TEXT NOT NULL REFERENCES accounts(id))",
             "CREATE TABLE IF NOT EXISTS members(account TEXT PRIMARY KEY REFERENCES accounts(id), guild TEXT NOT NULL REFERENCES guilds(id), joined INTEGER NOT NULL)",
             "CREATE TABLE IF NOT EXISTS limits(bucket TEXT PRIMARY KEY, start INTEGER NOT NULL, count INTEGER NOT NULL)",
+            "CREATE TABLE IF NOT EXISTS raids(id TEXT PRIMARY KEY, guild TEXT NOT NULL, leader TEXT NOT NULL, ready INTEGER NOT NULL, rules TEXT NOT NULL, result TEXT)",
+            "CREATE UNIQUE INDEX IF NOT EXISTS one_open_raid ON raids(guild) WHERE result IS NULL",
+            "CREATE TABLE IF NOT EXISTS enrollments(raid TEXT NOT NULL REFERENCES raids(id), account TEXT NOT NULL REFERENCES accounts(id), name TEXT NOT NULL, role TEXT NOT NULL, build TEXT NOT NULL, stats TEXT NOT NULL, PRIMARY KEY(raid,account), UNIQUE(raid,role))",
+            "CREATE TABLE IF NOT EXISTS raid_rewards(raid TEXT NOT NULL REFERENCES raids(id), account TEXT NOT NULL REFERENCES accounts(id), gold INTEGER NOT NULL, look TEXT NOT NULL, opened INTEGER NOT NULL DEFAULT 0, PRIMARY KEY(raid,account))",
+            "CREATE TABLE IF NOT EXISTS looks(account TEXT NOT NULL REFERENCES accounts(id), look TEXT NOT NULL, source TEXT NOT NULL, PRIMARY KEY(account,look))",
         ]:
             db.execute(sql)
-        db.execute("PRAGMA user_version=1")
+        db.execute("PRAGMA user_version=2")
 
     def now():
         return int(clock())
@@ -110,7 +121,7 @@ def create_app(database=None, clock=time.time):
         row = db.execute("SELECT id,name,gold FROM accounts WHERE id=?", (account,)).fetchone()
         outing = db.execute("SELECT id,ready,version,gold FROM outings WHERE account=? AND opened=0", (account,)).fetchone()
         member = db.execute("SELECT guild FROM members WHERE account=?", (account,)).fetchone()
-        return {**dict(row), "rules_version": RULES_VERSION, "server_time": now(), "builds": [r[0] for r in db.execute("SELECT build FROM builds WHERE account=? ORDER BY build", (account,))], "outing": dict(outing) if outing else None, "guild_id": member[0] if member else None}
+        return {**dict(row), "rules_version": RULES_VERSION, "server_time": now(), "builds": [r[0] for r in db.execute("SELECT build FROM builds WHERE account=? ORDER BY build", (account,))], "looks": [r[0] for r in db.execute("SELECT look FROM looks WHERE account=? ORDER BY look", (account,))], "raid_chests": [dict(r) for r in db.execute("SELECT raid,gold,look FROM raid_rewards WHERE account=? AND opened=0", (account,))], "outing": dict(outing) if outing else None, "guild_id": member[0] if member else None}
 
     async def mutate(request, authorization, key, operation):
         if not key or not re.fullmatch(r"[A-Za-z0-9_-]{8,80}", key):
@@ -254,6 +265,8 @@ def create_app(database=None, clock=time.time):
 
     @app.post("/v1/guild/leave")
     async def leave(request: Request, authorization: str | None = Header(default=None), idempotency_key: str | None = Header(default=None)):
+        if await request.body() not in (b"", b"{}"):
+            raise HTTPException(422, "Leave your own guild only")
         def operation(db, account):
             guild = guild_view(db, account)
             if guild:
@@ -264,6 +277,117 @@ def create_app(database=None, clock=time.time):
                 elif guild["leader"] == account:
                     db.execute("UPDATE guilds SET leader=? WHERE id=?", (others[0]["id"], guild["id"]))
             return {"guild": None}
+        return await mutate(request, authorization, idempotency_key, operation)
+
+    def raid_access(db, account, raid_id):
+        row = db.execute("SELECT * FROM raids WHERE id=?", (raid_id,)).fetchone()
+        if not row:
+            raise HTTPException(404, "Raid not found")
+        member = db.execute("SELECT 1 FROM members WHERE account=? AND guild=?", (account, row["guild"])).fetchone()
+        enrolled = db.execute("SELECT 1 FROM enrollments WHERE account=? AND raid=?", (account, raid_id)).fetchone()
+        if not member and not enrolled and row["leader"] != account:
+            raise HTTPException(404, "Raid not found")
+        return row
+
+    def raid_view(db, row):
+        roster = [{**dict(r), "stats": json.loads(r["stats"])} for r in db.execute("SELECT account,name,role,build,stats FROM enrollments WHERE raid=? ORDER BY role", (row["id"],))]
+        return {"id": row["id"], "ready": row["ready"], "server_time": now(), "rules": json.loads(row["rules"]), "roster": roster, "result": json.loads(row["result"]) if row["result"] else None}
+
+    @app.get("/v1/raids")
+    def list_raids(authorization: str | None = Header(default=None)):
+        with transaction() as db:
+            account = authenticate(db, authorization)
+            rows = db.execute("SELECT DISTINCT r.* FROM raids r LEFT JOIN enrollments e ON e.raid=r.id LEFT JOIN members m ON m.guild=r.guild WHERE e.account=? OR m.account=? OR r.leader=? ORDER BY r.ready DESC LIMIT 20", (account, account, account))
+            return {"raids": [raid_view(db, row) for row in rows]}
+
+    @app.get("/v1/raids/{raid_id}")
+    def get_raid(raid_id: str, authorization: str | None = Header(default=None)):
+        with transaction() as db:
+            account = authenticate(db, authorization)
+            return {"raid": raid_view(db, raid_access(db, account, raid_id))}
+
+    @app.post("/v1/raids")
+    async def create_raid(request: Request, authorization: str | None = Header(default=None), idempotency_key: str | None = Header(default=None)):
+        if await request.body() not in (b"", b"{}"):
+            raise HTTPException(422, "Raid timing and rules are server-owned")
+        def operation(db, account):
+            guild = guild_view(db, account)
+            if not guild or guild["leader"] != account:
+                raise HTTPException(403, "Your guild leader starts the raid")
+            if db.execute("SELECT 1 FROM raids WHERE guild=? AND result IS NULL", (guild["id"],)).fetchone():
+                raise HTTPException(409, "A raid is already preparing")
+            raid = secrets.token_hex(16)
+            db.execute("INSERT INTO raids VALUES(?,?,?,?,?,NULL)", (raid, guild["id"], account, now() + 86400, json.dumps(raid_rules.rules())))
+            return {"raid": raid_view(db, raid_access(db, account, raid))}
+        return await mutate(request, authorization, idempotency_key, operation)
+
+    @app.post("/v1/raids/{raid_id}/enroll")
+    async def enroll(raid_id: str, body: Enrollment, request: Request, authorization: str | None = Header(default=None), idempotency_key: str | None = Header(default=None)):
+        def operation(db, account):
+            row = raid_access(db, account, raid_id)
+            if row["result"] or now() >= row["ready"]:
+                raise HTTPException(409, "Raid roster is locked")
+            if not db.execute("SELECT 1 FROM members WHERE account=? AND guild=?", (account, row["guild"])).fetchone():
+                raise HTTPException(403, "Join this guild to prepare")
+            if body.role not in raid_rules.ROLES or body.build not in raid_rules.BUILDS:
+                raise HTTPException(422, "Unknown role or build")
+            if not db.execute("SELECT 1 FROM builds WHERE account=? AND build=?", (account, body.build)).fetchone():
+                raise HTTPException(403, "Earn this build first")
+            if db.execute("SELECT 1 FROM enrollments e JOIN raids r ON e.raid=r.id WHERE e.account=? AND e.raid<>? AND r.result IS NULL", (account, raid_id)).fetchone():
+                raise HTTPException(409, "Already committed to another raid")
+            if db.execute("SELECT 1 FROM enrollments WHERE raid=? AND role=? AND account<>?", (raid_id, body.role, account)).fetchone():
+                raise HTTPException(409, "That role is already prepared")
+            name = db.execute("SELECT name FROM accounts WHERE id=?", (account,)).fetchone()[0]
+            db.execute("INSERT OR REPLACE INTO enrollments VALUES(?,?,?,?,?,?)", (raid_id, account, name, body.role, body.build, json.dumps(raid_rules.BUILDS[body.build])))
+            return {"raid": raid_view(db, row)}
+        return await mutate(request, authorization, idempotency_key, operation)
+
+    @app.post("/v1/raids/{raid_id}/resolve")
+    async def resolve_raid(raid_id: str, request: Request, authorization: str | None = Header(default=None), idempotency_key: str | None = Header(default=None)):
+        if await request.body() not in (b"", b"{}"):
+            raise HTTPException(422, "Raid result is server-owned")
+        def operation(db, account):
+            row = raid_access(db, account, raid_id)
+            if now() < row["ready"]:
+                raise HTTPException(409, "Still preparing")
+            if not row["result"]:
+                raid = raid_view(db, row)
+                if raid["rules"]["version"] != raid_rules.VERSION:
+                    raise HTTPException(409, "Raid rules require a compatible resolver")
+                result = raid_rules.resolve(raid["roster"], raid["rules"])
+                db.execute("UPDATE raids SET result=? WHERE id=?", (json.dumps(result), raid_id))
+                for participant in raid["roster"]:
+                    db.execute("INSERT INTO raid_rewards VALUES(?,?,?,?,0)", (raid_id, participant["account"], raid["rules"]["gold"] if result["won"] else 15, raid["rules"]["look"] if result["won"] else ""))
+            return {"raid": raid_view(db, raid_access(db, account, raid_id))}
+        return await mutate(request, authorization, idempotency_key, operation)
+
+    @app.post("/v1/raids/{raid_id}/open")
+    async def open_raid_chest(raid_id: str, request: Request, authorization: str | None = Header(default=None), idempotency_key: str | None = Header(default=None)):
+        if await request.body() not in (b"", b"{}"):
+            raise HTTPException(422, "Raid chest contents are server-owned")
+        def operation(db, account):
+            row = db.execute("SELECT * FROM raid_rewards WHERE raid=? AND account=?", (raid_id, account)).fetchone()
+            if not row:
+                raise HTTPException(404, "Chest not found")
+            if not row["opened"]:
+                db.execute("UPDATE raid_rewards SET opened=1 WHERE raid=? AND account=?", (raid_id, account))
+                db.execute("UPDATE accounts SET gold=gold+? WHERE id=?", (row["gold"], account))
+                db.execute("INSERT INTO ledger VALUES(?,?,?,?)", (account, "raid:" + raid_id, row["gold"], now()))
+                if row["look"]:
+                    db.execute("INSERT OR IGNORE INTO looks VALUES(?,?,?)", (account, row["look"], "raid:" + raid_id))
+            return {"gold": row["gold"], "look": row["look"], "profile": profile(db, account)}
+        return await mutate(request, authorization, idempotency_key, operation)
+
+    @app.post("/v1/raids/{raid_id}/withdraw")
+    async def withdraw(raid_id: str, request: Request, authorization: str | None = Header(default=None), idempotency_key: str | None = Header(default=None)):
+        if await request.body() not in (b"", b"{}"):
+            raise HTTPException(422, "Withdraw your own preparation only")
+        def operation(db, account):
+            row = raid_access(db, account, raid_id)
+            if row["result"] or now() >= row["ready"]:
+                raise HTTPException(409, "Raid roster is locked")
+            db.execute("DELETE FROM enrollments WHERE raid=? AND account=?", (raid_id, account))
+            return {"raid": raid_view(db, row)}
         return await mutate(request, authorization, idempotency_key, operation)
 
     return app

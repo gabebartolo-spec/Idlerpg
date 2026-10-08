@@ -8,7 +8,8 @@ const LOOKS := {
 	"star_helm": {"name": "Star helm", "slot": "head", "item": "Starforged Helm"},
 	"briar_shell": {"name": "Briar shell", "slot": "chest", "item": "Thornback Carapace"},
 	"lantern_crook": {"name": "Lantern crook", "slot": "weapon", "item": "Lantern Crook", "clue": "Clear Lantern Hollow", "grip_degrees": Vector3(-70, 0, 0)},
-	"keeper_crown": {"name": "Keeper crown", "slot": "head", "item": "Keeper Crown", "clue": "Clear Keeper's Rise"}
+	"keeper_crown": {"name": "Keeper crown", "slot": "head", "item": "Keeper Crown", "clue": "Clear Keeper's Rise"},
+	"warden_lantern": {"name": "Warden lantern", "slot": "weapon", "item": "Warden Lantern", "clue": "Defeat the Hollow Warden with your guild", "grip_degrees": Vector3(-70, 0, 0)}
 }
 const SLOTS := ["weapon", "head", "chest"]
 

@@ -79,6 +79,7 @@ const MODELS := {
 	"keeper_shrine": {"path": "res://assets/models/props/keeper_shrine.glb", "category": "prop", "tris": 376, "size": Vector3(2.000, 1.955, 2.000), "nodes": []},
 	"lantern_crook": {"path": "res://assets/models/weapons/lantern_crook.glb", "category": "weapon", "tris": 196, "size": Vector3(0.604, 1.577, 0.398), "nodes": []},
 	"keeper_crown": {"path": "res://assets/models/armours/keeper_crown.glb", "category": "armour", "tris": 276, "size": Vector3(0.769, 0.651, 0.430), "nodes": []},
+	"warden_lantern": {"path": "res://assets/models/weapons/warden_lantern.glb", "category": "weapon", "tris": 224, "size": Vector3(0.712, 0.899, 0.524), "nodes": []},
 }
 
 const ITEMS := {
@@ -114,6 +115,7 @@ const ITEMS := {
 	"Briarhook": {"model": "briarhook", "icon": "res://assets/icons/briarhook.png"},
 	"Lantern Crook": {"model": "lantern_crook", "icon": "res://assets/icons/lantern_crook.png"},
 	"Keeper Crown": {"model": "keeper_crown", "icon": "res://assets/icons/keeper_crown.png"},
+	"Warden Lantern": {"model": "warden_lantern", "icon": "res://assets/icons/warden_lantern.png"},
 }
 
 const COMPANIONS := {

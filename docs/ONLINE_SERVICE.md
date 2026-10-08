@@ -1,6 +1,6 @@
 # Shared playtest foundation
 
-This batch provides a runnable account/economy/guild service and an actual Godot HTTP client. It is **not yet the playable multiplayer raid**. The normal game has no account or guild screen wired to this client yet. Three automated independent accounts demonstrate shared persistence, not three recruited people, enjoyment or participant reachability.
+This provides a runnable account/economy/guild service, an asynchronous three-role raid and an actual Godot HTTP client. It is **not yet the playable multiplayer release**. The normal game has no account or guild screen wired to this client yet. Three automated accounts demonstrate persistence and raid settlement, not recruited people, enjoyment or participant access. Rules: [ASYNC_RAID.md](ASYNC_RAID.md).
 
 ## Architecture decision
 
@@ -35,7 +35,7 @@ Every successful mutation requires an `Idempotency-Key` of 8–80 letters, digit
 
 Create a named guild, share its opaque invite, join a capped roster of ten, inspect the shared roster and leave. Membership is one guild per account. The first remaining member in join-time/account-ID order inherits leadership when the leader leaves; the last departure deletes the guild. Concurrent joins cannot overfill the roster. Supply gold/entitlements survive leaving. Roster members see display names and public account IDs, not another member's wallet, recovery key or sessions. Invite sharing is available to members.
 
-No free-text chat, friends, kick controls, shared project, raid or moderation console is claimed in this batch. Names are restricted to short ASCII text for the initial prototype; this is input validation, not moderation. Participant deployment still needs a supported name/report/block/moderation and data-retention policy.
+No free-text chat, friends, kick controls, shared project or moderation console is claimed. Names are restricted to short ASCII text for the initial prototype; this is input validation, not moderation. Participant deployment still needs a supported name/report/block/moderation and data-retention policy.
 
 ## Run locally
 
@@ -51,15 +51,15 @@ On macOS/Linux, use `.venv/bin/python` instead. Default state is `server/data/pl
 
 Use a maintained TLS reverse proxy, a persistent single-host volume, request-body limits, backups and restricted operational access before exposing the service. Do not put this SQLite database on ephemeral serverless storage or a shared network filesystem. Do not launch multiple horizontally scaled hosts against separate copies. Public hosting has not been selected or deployed; loopback verification does not establish participant access.
 
-Back up using SQLite's backup API or a database-consistent snapshot, restore to a separate path and verify before switching `IDLE_DATABASE`. Stop writes before switching/replacing the live database. Preserve a pre-upgrade backup and the matching code/rules version; never roll an older binary over an unknown newer database. The current schema has only version 1 and no destructive migration.
+Back up using SQLite's backup API or a database-consistent snapshot, restore to a separate path and verify before switching `IDLE_DATABASE`. Stop writes before switching/replacing the live database. Preserve a pre-upgrade backup and matching code/rules version; never run an older binary over an unknown newer database. Schema 2 adds raid tables transactionally to version 1 without replacing progress.
 
 ## Verification
 
 ```powershell
-.\.venv\Scripts\python.exe -m unittest server.test_service -v
+.\.venv\Scripts\python.exe -m unittest server.test_service server.test_raids -v
 .\.venv\Scripts\python.exe -m server.verify_client --godot C:\path\to\godot.exe --project C:\path\to\isolated-project
 ```
 
 The ten service scenarios use real HTTP listeners and temporary databases: privacy, credential hashing/recovery/revocation/expiry, failed-attempt limits, forged payload rejection, early/foreign chest denial, restart and 30-day absence, concurrent chest claims, concurrent device spending, durable three-account membership/leadership, concurrent final roster slot and newer-schema refusal. A separate Godot suite creates three independent clients against one real service and checks matching rosters and private profiles. Tests create disposable accounts; they do not read or modify normal local gameplay saves. CI runs both plus the existing Godot suites.
 
-Next: wire account/recovery and guild sheets into the actual game; define server-owned earned loadouts; implement a frozen three-role asynchronous raid and transactional settlement, then demonstrate it with three independent game clients. Android delivery, reachable deployment, multi-day pursuits and participant evidence remain part of the active goal.
+Next: wire account/recovery, guild and raid sheets into the actual game, including safe credentials/retry persistence and earned appearance restore/Wear. Android delivery, reachable deployment, multi-day regional pursuits and participant evidence remain part of the active goal.
