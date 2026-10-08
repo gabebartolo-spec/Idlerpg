@@ -150,6 +150,15 @@ func _run() -> void:
 		var panel_name: String = {"adventure": "adventure_panel", "builds": "loadout_panel", "identity": "identity_panel", "journal": "journal_panel", "fishing": "fishing_panel", "practice": "practice_panel"}[destination]
 		_check(instance.get(panel_name).visible and not menu.visible, "More route opens " + destination)
 		instance.call("_toggle_sheet", menu)
+	sim.add_gear("Wolfskin Hood")
+	menu.routes["wardrobe"].pressed.emit()
+	var wardrobe: Control = instance.get("wardrobe_panel")
+	_check(wardrobe.visible and not menu.visible, "More opens the wardrobe preview")
+	wardrobe.select("wolf_hood")
+	wardrobe.wear_button.pressed.emit()
+	_check(instance.get("hero_visual").worn_names["head"] == "Wolfskin Hood", "worn appearance matches the real watched adventurer")
+	wardrobe.clear_button.pressed.emit()
+	_check(instance.get("hero_visual").worn_names["head"] == sim.equipped_item("head"), "clearing appearance restores the actual equipment model")
 	instance.queue_free()
 	await process_frame
 	_remove_saves()

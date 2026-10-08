@@ -208,6 +208,16 @@ func _run() -> void:
 	await _snap("larger_expedition_results")
 	main.call("_toggle_sheet", main.get("fishing_panel"))
 	await _snap("larger_fishing")
+	sim.add_gear("Wolfskin Hood")
+	main.call("_open_chronicle_destination", "wardrobe", "")
+	main.get("wardrobe_panel").select("wolf_hood")
+	await _snap("wardrobe_preview")
+	main.get("wardrobe_panel").wear_button.pressed.emit()
+	await _snap("wardrobe_wearing")
+	main.get("wardrobe_panel").select("star_helm")
+	await _snap("wardrobe_star_preview")
+	main.call("_close_drawers")
+	await _snap("wardrobe_watch")
 
 	main.free()
 	for path in PersistenceScript.files_for():

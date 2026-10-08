@@ -6,7 +6,7 @@ extends RefCounted
 # These saves are for single-player continuity. They are files on the player's device and
 # a device clock, so nothing here can be trusted as online or competitive state.
 
-const SAVE_VERSION := 16
+const SAVE_VERSION := 17
 const DEFAULT_PATH := "user://idle_rpg_save.json"
 const MAX_OFFLINE_SECONDS := 7 * 24 * 60 * 60
 
@@ -120,6 +120,10 @@ static func load_and_advance(sim: Node, game: Node, now_unix: int = -1, path: St
 	data = _migrate(data)
 	sim.load_save_dict(data["sim"])
 	game.load_save_dict(data["game"])
+	# Permanent collection evidence can restore a sold item's look in legacy
+	# saves. This grants an appearance only, without restoring functional gear.
+	if not data["sim"].has("wardrobe"):
+		sim.wardrobe.seed_legacy(game.collection.get("gear", {}), sim.discovered)
 	if not sim.active_relic.is_empty() and not sim.owns_relic(sim.active_relic, game):
 		sim.active_relic = ""
 		sim.hero_hp = mini(sim.hero_hp, sim.effective_max_hp())
@@ -245,6 +249,12 @@ static func _migrate(data: Dictionary) -> Dictionary:
 	if version == 14:
 		# Version 15 stores chosen expedition routes, node progress and settled rewards.
 		version = 15
+	if version == 15:
+		# Version 16 adds independent player comfort preferences.
+		version = 16
+	if version == 16:
+		# Version 17 preserves curated appearance ownership and equipped looks.
+		version = 17
 	data["version"] = version
 	return data
 

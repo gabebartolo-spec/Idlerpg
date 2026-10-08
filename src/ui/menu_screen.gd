@@ -11,7 +11,7 @@ func setup(show_dev: bool) -> void:
 	list = add_list(column)
 	var entries := [["adventure", "Adventure"], ["expedition", "Expeditions"], ["fishing", "Fishing"],
 		["practice", "Practice"], ["boss", "Boss"], ["builds", "Builds"], ["relics", "Relics"],
-		["identity", "Adventurer"], ["journal", "Field journal"], ["chronicle", "Chronicle"]]
+		["wardrobe", "Wardrobe"], ["identity", "Adventurer"], ["journal", "Field journal"], ["chronicle", "Chronicle"]]
 	if show_dev:
 		entries.append(["dev", "Developer tools"])
 	for entry in entries:

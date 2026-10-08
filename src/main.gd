@@ -4,6 +4,7 @@ const IdentityScreenScript = preload("res://src/ui/identity_screen.gd")
 const JournalScreenScript = preload("res://src/ui/journal_screen.gd")
 const FieldGuideScreenScript = preload("res://src/ui/field_guide_screen.gd")
 const OptionsScreenScript = preload("res://src/ui/options_screen.gd")
+const WardrobeScreenScript = preload("res://src/ui/wardrobe_screen.gd")
 const MenuScreenScript = preload("res://src/ui/menu_screen.gd")
 const PresentationControllerScript = preload("res://src/ui/presentation_controller.gd")
 const FishingScreenScript = preload("res://src/ui/fishing_screen.gd")
@@ -73,6 +74,7 @@ var identity_panel: Control
 var journal_panel: Control
 var guide_panel: Control
 var options_panel: Control
+var wardrobe_panel: Control
 var menu_panel: Control
 var presentation_controller: Node
 var fishing_panel: Control
@@ -456,7 +458,7 @@ func _sync_equipment_visual() -> void:
 	if hero_visual == null or sim == null:
 		return
 	for slot in GEAR_SLOTS:
-		hero_visual.set_equipment(slot, str(sim.equipped_item(slot)))
+		hero_visual.set_equipment(slot, sim.wardrobe.visible_item(slot, sim.equipped_item(slot)))
 
 func _rebuild_enemy(kind: String) -> void:
 	rendered_enemy_kind = kind
@@ -691,6 +693,11 @@ func _build_ui() -> void:
 	canvas.add_child(options_panel)
 	options_panel.setup(game.presentation)
 	options_panel.changed.connect(_on_options_changed)
+	wardrobe_panel = WardrobeScreenScript.new()
+	wardrobe_panel.visible = false
+	canvas.add_child(wardrobe_panel)
+	wardrobe_panel.setup(sim, game)
+	wardrobe_panel.changed.connect(_on_gear_changed)
 	presentation_controller = PresentationControllerScript.new()
 	add_child(presentation_controller)
 	presentation_controller.setup(game.presentation, canvas)
@@ -744,7 +751,7 @@ func _refresh_wallet(_tokens: int) -> void:
 
 # Only one sheet, drawer or report is open at a time.
 func _close_drawers() -> void:
-	for sheet in [equipment_panel, talent_panel, boss_panel, gacha_panel, adventure_panel, loadout_panel, relic_panel, chronicle_panel, journal_panel, guide_panel, options_panel, menu_panel, identity_panel, fishing_panel, practice_panel, expedition_panel, dev_panel, return_panel]:
+	for sheet in [equipment_panel, talent_panel, boss_panel, gacha_panel, wardrobe_panel, adventure_panel, loadout_panel, relic_panel, chronicle_panel, journal_panel, guide_panel, options_panel, menu_panel, identity_panel, fishing_panel, practice_panel, expedition_panel, dev_panel, return_panel]:
 		if sheet != null:
 			sheet.visible = false
 
@@ -799,6 +806,8 @@ func _open_chronicle_route(route: String) -> void:
 func _open_chronicle_destination(route: String, target: String) -> void:
 	_close_drawers()
 	match route:
+		"wardrobe":
+			wardrobe_panel.open()
 		"options":
 			options_panel.open()
 		"identity":
@@ -1119,6 +1128,8 @@ func _on_sim_event(event: Dictionary) -> void:
 		_show_talent_proc("warden")
 
 	if event_type in ["gear_obtained", "gear_equipped", "gear_unequipped", "gear_sold", "gear_salvaged", "talent_unlocked", "talents_reset"]:
+		if wardrobe_panel != null and wardrobe_panel.visible:
+			wardrobe_panel.refresh()
 		if equipment_panel != null and equipment_panel.visible:
 			_rebuild_equipment_panel()
 
