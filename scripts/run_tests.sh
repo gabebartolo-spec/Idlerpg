@@ -14,6 +14,9 @@ run_test() {
 
 run_test tests/test_gacha.gd
 run_test tests/test_collection_route.gd
+run_test tests/test_earned_income.gd
+run_test tests/test_journal.gd
+run_test tests/test_identity.gd
 run_test tests/test_adventurer_sim.gd
 run_test tests/test_launch.gd
 run_test tests/test_persistence.gd
@@ -26,6 +29,7 @@ run_test tests/test_relics.gd
 run_test tests/test_gear.gd
 run_test tests/test_talents.gd
 run_test tests/test_companions.gd
+run_test tests/test_companion_roles.gd
 run_test tests/test_briarfen.gd
 run_test tests/test_boss.gd
 run_test tests/test_hunts.gd

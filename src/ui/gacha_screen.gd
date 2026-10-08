@@ -91,7 +91,8 @@ func select_item(item_name: String) -> void:
 
 func refresh_wallet() -> void:
 	if subtitle_label != null:
-		subtitle_label.text = "Tokens: ∞ (dev)" if game.dev_infinite_tokens else "Tokens: %d" % game.gacha_tokens
+		var seconds: int = int(ceil(float(sim.income.INTERVAL_USEC - sim.income.remainder_usec) / 1000000.0))
+		subtitle_label.text = "Tokens: ∞ (dev)" if game.dev_infinite_tokens else "%d tokens · +1 in %d:%02d" % [game.gacha_tokens, seconds / 60, seconds % 60]
 	if summon_one != null:
 		summon_one.disabled = not game.dev_infinite_tokens and game.gacha_tokens < game.SUMMON_COST
 		summon_ten.disabled = not game.dev_infinite_tokens and game.gacha_tokens < game.SUMMON_COST * 10
@@ -173,6 +174,7 @@ func toggle_lock() -> void:
 
 func _build() -> void:
 	var column := build_sheet("Gacha", 0.22)
+	subtitle_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	mode_tabs = add_tabs(column, MODES, show_mode)
 	banner_tabs = add_tabs(column, BANNERS, select_banner)
 	banner_label = Style.label("", 19, Style.MUTED)
@@ -272,7 +274,7 @@ func refresh() -> void:
 	]
 	var chances: Dictionary = game.RARITY_CHANCES
 	banner_label.text += "\nBase odds: %d%% common · %d%% rare · %d%% epic · %d%% legendary" % [chances["Common"], chances["Rare"], chances["Epic"], chances["Legendary"]]
-	banner_label.text += "\nDuplicates refund %d token; copies do not stack power." % game.DUPLICATE_REFUND
+	banner_label.text += "\nEarn 120 tokens per simulated day. Duplicates refund %d token; copies do not stack power." % game.DUPLICATE_REFUND
 	var quote: Dictionary = game.pursuit_quote(banner)
 	if not quote.is_empty():
 		banner_label.text += "\n%s · %d/%d pursuit pulls" % [quote["target"], quote["progress"], game.ROUTE_LIMIT]
@@ -428,6 +430,8 @@ func refresh_detail() -> void:
 			CompanionCatalogScript.role(selected_item), sim.companion_bond_level(selected_item),
 			CompanionCatalogScript.description(selected_item)
 		]
+		if CompanionCatalogScript.BOND_MOMENTS.has(selected_item):
+			detail_text.text += " Bond 2: a shared campfire memory in your chronicle."
 		use_button.text = "Rest companion" if sim.active_companion == selected_item else "Travel together"
 	elif is_relic:
 		detail_text.text = RelicCatalogScript.description(selected_item)

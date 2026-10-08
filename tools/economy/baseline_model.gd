@@ -53,6 +53,7 @@ class Account:
 	var gold_from_quests: int = 0
 	var gold_from_discoveries: int = 0
 	var gold_from_goals: int = 0
+	var gold_from_journal: int = 0
 	# Per day, index 1..days.
 	var draws: PackedInt32Array
 	var new_draws: PackedInt32Array
@@ -74,6 +75,8 @@ class Account:
 			gold_from_quests += int(event.get("gold", 0))
 		if type == "goal_completed":
 			gold_from_goals += int(event.get("gold", 0))
+		if type == "journal_discovery":
+			gold_from_journal += int(event.get("gold", 0))
 		if type == "world_discovery":
 			gold_from_discoveries += int(event.get("gold", 0))
 		elif type == "enemy_defeated" and str(event.get("enemy", "")) == "thornback" and boss_first_kill_seconds < 0.0:
@@ -200,6 +203,8 @@ func _run_cell(cohort: String, scenario: String) -> Dictionary:
 
 
 func _start_day(account: Account, day: int, purchases: Array, income: int) -> void:
+	if not account.stepped:
+		account.sim.income.advance(DAY)
 	if income > 0:
 		account.game.grant_tokens(income)
 		account.tokens_income += income
@@ -214,6 +219,7 @@ func _start_day(account: Account, day: int, purchases: Array, income: int) -> vo
 func _check_in(account: Account, day: int) -> void:
 	var sim := account.sim
 	var game := account.game
+	account.tokens_income += game.collect_income(sim)
 	if account.stepped and sim.talent_points_available() > 0:
 		for talent_id in _talent_order:
 			sim.unlock_talent(talent_id)
@@ -313,7 +319,7 @@ func _check_ledger(account: Account, label: String) -> void:
 	var expected := account.tokens_started + account.tokens_purchased + account.tokens_income + account.tokens_salvaged + account.tokens_duplicates - account.tokens_spent
 	if expected != account.game.gacha_tokens or account.game.gacha_tokens < 0:
 		ledger_failures.append("%s: tokens %d, ledger says %d" % [label, account.game.gacha_tokens, expected])
-	var gold_earned: int = account.gold_from_quests + account.gold_from_discoveries + account.gold_from_goals
+	var gold_earned: int = account.gold_from_quests + account.gold_from_discoveries + account.gold_from_goals + account.gold_from_journal
 	if account.stepped and gold_earned != account.sim.gold:
 		ledger_failures.append("%s: gold %d, ledger says %d" % [label, account.sim.gold, gold_earned])
 

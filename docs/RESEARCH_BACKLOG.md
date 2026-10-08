@@ -141,17 +141,25 @@ Recommended first sequence: R00 → R01 → R02 → R03 → R04. R06/R10 can fol
 
 **Payoff:** free and light-spending players see meaningful progress. **Scope:** test 100–150 tokens per ordinary simulated day (10–15 current-cost draws), with capped earning buckets independent of check-in frequency. Preserve attainable world rewards; examine whether saturated draws advance a desired item, viable build or cosmetic rather than merely filling a reward animation. All quantities are prototype assumptions. **Start:** rewards, R01 harness and return report. **Accept:** no quest-frequency exploit; comparable watched/offline income; an unlucky free player can direct progress toward a useful reward; report novelty, usefulness and saturation separately at 1/7/30/90/180 days. Compare complete spending cohorts and demonstrate free boss counters remain attainable. **Validate:** long catch-up, source/sink simulations, reward-recognition sessions and player diaries; do not equate pull volume with enjoyment. **Exclude:** forced ads, attendance streaks or continually stronger items.
 
+**Implementation note, R11 (VERIFY):** 120 tokens per simulated day, persisted remainder/claim cursor, watched/offline parity, seven-day cap, no quest-frequency exploit, and new six-cell 180-day source/sink results. Rules, regression coverage and outstanding phone/player checks: [ADVENTURER_LIFE.md](ADVENTURER_LIFE.md).
+
 ### IRPG-R12 — Discovery and permanent journal
 
 **Payoff:** long-term goals beyond bigger stats. **Scope:** one journal volume containing existing enemies, locations, world items and three small discoveries. **Start:** new discovery catalog, sim events, journal UI. **Accept:** discoveries are authored and reproducible, permanent entries never reset with events, rewards grant once and unearned entries show useful clues. **Validate:** migration, repeated kills and return highlights. **Exclude:** hundreds of collectibles or random-generated lore.
+
+**Implementation note, R12 (VERIFY):** 15 permanent authored journal entries, useful locked clues, three once-only gold discoveries and return milestones, plus nonpaying legacy seeding. Rules, regression coverage and outstanding phone/player checks: [ADVENTURER_LIFE.md](ADVENTURER_LIFE.md).
 
 ### IRPG-R13 — Identity and keepsakes
 
 **Payoff:** care about this particular adventurer. **Scope:** name, a small appearance selection, two earned titles and first-boss keepsake; surface identity in report and watch view. **Start:** persistence, character presentation, identity UI. **Accept:** selection previews accurately, changes preserve progression, earned prestige differs visibly from paid appearance, future public names can be moderated. **Validate:** older saves, long names and phone silhouette. **Exclude:** copying another game's art or full character creator.
 
+**Implementation note, R13 (VERIFY):** Local name, three free previewed accents, two earned titles and a first-boss model pin; watch/report identity and save format 12. Rules, regression coverage and outstanding phone/player checks: [ADVENTURER_LIFE.md](ADVENTURER_LIFE.md).
+
 ### IRPG-R14 — Companion roles and bond moments
 
 **Payoff:** choose a companion for a reason. **Scope:** rebalance three existing companions into damage, protection and support niches; one bond vignette/visual cue per selected companion. **Start:** companion catalog, sim bond/modifiers, chronicle. **Accept:** at least one common/rare companion is useful in a specific encounter; no universal premium winner; bond growth works offline and moments trigger once. **Validate:** role comparisons, switch behavior and duplicate ownership. **Exclude:** roster combat or mandatory daily pet care.
+
+**Implementation note, R14 (VERIFY):** Three specialists now have distinct damage/protection/recovery niches, with real encounter comparisons and one offline-compatible, persistent bond vignette per specialist. Rules, regression coverage and outstanding phone/player checks: [ADVENTURER_LIFE.md](ADVENTURER_LIFE.md).
 
 ### IRPG-R15 — Fishing slice / P8
 

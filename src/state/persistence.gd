@@ -6,7 +6,7 @@ extends RefCounted
 # These saves are for single-player continuity. They are files on the player's device and
 # a device clock, so nothing here can be trusted as online or competitive state.
 
-const SAVE_VERSION := 9
+const SAVE_VERSION := 12
 const DEFAULT_PATH := "user://idle_rpg_save.json"
 const MAX_OFFLINE_SECONDS := 7 * 24 * 60 * 60
 
@@ -29,6 +29,7 @@ static func save(sim: Node, game: Node, now_unix: int = -1, path: String = DEFAU
 	for existing in [path, path + TEMP_SUFFIX, path + BACKUP_SUFFIX]:
 		if FileAccess.file_exists(existing) and bool(_read(existing).get("newer", false)):
 			return false
+	game.collect_income(sim)
 	if now_unix < 0:
 		now_unix = int(Time.get_unix_time_from_system())
 	now_unix = maxi(now_unix, int(_latest_unix.get(path, 0)))
@@ -132,6 +133,7 @@ static func load_and_advance(sim: Node, game: Node, now_unix: int = -1, path: St
 	var started := Time.get_ticks_msec()
 	if elapsed_simulated > 0:
 		sim.simulate_offline(float(elapsed_simulated))
+	game.collect_income(sim)
 	var catch_up_msec := Time.get_ticks_msec() - started
 
 	var after: Dictionary = sim.report_counters()
@@ -225,6 +227,15 @@ static func _migrate(data: Dictionary) -> Dictionary:
 	if version == 8:
 		# Version 9 adds independent collection pursuits and cosmetic duplicate counts.
 		version = 9
+	if version == 9:
+		# Version 10 adds time-based earned income and its settlement cursor.
+		version = 10
+	if version == 10:
+		# Version 11 adds permanent journal discoveries; old evidence seeds without rewards.
+		version = 11
+	if version == 11:
+		# Version 12 adds local adventurer identity and appearance.
+		version = 12
 	data["version"] = version
 	return data
 
@@ -270,6 +281,7 @@ static func _build_report(before: Dictionary, after: Dictionary, elapsed_actual:
 		"talent_points": max(0, int(after.get("talent_points", 0)) - int(before.get("talent_points", 0))),
 		"deaths": max(0, int(after.get("deaths", 0)) - int(before.get("deaths", 0))),
 		"boss_ranks": max(0, int(after.get("thornback_rank", 0)) - int(before.get("thornback_rank", 0))),
+		"tokens": maxi(0, int(after.get("earned_tokens", 0)) - int(before.get("earned_tokens", 0))),
 		"gold": max(0, int(after.get("gold", 0)) - int(before.get("gold", 0))),
 		"loot": loot_delta,
 		"gear": gear_delta

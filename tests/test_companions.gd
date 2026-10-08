@@ -54,7 +54,7 @@ func _run() -> void:
 	witch.enemy_kind = "goblin"
 	witch.enemy_hp = 0
 	witch._defeat_enemy()
-	_check(witch.hero_hp == witch.effective_max_hp() - 3, "Marsh Witch heals after a kill")
+	_check(witch.hero_hp == witch.effective_max_hp() - 1, "Marsh Witch heals four after a kill")
 
 	var bond: Node = AdventurerSimScript.new()
 	root.add_child(bond)

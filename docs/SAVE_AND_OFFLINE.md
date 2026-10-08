@@ -164,3 +164,7 @@ Version 5 adds three once-only goals and tracking. Older satisfied criteria seed
 Banner relic ownership stays in game collection; earned alternatives stay in simulation state, and presentation uses their union. After both sim and game restore, invalid/unowned active relics clear before catch-up. Loadouts validate ownership, slots, points and prerequisites before mutation. Selecting a policy mid-outing changes only the next outing. Goals, earned relics and presets participate in saved-state comparison, so catch-up cannot batch across an unrecorded transition. See [ADVENTURE_AND_BUILDS.md](ADVENTURE_AND_BUILDS.md).
 
 Version 9 adds persisted selected-item pursuits and cosmetic duplicate counters. Versions 1–8 retain their progress without retrospective refunds. See [COLLECTION_PURSUITS.md](COLLECTION_PURSUITS.md).
+
+## Adventurer-life additions (format 12)
+
+Versions 10–12 add the earned-token remainder and wallet claim cursor, permanent field journal, and adventurer identity. Saving settles earned income before serializing both halves. Missing older fields default safely; journal legacy seeding grants no retrospective rewards. Rules and validation: [ADVENTURER_LIFE.md](ADVENTURER_LIFE.md).

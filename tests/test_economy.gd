@@ -53,9 +53,9 @@ func _run() -> void:
 
 	var free: Dictionary = first["cells"]["free/implemented"]["collection"]
 	var ledger: Dictionary = free["token_ledger"]
-	_check(ledger["tokens_income"] == 0.0 and ledger["tokens_purchased"] == 0.0, "the implemented free economy has no token income")
-	_check(ledger["tokens_spent"] >= 250.0 and ledger["tokens_spent"] < 400.0, "a free account spends its starting tokens plus a little salvage %s" % str(ledger["tokens_spent"]))
-	_check(free["windows"]["days_2_7"]["draws_per_account_per_day"] == 0.0, "a free account has nothing to draw with after the first day")
+	_check(ledger["tokens_income"] == 9.0 * 120.0 and ledger["tokens_purchased"] == 0.0, "the implemented free economy earns 120 tokens per simulated day")
+	_check(ledger["tokens_spent"] >= 250.0 + ledger["tokens_income"], "a free account can reinvest earned tokens and salvage %s" % str(ledger["tokens_spent"]))
+	_check(free["windows"]["days_2_7"]["draws_per_account_per_day"] >= 12.0, "free draws continue beyond the first day")
 
 	var income: Dictionary = first["cells"]["free/proposed_120_per_day"]["collection"]
 	_check(income["windows"]["days_2_7"]["draws_per_account_per_day"] >= 12.0, "120 tokens a day buys at least twelve draws a day")
