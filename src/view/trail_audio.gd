@@ -44,7 +44,7 @@ func play_event(type: String, successful: bool = true) -> bool:
 	if type in ["practice_completed", "expedition_completed"] and not successful:
 		return false
 	match type:
-		"level_up", "boss_defeated", "practice_completed", "expedition_completed":
+		"level_up", "boss_defeated", "practice_completed", "expedition_completed", "chest_opened":
 			effect_player.stream = REWARD
 		"gear_obtained", "relic_obtained", "stew_prepared":
 			effect_player.stream = PICKUP

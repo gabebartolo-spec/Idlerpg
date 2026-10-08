@@ -78,6 +78,7 @@ func _resolve_node() -> Dictionary:
 	log.append("%d. %s %s" % [node + 1, encounter["name"], encounter["text"]])
 	node += 1
 	var first := false
+	var final_gold := 0
 	if hp == 0:
 		_finish(false, "The route proved too hard. Found cache gold is kept; no final reward. Prepare or try the Greenway.")
 	elif node == 5:
@@ -85,10 +86,11 @@ func _resolve_node() -> Dictionary:
 		claimed_routes[route] = true
 		completed += 1
 		var reward: int = Catalog.ROUTES[route]["first_gold"] if first else Catalog.ROUTES[route]["repeat_gold"]
+		final_gold = reward
 		gold += reward
 		gold_earned += reward
 		_finish(true, "Returned safely. +%d final gold%s." % [reward, " for the first route completion" if first else ""])
-	return {"encounter": id, "gold": gold, "first": first, "damage": damage, "healed": healed}
+	return {"encounter": id, "gold": gold, "final_gold": final_gold, "first": first, "damage": damage, "healed": healed}
 
 func _finish(won: bool, reason: String) -> void:
 	active = false

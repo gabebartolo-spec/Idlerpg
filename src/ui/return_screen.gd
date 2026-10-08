@@ -21,6 +21,11 @@ func setup() -> void:
 func show_report(report: Dictionary, totals: String) -> void:
 	clear_list(list)
 	subtitle_label.text = "Save needs attention" if report.get("save_lost", false) else "Your adventure continued"
+	var ready := int(report.get("chests_ready", 0))
+	if ready > 0:
+		var chest_button := Style.button("Open %d earned chest%s" % [ready, "" if ready == 1 else "s"], true)
+		chest_button.pressed.connect(func() -> void: destination_requested.emit("rewards", ""))
+		list.content.add_child(chest_button)
 	for event in report.get("highlights", []).slice(0, 2):
 		var button := Style.button(_highlight_title(event))
 		button.alignment = HORIZONTAL_ALIGNMENT_LEFT

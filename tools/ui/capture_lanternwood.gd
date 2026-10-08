@@ -64,6 +64,12 @@ func _run() -> void:
 	sim.expedition.requested = true
 	sim._begin_quest_cycle()
 	sim.simulate_offline(900)
+	main._open_chronicle_destination("rewards", "")
+	await snap("reward_01_waiting")
+	main.reward_panel.action_button.pressed.emit()
+	await snap("reward_02_reveal")
+	main.reward_panel.wear_button.pressed.emit()
+	await snap("reward_03_wearing")
 	main._open_chronicle_destination("expedition", "")
 	main.expedition_panel.mode_tabs["story"].pressed.emit()
 	await snap("lantern_06_rewards")
@@ -77,6 +83,7 @@ func _run() -> void:
 	sim.request_expedition("rise")
 	sim._begin_quest_cycle()
 	sim.simulate_offline(1800)
+	sim.claim_reward_chest(sim.reward_chests.pending[0]["id"])
 	main.wardrobe_panel.slot = "head"
 	main.wardrobe_panel.select("keeper_crown")
 	await snap("lantern_08_crown")

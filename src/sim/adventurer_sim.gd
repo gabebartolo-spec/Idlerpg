@@ -5,6 +5,7 @@ signal event_emitted(event: Dictionary)
 const FishingScript = preload("res://src/state/fishing.gd")
 const PracticeScript = preload("res://src/state/practice_dungeon.gd")
 const ExpeditionScript = preload("res://src/state/expedition.gd")
+const RewardChestsScript = preload("res://src/state/reward_chests.gd")
 const FishingCatalog = preload("res://src/data/fishing_catalog.gd")
 
 const IdentityScript = preload("res://src/state/adventurer_identity.gd")
@@ -111,6 +112,7 @@ var wardrobe = WardrobeScript.new()
 var fishing = FishingScript.new()
 var practice = PracticeScript.new()
 var expedition = ExpeditionScript.new()
+var reward_chests = RewardChestsScript.new()
 var journal = JournalScript.new()
 var income = IncomeScript.new()
 var chronicle = ChronicleScript.new()
@@ -330,6 +332,7 @@ func to_save_dict() -> Dictionary:
 		"fishing": fishing.to_save_dict(),
 		"practice": practice.to_save_dict(),
 		"expedition": expedition.to_save_dict(),
+		"reward_chests": reward_chests.to_save_dict(),
 		"journal": journal.to_save_dict(),
 		"income": income.to_save_dict(),
 		"chronicle": chronicle.to_save_dict(),
@@ -466,6 +469,7 @@ func load_save_dict(data: Dictionary) -> void:
 	fishing.load_save_dict(data.get("fishing", {}))
 	practice.load_save_dict(data.get("practice", {}))
 	expedition.load_save_dict(data.get("expedition", {}))
+	reward_chests.load_save_dict(data.get("reward_chests", {}))
 	wardrobe.load_save_dict(data.get("wardrobe", {}))
 	if not data.has("wardrobe"):
 		wardrobe.seed_legacy(gear_inventory, discovered)
@@ -1045,20 +1049,33 @@ func _advance_expedition(delta: float) -> void:
 		hero_position = from.lerp(points[expedition.node], float(expedition.remainder_usec) / float(expedition.Catalog.node_usec(expedition.route)))
 	# All grants and route progress settle before an event can trigger a save.
 	var first := false
+	var chest_gold := 0
 	for encounter in result["events"]:
-		gold += int(encounter["gold"])
+		chest_gold += int(encounter.get("final_gold", 0))
+		gold += int(encounter["gold"]) - int(encounter.get("final_gold", 0))
 		first = first or bool(encounter["first"])
 	if result["finished"]:
 		if bool(expedition.recap["won"]):
 			var look: String = expedition.Catalog.ROUTES[expedition.route].get("look", "")
-			if not look.is_empty():
-				wardrobe.grant(look, "expedition:" + expedition.route)
+			if wardrobe.owned.has(look):
+				look = ""
+			reward_chests.issue(expedition.run_id, expedition.route, chest_gold, look)
 		hero_position = TOWN_POSITION
 		_begin_quest_cycle()
 	for encounter in result["events"]:
 		_emit_event("expedition_encounter", expedition.Catalog.ENCOUNTERS[encounter["encounter"]]["text"], encounter)
 	if result["finished"]:
 		_emit_event("expedition_completed", "%s · %s" % [expedition.Catalog.ROUTES[expedition.route]["name"], expedition.recap["reason"]], {"route": expedition.route, "first": first, "won": expedition.recap["won"]})
+
+func claim_reward_chest(id: String) -> Dictionary:
+	var receipt: Dictionary = reward_chests.take(id)
+	if receipt.is_empty():
+		return {}
+	gold += int(receipt["gold"])
+	if not str(receipt["look"]).is_empty():
+		wardrobe.grant(str(receipt["look"]), "expedition:" + str(receipt["route"]))
+	_emit_event("chest_opened", "Opened an earned trail chest.", receipt)
+	return receipt
 
 func _advance_fishing(delta: float) -> void:
 	var gained: Dictionary = fishing.advance(delta)
