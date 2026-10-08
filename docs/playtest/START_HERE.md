@@ -1,14 +1,13 @@
-# Idle RPG · seven-day playtest
+# Idle RPG · your playtest
 
 Play when you feel like it. A spare 30 seconds to two minutes is enough. There is no daily attendance requirement.
 
-1. Install the supplied APK. Keep an existing installation and save when updating; do not uninstall to fix an update error. Tell the coordinator instead.
+1. Export the current Android Debug preset from Godot and install the APK. Keep an existing installation and save when updating; do not uninstall to fix an update error.
 2. Start adventuring. Find something you want, pursue it, open your rewards and try wearing what you earned. Detailed story and rules are optional in the Field Guide.
-3. For multiplayer, the coordinator will supply an HTTPS service address. Open More → Guild → Connection and enter it. Create an account and keep your recovery key privately: it is needed to restore your online account. Never include it in feedback or screenshots.
-4. Join the supplied guild invite. Choose a raid role with your guildmates. Raid preparation lasts 24 hours, so you can contribute and leave; you need not be online together.
+3. Try the new long trails and the optional **Expeditions → Builds** page. Open a reward, equip it and see what you want next.
 
-After your first session, around day three and at the end, open **feedback.html**. Choose your assigned participant number and answer the short questions. Save the entry on your device. Use **Export answers** to download a file, then share it through the channel supplied by the coordinator. The form sends nothing automatically. Keep the HTML at the same address/browser so its saved answers remain available; export before moving it or clearing browser storage.
+If you want to jot down a reaction, open **feedback.html**. It is optional. A desired reward, satisfying moment or disappointment is enough. Answers stay on your device; Export downloads them when you choose. You can also just tell Codex what worked or annoyed you.
 
-If something breaks, report your participant number, build version, phone model, the last action and what happened. A screenshot helps if it contains no account secrets. Stop before clearing data or reinstalling. A broken session and a disappointing reward are both useful findings.
+If something breaks, tell Codex your phone model, last action and what happened. A screenshot helps. Keep your save while investigating.
 
-This is an early playtest. Multiplayer requires the supplied reachable service; the APK alone does not provide that server.
+You are the only tester for now. No recruitment, daily check-ins or study administration is needed. Multiplayer can be checked separately when useful; solo play does not require a hosted service. The coordinator protocol is retained only for a possible future group test.

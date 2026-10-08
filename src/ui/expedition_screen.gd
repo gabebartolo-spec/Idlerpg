@@ -2,6 +2,7 @@ extends "res://src/ui/sheet.gd"
 signal changed
 signal route_requested(route: String)
 const Catalog = preload("res://src/data/expedition_catalog.gd")
+const Builds = preload("res://src/data/lantern_build_catalog.gd")
 var sim: Node
 var tabs: Dictionary
 var status: Label
@@ -19,7 +20,7 @@ func setup(sim_node: Node) -> void:
 	status = Style.label("", 22)
 	status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	column.add_child(status)
-	mode_tabs = add_tabs(column, [["route", "Choose"], ["story", "Results"]], func(id: String) -> void:
+	mode_tabs = add_tabs(column, [["route", "Choose"], ["story", "Results"], ["builds", "Builds"]], func(id: String) -> void:
 		mode = id
 		refresh())
 	tabs = add_tabs(column, [["greenway", "Greenway"], ["causeway", "Causeway"]], func(id: String) -> void:
@@ -78,14 +79,39 @@ func refresh() -> void:
 	status.text = "Stage %d/5 · %d/%d HP\nNext in %s" % [mini(5, state.node + 1), state.hp, state.max_hp, wait] if state.active else "Leaving after this outing"
 	var locked := Catalog.locked_reason(state.selected_route, state.claimed_routes)
 	start_button.disabled = state.active or state.requested or not locked.is_empty()
+	start_button.visible = mode == "route"
 	start_button.text = "Expedition in progress" if state.active else ("Queued after this outing" if state.requested else "Explore " + str(Catalog.ROUTES[state.selected_route]["name"]))
 	stop_button.disabled = not state.active and not state.requested
 	stop_button.visible = state.active or state.requested
-	var key := JSON.stringify([mode, state.selected_route, state.active, state.node, state.discoveries, state.recap, state.claimed_routes, sim.fishing.prepared, sim.has_gear_effect("thornward")])
+	var key := JSON.stringify([mode, state.selected_route, state.active, state.node, state.discoveries, state.recap, state.claimed_routes, sim.fishing.prepared, sim.has_gear_effect("thornward"), sim.gear_inventory, sim.equipped, sim.unlocked_talents, sim.hero_level])
 	if key == content_key:
 		return
 	content_key = key
 	clear_list(list)
+	if mode == "builds":
+		for id in Builds.BUILDS:
+			var spec: Dictionary = Builds.BUILDS[id]
+			paragraph(spec["name"], Style.ACCENT)
+			paragraph(spec["hint"], Style.MUTED)
+			var needed := Builds.missing(id, sim)
+			for item in spec["equipment"].values():
+				if str(item).is_empty(): continue
+				var line := HBoxContainer.new()
+				add_icon(line, preload("res://src/data/art_catalog.gd").item_icon(item))
+				var words := Style.label(str(item) + (" · need" if sim.gear_count(item) == 0 else ""), 24)
+				words.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+				words.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+				line.add_child(words)
+				list.content.add_child(line)
+			if not str(spec["talent"]).is_empty() and not sim.has_talent(spec["talent"]): paragraph("Thick hide · costs 1 talent point", Style.MUTED)
+			var action := Style.button("Equip " + str(spec["name"]))
+			action.disabled = not needed.is_empty()
+			action.pressed.connect(func() -> void:
+				if Builds.apply(id, sim):
+					refresh()
+					changed.emit())
+			list.content.add_child(action)
+		return
 	if mode == "story":
 		if state.recap.is_empty():
 			paragraph("Your next adventure starts here.", Style.MUTED)

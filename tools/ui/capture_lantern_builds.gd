@@ -59,6 +59,14 @@ func run() -> void:
 		sim.unequip_gear(Trails.ROUTES[route]["gear"])
 		sim.equip_gear("Briarheart Charm")
 		sim.equip_gear("Goblin Cleaver")
+	main._open_chronicle_destination("expedition", "")
+	main.expedition_panel.mode_tabs["builds"].pressed.emit()
+	await snap("build_ideas")
+	for child in main.expedition_panel.list.content.get_children():
+		if child is Button and child.text == "Equip Guardian":
+			child.pressed.emit()
+			break
+	await snap("guardian_recipe")
 	main.free()
 	await process_frame
 	for path in paths:

@@ -63,7 +63,7 @@ func refresh() -> void:
 			list.content.add_child(row)
 		refresh_detail()
 		return
-	subtitle_label.text = "Three permanent pursuits"
+	subtitle_label.text = "%d permanent pursuits" % sim.goals.cards(sim).size()
 	for card in sim.goals.cards(sim):
 		var id := str(card["id"])
 		cards[id] = card
@@ -79,11 +79,11 @@ func refresh() -> void:
 
 func refresh_detail() -> void:
 	if not cards.has(selected):
-		selected = sim.goals.tracked
+		selected = sim.goals.tracked if cards.has(sim.goals.tracked) else str(cards.keys()[0])
 	restyle_rows(rows, selected)
 	if mode == "policies":
 		detail.text = str(cards[selected]["description"]) + " Change takes effect next outing."
 		track_button.disabled = sim.adventure_policy == selected
 	else:
-		detail.text = str(cards[selected]["clue"])
+		detail.text = "Completed" if sim.goals.completed.has(selected) else ("Equip a weapon" if selected == "prepare" else ("Earn the three woodland keepsakes" if selected == "lantern_kit" else ("Three safe returns · earn a title" if selected.ends_with("master") else "Review your next pursuit")))
 		track_button.disabled = sim.goals.tracked == selected
