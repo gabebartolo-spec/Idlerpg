@@ -174,7 +174,6 @@ func toggle_lock() -> void:
 
 func _build() -> void:
 	var column := build_sheet("Gacha", 0.22)
-	subtitle_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	mode_tabs = add_tabs(column, MODES, show_mode)
 	banner_tabs = add_tabs(column, BANNERS, select_banner)
 	banner_label = Style.label("", 19, Style.MUTED)

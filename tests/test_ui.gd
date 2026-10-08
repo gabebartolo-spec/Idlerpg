@@ -101,6 +101,7 @@ func _test_life_navigation() -> void:
 	gacha.open()
 	await _settle()
 	_check(gacha.subtitle_label.text.contains("+1 in 12:00"), "wallet shows the next ordinary earned token")
+	_check(gacha.subtitle_label.size.y >= 40.0, "wallet and countdown retain two visible lines in the phone header")
 	sim.income.advance(719.5)
 	gacha.refresh_wallet()
 	_check(gacha.subtitle_label.text.contains("+1 in 0:01"), "next-token countdown rounds remaining time upward")
