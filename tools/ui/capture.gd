@@ -189,6 +189,12 @@ func _run() -> void:
 	main.get("expedition_panel").mode = "story"
 	main.get("expedition_panel").refresh()
 	await _snap("expedition_return_story")
+	main.call("_open_chronicle_destination", "guide", "")
+	await _snap("optional_trail_guide")
+	main.get("guide_panel").tabs["practice"].pressed.emit()
+	await _snap("optional_practice_guide")
+	main.get("guide_panel").tabs["fishing"].pressed.emit()
+	await _snap("optional_fishing_guide")
 
 	main.free()
 	for path in PersistenceScript.files_for():

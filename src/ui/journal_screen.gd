@@ -1,4 +1,5 @@
 extends "res://src/ui/sheet.gd"
+signal guide_requested
 const Catalog = preload("res://src/data/journal_catalog.gd")
 var sim: Node
 var list: Control
@@ -9,6 +10,9 @@ func setup(sim_node: Node) -> void:
 	sim = sim_node
 	var column := build_sheet("Greenway field journal", 0.26)
 	list = add_list(column)
+	var guide := Style.button("Field guide")
+	guide.pressed.connect(func() -> void: guide_requested.emit())
+	column.add_child(guide)
 	refresh()
 func refresh() -> void:
 	clear_list(list)

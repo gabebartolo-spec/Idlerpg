@@ -77,8 +77,8 @@ func build_sheet(title: String, world_share: float = WORLD_SHARE) -> VBoxContain
 	subtitle_label.clip_text = true
 	titles.add_child(subtitle_label)
 
-	var back := Style.button("Back to adventure")
-	back.custom_minimum_size = Vector2(250.0, Style.TOUCH)
+	var back := Style.button("Back")
+	back.custom_minimum_size = Vector2(112.0, Style.TOUCH)
 	back.pressed.connect(close)
 	header.add_child(back)
 	return column

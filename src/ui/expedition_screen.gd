@@ -13,11 +13,11 @@ var mode_tabs: Dictionary
 
 func setup(sim_node: Node) -> void:
 	sim = sim_node
-	var column := build_sheet("Trail expeditions", 0.22)
+	var column := build_sheet("Expeditions", 0.34)
 	status = Style.label("", 22)
 	status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	column.add_child(status)
-	mode_tabs = add_tabs(column, [["route", "Choose route"], ["story", "Last journey"]], func(id: String) -> void:
+	mode_tabs = add_tabs(column, [["route", "Choose"], ["story", "Results"]], func(id: String) -> void:
 		mode = id
 		refresh())
 	tabs = add_tabs(column, [["greenway", "Greenway"], ["causeway", "Causeway"]], func(id: String) -> void:
@@ -44,20 +44,22 @@ func _process(_delta: float) -> void:
 		refresh()
 
 func paragraph(text: String, color: Color = Style.TEXT) -> void:
-	var words := Style.label(text, 21, color)
+	var words := Style.label(text, 24, color)
 	words.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	list.content.add_child(words)
 
 func refresh() -> void:
 	var state = sim.expedition
-	subtitle_label.text = "Five nodes · no live choices required"
+	subtitle_label.text = "5-minute adventures"
 	mark_tabs(tabs, state.selected_route)
 	mark_tabs(mode_tabs, mode)
 	tabs["greenway"].get_parent().visible = mode == "route"
-	status.text = "%s · node %d/5 · %d/%d HP\nNext encounter in %ds" % [Catalog.ROUTES[state.route]["name"], mini(5, state.node + 1), state.hp, state.max_hp, int(ceil(float(Catalog.NODE_USEC - state.remainder_usec) / 1000000.0))] if state.active else ("Queued after this outing" if state.requested else "Choose your route before leaving")
+	status.visible = state.active or state.requested
+	status.text = "Stage %d/5 · %d/%d HP\nNext in %ds" % [mini(5, state.node + 1), state.hp, state.max_hp, int(ceil(float(Catalog.NODE_USEC - state.remainder_usec) / 1000000.0))] if state.active else "Leaving after this outing"
 	start_button.disabled = state.active or state.requested
 	start_button.text = "Expedition in progress" if state.active else ("Queued after this outing" if state.requested else "Explore " + str(Catalog.ROUTES[state.selected_route]["name"]))
 	stop_button.disabled = not state.active and not state.requested
+	stop_button.visible = state.active or state.requested
 	var key := JSON.stringify([mode, state.selected_route, state.active, state.node, state.discoveries, state.recap, sim.fishing.prepared, sim.has_gear_effect("thornward")])
 	if key == content_key:
 		return
@@ -65,20 +67,18 @@ func refresh() -> void:
 	clear_list(list)
 	if mode == "story":
 		if state.recap.is_empty():
-			paragraph("No completed journey yet. Choose a route; its encounters resolve while you are away.", Style.MUTED)
+			paragraph("Your next adventure starts here.", Style.MUTED)
 		else:
-			paragraph("%s · %s\n%d of 5 nodes · %d gold kept" % [Catalog.ROUTES[state.recap["route"]]["name"], "Completed" if state.recap["won"] else "Returned early", state.recap["nodes"], state.recap["gold"]])
-			for line in state.recap["log"]:
-				paragraph(str(line), Style.MUTED)
+			paragraph("Adventure complete!" if state.recap["won"] else "Returned early")
+			paragraph("+%d gold" % state.recap["gold"], Style.ACCENT)
+			paragraph("%s · %d/5 stages" % [Catalog.ROUTES[state.recap["route"]]["name"], state.recap["nodes"]], Style.MUTED)
+			if state.recap["stew_used"]:
+				paragraph("Stew used", Style.MUTED)
 		return
 	var selected: Dictionary = Catalog.ROUTES[state.selected_route]
-	paragraph(str(selected["clue"]))
-	paragraph("First completion: +%d gold. Later completions: +%d. Cache adds eight gold. Leaving/failing keeps found cache gold and unused preparation; final rewards require the whole route." % [selected["first_gold"], selected["repeat_gold"]], Style.MUTED)
-	paragraph("Prepared stew: %d · Thornward equipped: %s. The entry build is fixed for this expedition. Passive fishing supplies stew; the earned Briarheart Charm supplies Thornward." % [sim.fishing.prepared, "yes" if sim.has_gear_effect("thornward") else "no"], Style.MUTED)
-	for index in 5:
-		var id: String = selected["nodes"][index]
-		paragraph("%d. %s · %s" % [index + 1, Catalog.ENCOUNTERS[id]["name"], "discovered" if state.discoveries.has(id) else "unseen"], Style.MUTED)
-	if not state.recap.is_empty():
-		paragraph("Last expedition · %s · %s\n%s" % [Catalog.ROUTES[state.recap["route"]]["name"], "Completed" if state.recap["won"] else "Returned early", state.recap["reason"]])
-		for line in state.recap["log"]:
-			paragraph(str(line), Style.MUTED)
+	paragraph("Easy trail" if state.selected_route == "greenway" else "Risky trail")
+	var reward: int = selected["repeat_gold"] if state.claimed_routes.has(state.selected_route) else selected["first_gold"]
+	paragraph("5 min · %d gold" % (reward + 8), Style.ACCENT)
+	if state.selected_route == "causeway":
+		paragraph("Bring stew or thorn protection", Style.MUTED)
+	paragraph("Stew: %d · Thornward: %s" % [sim.fishing.prepared, "ready" if sim.has_gear_effect("thornward") else "—"], Style.MUTED)

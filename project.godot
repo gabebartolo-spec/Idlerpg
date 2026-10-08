@@ -23,6 +23,10 @@ window/handheld/orientation=1
 
 pointing/emulate_touch_from_mouse=true
 
+[gui]
+
+theme/custom="res://src/ui/game_theme.tres"
+
 [rendering]
 
 renderer/rendering_method="mobile"

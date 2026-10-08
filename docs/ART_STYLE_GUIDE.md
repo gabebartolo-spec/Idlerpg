@@ -359,6 +359,12 @@ Avoid:
 
 The world remains the default screen.
 
+Mossgate is the game's original rounded typeface, drawn from the project's own
+letter coordinates. Use its regular weight for reading and semibold for actions
+and titles. Keep normal play copy brief; stories and detailed rules belong in
+the optional Field guide. See `docs/TYPOGRAPHY_AND_COPY.md` for the source,
+coverage and phone verification limits.
+
 ---
 
 # 12. Generated asset rules

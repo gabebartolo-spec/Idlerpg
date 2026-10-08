@@ -12,30 +12,28 @@ var result_label: Label
 
 func setup(sim_node: Node) -> void:
 	sim = sim_node
-	var column := build_sheet("Mossgate Pond", 0.22)
+	var column := build_sheet("Fishing", 0.34)
 	status = Style.label("", 22)
 	status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	column.add_child(status)
-	var rules := Style.label("One passive catch every 15 seconds: perch, carp, then herb. All ingredients come from passive fishing. Adventures pause at the pond; earned tokens keep accruing.", 20, Style.MUTED)
-	rules.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	column.add_child(rules)
 	progress = ProgressBar.new()
 	progress.custom_minimum_size.y = 32
 	progress.show_percentage = false
 	column.add_child(progress)
-	reel_button = Style.button("Optional reel · green at 7–9 seconds", true)
+	reel_button = Style.button("Reel in · optional", true)
 	reel_button.pressed.connect(func() -> void:
-		result_label.text = sim.reel_fishing()["message"]
+		var result: Dictionary = sim.reel_fishing()
+		result_label.text = ("Bonus perch!" if sim.fishing.successful_reels % 10 == 0 else "Nice reel! %d/10" % (sim.fishing.successful_reels % 10)) if result.get("ok", false) else "Missed · passive catch is safe"
 		refresh()
 		changed.emit())
 	column.add_child(reel_button)
-	result_label = Style.label("Ten timely reels add one bonus perch. Missing does not lose your passive catch.", 20, Style.MUTED)
+	result_label = Style.label("Tap when green for a bonus", 22, Style.MUTED)
 	result_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	column.add_child(result_label)
 	var list := add_list(column)
-	stock_label = Style.label("", 23)
+	stock_label = Style.label("", 24)
 	list.content.add_child(stock_label)
-	var recipe := Style.label("Pond Stew: 2 perch + 1 carp + 1 herb. Prepare for the practice dungeon; heals 12 party health once.", 20, Style.MUTED)
+	var recipe := Style.label("Stew: 2 perch + 1 carp + 1 herb\nRestores 12 health", 22, Style.MUTED)
 	recipe.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	list.content.add_child(recipe)
 	prepare_button = Style.button("Prepare Pond Stew")
@@ -58,12 +56,14 @@ func _process(_delta: float) -> void:
 
 func refresh() -> void:
 	var state = sim.fishing
-	subtitle_label.text = "Passive profession · no energy cost"
-	status.text = "Fishing · cast %.1f / 15 seconds" % (float(state.progress_usec) / 1000000.0) if sim.activity == "fishing" else ("Queued after this outing" if state.requested else "Choose a peaceful pause at the pond")
+	subtitle_label.text = "Mossgate Pond · 15s per catch"
+	status.text = "Next catch: %ds" % int(ceil(float(Catalog.INTERVAL_USEC - state.progress_usec) / 1000000.0)) if sim.activity == "fishing" else ("Leaving after this outing" if state.requested else "Take a break by the pond")
 	progress.value = float(state.progress_usec) / float(Catalog.INTERVAL_USEC) * 100.0
 	var green: bool = state.progress_usec >= 7000000 and state.progress_usec <= 9000000
 	progress.modulate = Color(0.4, 0.9, 0.5) if green else Color.WHITE
 	reel_button.disabled = sim.activity != "fishing" or state.last_attempt == state.catches
 	choose_button.text = "Resume adventures" if sim.activity == "fishing" else ("Cancel fishing request" if state.requested else "Fish after this outing")
 	prepare_button.disabled = not state.can_prepare()
-	stock_label.text = "Perch: %d\nCarp: %d\nHerbs: %d\nPrepared stew: %d\nTimely reels: %d / 10\nBonus perch: %d" % [state.stock.get("Pond Perch", 0), state.stock.get("Silver Carp", 0), state.stock.get("Reed Herb", 0), state.prepared, state.successful_reels % 10, state.bonus_catches]
+	stock_label.text = "Perch: %d  ·  Carp: %d  ·  Herbs: %d\nStew ready: %d" % [state.stock.get("Pond Perch", 0), state.stock.get("Silver Carp", 0), state.stock.get("Reed Herb", 0), state.prepared]
+	stock_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	stock_label.custom_minimum_size.y = Style.TOUCH
