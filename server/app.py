@@ -226,6 +226,12 @@ def create_app(database=None, clock=time.time):
             return profile(db, account)
         return await mutate(request, authorization, idempotency_key, operation)
 
+    @app.get("/v1/builds")
+    def build_catalog(authorization: str | None = Header(default=None)):
+        with transaction() as db:
+            authenticate(db, authorization)
+        return {"builds": raid_rules.BUILDS, "costs": BUILD_COSTS, "raid_rules_version": raid_rules.VERSION}
+
     def guild_view(db, account):
         row = db.execute("SELECT g.* FROM guilds g JOIN members m ON g.id=m.guild WHERE m.account=?", (account,)).fetchone()
         if not row:

@@ -6,6 +6,7 @@ const FieldGuideScreenScript = preload("res://src/ui/field_guide_screen.gd")
 const OptionsScreenScript = preload("res://src/ui/options_screen.gd")
 const WardrobeScreenScript = preload("res://src/ui/wardrobe_screen.gd")
 const MenuScreenScript = preload("res://src/ui/menu_screen.gd")
+const GuildScreenScript = preload("res://src/ui/guild_screen.gd")
 const PresentationControllerScript = preload("res://src/ui/presentation_controller.gd")
 const FishingScreenScript = preload("res://src/ui/fishing_screen.gd")
 const PracticeScreenScript = preload("res://src/ui/practice_screen.gd")
@@ -81,6 +82,7 @@ var guide_panel: Control
 var options_panel: Control
 var wardrobe_panel: Control
 var menu_panel: Control
+var guild_panel: Control
 var presentation_controller: Node
 var fishing_panel: Control
 var practice_panel: Control
@@ -692,6 +694,11 @@ func _build_ui() -> void:
 	canvas.add_child(reward_panel)
 	reward_panel.setup(sim, game.presentation)
 	reward_panel.changed.connect(_on_gear_changed)
+	guild_panel = GuildScreenScript.new()
+	guild_panel.visible = false
+	canvas.add_child(guild_panel)
+	guild_panel.setup(sim, game.presentation)
+	guild_panel.changed.connect(_on_gear_changed)
 	chronicle_panel = ChronicleScreenScript.new()
 	chronicle_panel.visible = false
 	canvas.add_child(chronicle_panel)
@@ -774,7 +781,7 @@ func _refresh_wallet(_tokens: int) -> void:
 
 # Only one sheet, drawer or report is open at a time.
 func _close_drawers() -> void:
-	for sheet in [equipment_panel, talent_panel, boss_panel, gacha_panel, wardrobe_panel, adventure_panel, loadout_panel, relic_panel, chronicle_panel, journal_panel, guide_panel, options_panel, menu_panel, identity_panel, fishing_panel, practice_panel, expedition_panel, reward_panel, dev_panel, return_panel]:
+	for sheet in [equipment_panel, talent_panel, boss_panel, gacha_panel, wardrobe_panel, adventure_panel, loadout_panel, relic_panel, chronicle_panel, journal_panel, guide_panel, options_panel, menu_panel, guild_panel, identity_panel, fishing_panel, practice_panel, expedition_panel, reward_panel, dev_panel, return_panel]:
 		if sheet != null:
 			sheet.visible = false
 
@@ -831,6 +838,8 @@ func _open_chronicle_route(route: String) -> void:
 func _open_chronicle_destination(route: String, target: String) -> void:
 	_close_drawers()
 	match route:
+		"guild":
+			guild_panel.open()
 		"rewards":
 			reward_panel.open()
 		"wardrobe":

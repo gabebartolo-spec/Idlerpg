@@ -55,3 +55,4 @@ jobs:
         run: |
           python -m unittest server.test_service server.test_raids -v
           python -m server.verify_client --godot "$HOME/godot/godot"
+          python -m server.verify_client --godot "$HOME/godot/godot" --script tests/test_guild_screen.gd

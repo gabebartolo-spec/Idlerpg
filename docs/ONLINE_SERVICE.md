@@ -1,6 +1,6 @@
 # Shared playtest foundation
 
-This provides a runnable account/economy/guild service, an asynchronous three-role raid and an actual Godot HTTP client. It is **not yet the playable multiplayer release**. The normal game has no account or guild screen wired to this client yet. Three automated accounts demonstrate persistence and raid settlement, not recruited people, enjoyment or participant access. Rules: [ASYNC_RAID.md](ASYNC_RAID.md).
+This provides a runnable account/economy/guild service, asynchronous three-role raid and playable **More → Guild** sheets. Three automated accounts demonstrate persistence, actual screen controls and raid settlement, not recruited people, enjoyment or participant access. Rules: [ASYNC_RAID.md](ASYNC_RAID.md); player/client integration: [GUILD_UI.md](GUILD_UI.md).
 
 ## Architecture decision
 
@@ -21,7 +21,7 @@ FastAPI is served through an ASGI server ([deployment documentation](https://fas
 
 Keep the account ID and recovery key privately. Recovery accepts both, revokes all prior sessions and issues a new seven-day session. A stolen or lost recovery key needs an explicit rotation/support policy before participant deployment; there is currently no email identity or administrator recovery. Recovery attempts and account creation are limited per direct connecting address. Authenticated action attempts, including failed invite guesses, are limited per account. The deployment proxy also needs request size/rate controls; no forwarded-address header is trusted by this app.
 
-The current Godot client keeps credentials in memory and requires HTTPS except exact loopback development URLs. Durable credential storage, a recovery display/export screen, sign-out UI and reconnect handling remain client-integration work. Credentials must never enter the local gameplay save, screenshots, CI outputs or repository.
+The Godot client uses a separate device-local session file and requires HTTPS except exact loopback development URLs. Recovery display/copy, sign-out and persisted retry/reconnect handling are implemented. Recovery keys are never saved; bearer sessions follow app-private/user-folder protection, not an encrypted vault. Credentials must never enter the solo gameplay save, screenshots, CI outputs or repository.
 
 ## Trusted progress and legacy saves
 
@@ -62,4 +62,4 @@ Back up using SQLite's backup API or a database-consistent snapshot, restore to 
 
 The ten service scenarios use real HTTP listeners and temporary databases: privacy, credential hashing/recovery/revocation/expiry, failed-attempt limits, forged payload rejection, early/foreign chest denial, restart and 30-day absence, concurrent chest claims, concurrent device spending, durable three-account membership/leadership, concurrent final roster slot and newer-schema refusal. A separate Godot suite creates three independent clients against one real service and checks matching rosters and private profiles. Tests create disposable accounts; they do not read or modify normal local gameplay saves. CI runs both plus the existing Godot suites.
 
-Next: wire account/recovery, guild and raid sheets into the actual game, including safe credentials/retry persistence and earned appearance restore/Wear. Android delivery, reachable deployment, multi-day regional pursuits and participant evidence remain part of the active goal.
+Next: Android delivery, reachable deployment, multi-day regional pursuits/progression and the participant pack. The played guild/raid flow needs physical phone verification and participant evidence before claiming enjoyment or release readiness.

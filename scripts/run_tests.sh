@@ -33,6 +33,7 @@ run_test tests/test_collection_route.gd
 run_test tests/test_earned_income.gd
 run_test tests/test_journal.gd
 run_test tests/test_identity.gd
+run_test tests/test_online_session.gd
 run_test tests/test_fishing.gd
 run_test tests/test_practice.gd
 run_test tests/test_expedition.gd
