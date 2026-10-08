@@ -100,6 +100,8 @@ Do not rely only on colour changes.
 
 ## 2.5 One world, not asset-pack soup
 
+**Owner art-direction rule (9 October 2026): every region may have its own identity, but the entire game must look as if it were drawn by the same hand.** This means a snowfield, a cursed swamp, a woodland and a city can have wholly different climates, architecture, flora, enemy types and lighting moods while sharing the same deliberate visual grammar. Distinct biome does not mean distinct art style.
+
 Generated assets must be revised until they match this guide.
 
 Reject assets that:
@@ -187,6 +189,26 @@ Never turn the entire item into a glowing rarity colour.
 ---
 
 # 5. Environment language
+
+## A single visual handwriting across the world
+
+**These are global invariants for every region and every source of art** (Blender models, AI-assisted concepts, textures, UI previews and effects):
+
+- **Shape language:** soft, authored low-poly forms, deliberate tapers/bevels, heroic exaggeration and readable silhouettes; avoid abrupt shifts from sculpted curves to raw voxel cubes or from stylisation to realism.
+- **Proportions and detail budget:** the same heroic character anatomy, item scale, creature silhouette discipline and broad-to-fine detail hierarchy; never make one zone's models dramatically denser or more intricate simply because a different generator made them.
+- **Surface treatment:** matte/rough, painterly colour grouping, broad painted-looking variation and restrained highlights; no sudden plastic gloss, realistic photo textures, radically different outlines, or high-frequency noise.
+- **Lighting vocabulary:** a coherent approach to key/fill, material response, emissive magic and readable faces/gear. Individual regions can shift time of day, warmth, contrast and mood *within* this shared approach.
+- **Colour handling:** use the shared palette system and harmonised saturation/contrast rather than independently invented material colours. Region palettes may be vibrant, dark, icy, warm, sickly or magical, but must have the same painterly logic.
+- **Animation and VFX:** the same readable motion timing and compact, authored magical effects; do not introduce a photorealistic or neon-heavy VFX style in a single biome.
+- **Scale and composition:** compatible prop scales, architecture exaggeration, ground texture vocabulary and portrait-camera readability.
+
+A region can own its **biome palette, architecture motifs, vegetation, wildlife, enemies, landmarks, weather, lighting mood and environmental storytelling**. These are expressions of the one world, not exceptions to the shared rules. Avoid applying exactly the same palette to every region in the name of consistency: **unity of treatment, diversity of place**.
+
+### Shared reference sheet before the next large asset batch
+
+Create and maintain one **approved master style sheet** from *our own* finished assets, not images taken from WoW. Use the same hero, common/legendary weapon and armour, one creature, one tree, one rock/building and one complete zone vignette as visual anchors. Record the approved proportions, colour/material approach, bevel/shape language and neutral review lighting. If those existing assets are inconsistent, first author/rework the smallest representative set and get approval rather than treating inconsistency as the new standard. This reference sheet is a required production deliverable, **not claimed to exist yet**.
+
+For each new biome, prepare a brief of its unique motifs and limited local palette, then compare its new assets **beside** the approved anchors and at normal Android portrait scale under equivalent neutral lighting, followed by a native biome-lighting capture. A new region passes only when it is clearly a different place **and** visibly belongs in the same game.
 
 ## Zones
 
@@ -375,13 +397,14 @@ coverage and phone verification limits.
 
 Whenever AI-generated concepts/assets are used:
 
-1. Start from this guide.
-2. Generate one asset family at a time.
-3. Compare silhouette, proportions, palette and material treatment against existing approved assets.
-4. Reject outliers even if individually attractive.
-5. Prefer transparent-background character/equipment concepts where useful.
-6. Rebuild or simplify generated concepts into game-ready low-poly assets where necessary.
-7. Never ship obvious artefacts, gibberish text, malformed anatomy, copied logos, or inconsistent perspective.
+1. Start from this guide **and the approved master style sheet**. Do not generate a new region with an isolated stylistic prompt.
+2. Keep the same stable style instructions for every asset batch: original WoW-inspired painterly heroic fantasy; mobile-friendly authored low-poly shapes; common proportions, materials and surface finish; same level of detail. Add **biome content** to the prompt without rewriting these global rules.
+3. Generate one asset family at a time, with the region's palette/motifs recorded separately from global style.
+4. Compare silhouettes, character/prop proportions, mesh density, palette, surface treatment and render lighting beside existing approved anchors, not just inside that region.
+5. Reject or rework outliers even if individually attractive; never ship the telltale differences between separate AI image/model generators.
+6. Prefer transparent-background character/equipment concepts where useful.
+7. Rebuild or simplify generated concepts into game-ready low-poly assets where necessary.
+8. Never ship obvious artefacts, gibberish text, malformed anatomy, copied logos, or inconsistent perspective.
 
 Generated concept art is direction, not automatic final production art.
 
@@ -451,12 +474,15 @@ If these pieces do not look like they belong in the same game, stop and correct 
 
 **Style checkpoint before another large asset batch:** compare the current adventurer, a distinct armour set and a weapon at common/legendary tiers, one enemy and one complete outdoor vignette at real Android portrait viewing size. Check for a coherent WoW-inspired painterly fantasy impression, unique designs, unmistakable gear/silhouette differences and stable frame performance. Build only the smallest representative slice before committing to a mass rebuild. This is a **visual direction and future-work criterion**, not a claim current assets have already passed.
 
-An asset is approved only if it passes all five:
+An asset is approved only if it passes all six:
 
 1. **Readable:** identifiable instantly on a phone.
-2. **Consistent:** matches existing approved proportions/materials.
-3. **Original:** not recognisably copied from a reference game.
-4. **Useful:** communicates gameplay/state, not just decoration.
-5. **Cheap enough:** appropriate for a mobile game that may remain on-screen for long watch sessions.
+2. **Consistent:** passes the *same-hand test* beside assets from **other regions**: compatible shape, proportions, painted finish, lighting and detail density.
+3. **Distinctive:** region-specific creatures, flora, landmarks and mood are recognisable without looking like a different game's art.
+4. **Original:** not recognisably copied from a reference game.
+5. **Useful:** communicates gameplay/state, not just decoration.
+6. **Cheap enough:** appropriate for a mobile game that may remain on-screen for long watch sessions.
+
+Before signing off a **new region**, perform a side-by-side review of its hero/enemy encounter, major prop and backdrop next to at least one established region at neutral matching lighting, then the intended local mood. Record whether it passes the same-hand test and any rework needed. If either portrait readability or art cohesion fails, do not mark the region's art polished.
 
 When in doubt, simplify.
