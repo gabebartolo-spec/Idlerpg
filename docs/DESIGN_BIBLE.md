@@ -7,6 +7,8 @@
 **Status:** implemented P0–P7 prototype; Android verification remains gated
 **Source of truth:** this document defines the intended product unless a newer explicit decision supersedes it.
 
+**9 October 2026 immediate top priority:** The owner wants the **Tripo legendary modelling pilot first** — three actual original legendary gear models (Crownblade, Starforged Helm, Titanheart Plate) shown equipped on the running Godot hero at phone size, before another major content or engineering expansion. See [TRIPO_LEGENDARY_PILOT.md](TRIPO_LEGENDARY_PILOT.md), R45 in [RESEARCH_BACKLOG.md](RESEARCH_BACKLOG.md), [issue #47](https://github.com/gabebartolo-spec/Idlerpg/issues/47). Tripo is already part of the owner's tool investment. Prioritise a bounded visual demonstrator, then R46 camera/orbit and R47 progression balancing; do not silently spend extra Tripo credits or services, pretend models are ready, or mass-replace approved artwork. The full backlog consolidates current owner directives through R50.
+
 **9 October 2026 live-economy decision:** Research suitable gacha odds and transparent guarantees before shipping the commercial store. Compare base legendary 1%, 1.5% and 2%, with hard rarity pity and separate **desired featured-item** spark (prototypes, not approved rates). The owner's 100 event chest example requires safeguards: free/purchased chests count equally, known milestone rewards, guaranteed target/credit survives banner rollover; no purchase-only requirement hidden under a 'free guarantee'. Protect constant micro-upgrade income and avoid runaway saturation. Docs: [GACHA_ODDS_AND_PROMOTIONS.md](GACHA_ODDS_AND_PROMOTIONS.md), [MONETISATION_STUDY.md](MONETISATION_STUDY.md), [PACING_MATH_AND_BENCHMARKS.md](PACING_MATH_AND_BENCHMARKS.md). Three-faction global war and progression PvP are future commercial/retention pillars with both powerful spenders and viable free competitors: [FACTION_WARFARE.md](FACTION_WARFARE.md).
 
 **9 October 2026 visual coherence rule:** Every region may have distinct flora, architecture, palette, enemies and atmosphere, but **the entire world must appear drawn by the same hand**. The art guide defines fixed global shape/proportion, painterly surface, lighting, animation and detail rules, plus a master style reference sheet and cross-region side-by-side approval gate. Variation in biome is encouraged; divergence in art treatment is not. This is a direction and review requirement, not a claim that the existing assets have passed an audit. See [ART_STYLE_GUIDE.md](ART_STYLE_GUIDE.md) and [ART_PIPELINE.md](ART_PIPELINE.md).
@@ -362,11 +364,13 @@ Travel between zones can initially be an abstract transition rather than a seaml
 
 ## 5.3 Watch camera
 
-Initial camera:
-- fixed/elevated third-person follow;
+Currently implemented camera (subject to owner-requested R46 upgrade):
+- elevated third-person automatic follow;
 - enough distance to understand surroundings;
 - automatic framing for combat;
 - no required camera input.
+
+**Approved next usability feature, not yet implemented:** one-finger horizontal swipe orbits the watch camera, two-finger pinch controls its distance (mouse drag/wheel desktop); preserve the follow target and user's orientation/zoom across movement; stop large trees hiding hero/current opponent with occluder fading or equivalent geometry-aware mitigation; do not steal input from bottom menus or popups. [Issue #43](https://github.com/gabebartolo-spec/Idlerpg/issues/43).
 
 Later options:
 - tap character to focus;
