@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Idle RPG · Playtest notes</title>
+<style>
+@font-face{font-family:Mossgate;src:url('Mossgate-Regular.ttf')}*{box-sizing:border-box}body{margin:0;background:#25261f;color:#eee4cf;font:18px Mossgate,system-ui,sans-serif}main{max-width:520px;margin:auto;padding:24px 18px}h1{font-size:29px;margin:0 0 8px}p{line-height:1.4;color:#cfc7b5}label{display:block;margin:20px 0 6px}input,select,textarea,button{font:inherit;width:100%;border:1px solid #746850;border-radius:9px;padding:12px;background:#38372e;color:#fff0d0}textarea{resize:vertical;min-height:80px}button{background:#e6b73b;color:#29271f;font-weight:bold;margin-top:16px;min-height:48px;cursor:pointer}button.secondary{background:#38372e;color:#eee4cf}input:focus,select:focus,textarea:focus,button:focus{outline:3px solid #f3d482;outline-offset:2px}.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}small{display:block;line-height:1.4;color:#cfc7b5;margin-top:14px}#status{min-height:48px;margin:12px 0}.saved{color:#b6d594}
+</style>
+<main><h1>A quick trail note</h1><p>About a minute. Tell us what felt rewarding.</p>
+<form id="notes">
+<div class="row"><div><label for="participant">Your number</label><select id="participant" required><option value="">Choose…</option></select></div><div><label for="day">Study day</label><select id="day"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option></select></div></div>
+<label for="duration">How long did you play?</label><select id="duration" required><option value="">Choose…</option><option>Under 30 seconds</option><option>30 seconds–2 minutes</option><option>2–5 minutes</option><option>More than 5 minutes</option><option>I did not play today</option></select>
+<label for="reward">What reward do you want next?</label><input id="reward" maxlength="240" placeholder="An item, a look, a milestone… or nothing">
+<label for="moment">What felt most satisfying?</label><textarea id="moment" maxlength="1000" placeholder="A moment you remember, or nothing yet"></textarea>
+<label for="disappointment">Anything disappointing? (optional)</label><textarea id="disappointment" maxlength="1000"></textarea>
+<label for="returnIntent">Would you return tomorrow without a reminder?</label><select id="returnIntent" required><option value="">Choose…</option><option>I want to</option><option>Unsure</option><option>Probably not</option></select>
+<label for="reason">Why? (optional)</label><input id="reason" maxlength="400">
+<button type="submit">Save this day</button>
+</form>
+<p id="status" role="status" aria-live="polite"></p><button id="export" class="secondary" type="button">Export answers</button><button id="erase" class="secondary" type="button">Erase saved answers</button>
+<small>Saved on this device only. Export and share when ready. No automatic uploads. Keep account keys and names out of your notes. Saving the same number and day updates that entry.</small></main>
+<script>
+'use strict';
+const key='idle-rpg-playtest-notes-v1', fields=['duration','reward','moment','disappointment','returnIntent','reason'];
+const $=id=>document.getElementById(id), status=$('status'); let entries=[], storageReady=true;
+for(let n=1;n<=10;n++){const option=document.createElement('option');option.value=option.textContent='P'+String(n).padStart(2,'0');$('participant').append(option)}
+function tell(message){status.textContent=message}
+try{const raw=localStorage.getItem(key);if(raw){const parsed=JSON.parse(raw);if(!Array.isArray(parsed)||parsed.some(e=>!e||!/^P(0[1-9]|10)$/.test(e.participant)||!Number.isInteger(e.day)||e.day<1||e.day>7||fields.some(f=>typeof e[f]!=='string')))throw Error('Invalid saved answers');entries=parsed}}
+catch(error){storageReady=false;tell('Saved answers could not be read. They have not been overwritten. You can still export new answers from this session.')}
+function restore(){const entry=entries.find(e=>e.participant===$('participant').value&&e.day===Number($('day').value));for(const f of fields)$(f).value=entry?.[f]??'';tell(entry?'Saved entry loaded. You can edit and save it.':'')}
+$('participant').addEventListener('change',restore);$('day').addEventListener('change',restore);
+$('notes').addEventListener('submit',event=>{event.preventDefault();const entry={participant:$('participant').value,day:Number($('day').value),savedAt:new Date().toISOString()};for(const f of fields)entry[f]=$(f).value.trim();entries=entries.filter(e=>e.participant!==entry.participant||e.day!==entry.day);entries.push(entry);if(!storageReady){tell('Kept for this session only. Export now; device storage is unavailable.');return}try{localStorage.setItem(key,JSON.stringify(entries));tell('Saved on this device. Thank you.')}catch(error){storageReady=false;tell('Kept for this session only. Export now; device storage is unavailable.')}});
+$('export').addEventListener('click',()=>{if(!entries.length){tell('Save an answer first.');return}const url=URL.createObjectURL(new Blob([JSON.stringify({schema:1,study:'idle-rpg-seven-day',exportedAt:new Date().toISOString(),entries},null,2)],{type:'application/json'}));const link=document.createElement('a');link.href=url;link.download='idle-rpg-playtest-answers.json';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);tell('Export downloaded. Share it through your coordinator’s channel.')});
+$('erase').addEventListener('click',()=>{if(!confirm('Erase all saved answers on this device? Export first if you want to keep them.'))return;try{localStorage.removeItem(key);entries=[];storageReady=true;restore();tell('Saved answers erased.')}catch(error){tell('Could not erase device storage. Use your browser storage settings.')}});
+</script></html>
