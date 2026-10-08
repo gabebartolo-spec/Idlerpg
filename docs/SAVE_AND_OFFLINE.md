@@ -169,6 +169,14 @@ Version 9 adds persisted selected-item pursuits and cosmetic duplicate counters.
 
 Versions 10–12 add the earned-token remainder and wallet claim cursor, permanent field journal, and adventurer identity. Saving settles earned income before serializing both halves. Missing older fields default safely; journal legacy seeding grants no retrospective rewards. Rules and validation: [ADVENTURER_LIFE.md](ADVENTURER_LIFE.md).
 
+## Permanent appearance ownership (format 17)
+
+`sim.wardrobe` owns curated cosmetic IDs, provenance and chosen slots separately
+from functional gear and combat presets. Older saves seed from known held,
+discovered or permanently collected gear without granting items or rewards;
+modern wardrobe records round-trip without reseeding ownership. See
+[PERMANENT_WARDROBE.md](PERMANENT_WARDROBE.md) for evidence limits and merge rules.
+
 ## Comfort preferences (format 16)
 
 Larger text and Reduced motion are saved under `game.presentation`, independently

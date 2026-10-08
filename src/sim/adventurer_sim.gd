@@ -8,6 +8,7 @@ const ExpeditionScript = preload("res://src/state/expedition.gd")
 const FishingCatalog = preload("res://src/data/fishing_catalog.gd")
 
 const IdentityScript = preload("res://src/state/adventurer_identity.gd")
+const WardrobeScript = preload("res://src/state/wardrobe.gd")
 const JournalScript = preload("res://src/state/discovery_journal.gd")
 const IncomeScript = preload("res://src/state/earned_income.gd")
 const RelicScript = preload("res://src/data/relic_catalog.gd")
@@ -106,6 +107,7 @@ var equipped: Dictionary = {
 }
 var recent_events: Array[String] = []
 var identity = IdentityScript.new()
+var wardrobe = WardrobeScript.new()
 var fishing = FishingScript.new()
 var practice = PracticeScript.new()
 var expedition = ExpeditionScript.new()
@@ -324,6 +326,7 @@ func to_save_dict() -> Dictionary:
 		"active_companion": active_companion,
 		"companion_bond_xp": companion_bond_xp.duplicate(true),
 		"identity": identity.to_save_dict(),
+		"wardrobe": wardrobe.to_save_dict(),
 		"fishing": fishing.to_save_dict(),
 		"practice": practice.to_save_dict(),
 		"expedition": expedition.to_save_dict(),
@@ -463,6 +466,9 @@ func load_save_dict(data: Dictionary) -> void:
 	fishing.load_save_dict(data.get("fishing", {}))
 	practice.load_save_dict(data.get("practice", {}))
 	expedition.load_save_dict(data.get("expedition", {}))
+	wardrobe.load_save_dict(data.get("wardrobe", {}))
+	if not data.has("wardrobe"):
+		wardrobe.seed_legacy(gear_inventory, discovered)
 	if activity == "fishing" and not fishing.requested:
 		_begin_quest_cycle()
 	if not data.has("journal"):
@@ -782,6 +788,7 @@ func add_gear(item_name: String) -> bool:
 	var current := equipped_item(GearCatalogScript.slot(item_name))
 	var useful := GearCatalogScript.attack_bonus(item_name) > GearCatalogScript.attack_bonus(current) or GearCatalogScript.hp_bonus(item_name) > GearCatalogScript.hp_bonus(current) or not GearCatalogScript.effect(item_name).is_empty()
 	gear_inventory[item_name] = int(gear_inventory.get(item_name, 0)) + 1
+	wardrobe.acquire_item(item_name)
 	_emit_event("gear_obtained", "Found %s." % item_name, {"gear": item_name, "useful": useful})
 	return true
 

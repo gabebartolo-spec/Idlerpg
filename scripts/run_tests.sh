@@ -57,4 +57,5 @@ run_test tests/test_ui.gd
 run_test tests/test_ui.gd --large-text
 run_test tests/test_typography.gd
 run_test tests/test_presentation.gd
+run_test tests/test_wardrobe.gd
 run_test tests/test_economy.gd

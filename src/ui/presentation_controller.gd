@@ -10,7 +10,7 @@ func setup(settings: RefCounted, canvas: Node) -> void:
 	apply()
 
 func _new_node(node: Node) -> void:
-	if is_instance_valid(scope) and scope.is_ancestor_of(node):
+	if node is Control and is_instance_valid(scope) and scope.is_ancestor_of(node):
 		call_deferred("_apply_added", node.get_instance_id())
 
 func _apply_added(instance_id: int) -> void:

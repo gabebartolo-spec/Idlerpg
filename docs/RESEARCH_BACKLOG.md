@@ -262,6 +262,15 @@ open; these are presentation slices, not completion of R27.
 
 ### IRPG-R36 — Permanent appearance unlocks
 
+Implementation note (8 October 2026): a local five-look wardrobe now preserves
+first-acquisition ownership through sale/salvage, uses separate appearance
+slots, previews the actual model and retains fashion across combat loadouts.
+Format 17 and local restoration merge fixtures are documented in
+`docs/PERMANENT_WARDROBE.md`. Tests verify stat/RNG invariance, parity, migration,
+idempotency and matching preview/world assets. Real entitlement restoration,
+Android cost/readability and player desirability remain VERIFY; no live paid
+ownership is claimed.
+
 **Payoff:** collected looks remain yours after gear changes. **Scope:** appearance catalog and versioned ownership/equip records separate from functional inventory and combat loadouts; first-acquisition unlock rules and entitlement provenance. **Start:** R02 persistence, R13 identity, gear collection and presentation. **Accept:** selling, salvaging or replacing gear preserves unlocked appearances; equipping an appearance changes no combat field; old saves migrate safely; paid restoration merges ownership without overwriting earned unlocks. **Validate:** sell/reacquire, repeated grants, reload/migration, cross-device merge fixtures, stat invariance and phone preview accuracy. **Exclude:** new combat gear, live purchases, dye system or assuming every gear asset is already cosmetic-ready.
 
 ### IRPG-R37 — Earned cosmetic pursuits
