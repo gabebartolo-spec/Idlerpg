@@ -71,6 +71,14 @@ const MODELS := {
 	"ember_staff": {"path": "res://assets/models/weapons/ember_staff.glb", "category": "weapon", "tris": 216, "size": Vector3(0.397, 1.725, 0.221), "nodes": []},
 	"stormcaller": {"path": "res://assets/models/weapons/stormcaller.glb", "category": "weapon", "tris": 144, "size": Vector3(0.720, 1.790, 0.260), "nodes": []},
 	"briarhook": {"path": "res://assets/models/weapons/briarhook.glb", "category": "weapon", "tris": 80, "size": Vector3(0.502, 1.120, 0.100), "nodes": []},
+	"lantern_moth": {"path": "res://assets/models/characters/lantern_moth.glb", "category": "character", "tris": 224, "size": Vector3(2.060, 1.576, 0.466), "nodes": ["body", "head", "wing_l", "wing_r"]},
+	"root_keeper": {"path": "res://assets/models/characters/root_keeper.glb", "category": "character", "tris": 384, "size": Vector3(1.625, 2.193, 0.842), "nodes": ["body", "head", "arm_l", "leg_l", "arm_r", "leg_r"]},
+	"lantern_post": {"path": "res://assets/models/props/lantern_post.glb", "category": "prop", "tris": 160, "size": Vector3(0.800, 1.966, 0.361), "nodes": []},
+	"mooncap_cluster": {"path": "res://assets/models/props/mooncap_cluster.glb", "category": "prop", "tris": 180, "size": Vector3(1.078, 0.612, 0.696), "nodes": []},
+	"lantern_arch": {"path": "res://assets/models/props/lantern_arch.glb", "category": "prop", "tris": 372, "size": Vector3(3.530, 2.700, 1.065), "nodes": []},
+	"keeper_shrine": {"path": "res://assets/models/props/keeper_shrine.glb", "category": "prop", "tris": 376, "size": Vector3(2.000, 1.955, 2.000), "nodes": []},
+	"lantern_crook": {"path": "res://assets/models/weapons/lantern_crook.glb", "category": "weapon", "tris": 196, "size": Vector3(0.604, 1.577, 0.398), "nodes": []},
+	"keeper_crown": {"path": "res://assets/models/armours/keeper_crown.glb", "category": "armour", "tris": 276, "size": Vector3(0.769, 0.651, 0.430), "nodes": []},
 }
 
 const ITEMS := {
@@ -104,6 +112,8 @@ const ITEMS := {
 	"Ember Staff": {"model": "ember_staff", "icon": "res://assets/icons/ember_staff.png"},
 	"Stormcaller": {"model": "stormcaller", "icon": "res://assets/icons/stormcaller.png"},
 	"Briarhook": {"model": "briarhook", "icon": "res://assets/icons/briarhook.png"},
+	"Lantern Crook": {"model": "lantern_crook", "icon": "res://assets/icons/lantern_crook.png"},
+	"Keeper Crown": {"model": "keeper_crown", "icon": "res://assets/icons/keeper_crown.png"},
 }
 
 const COMPANIONS := {

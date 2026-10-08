@@ -44,7 +44,7 @@ func _run() -> void:
 		companion.free()
 	_check(missing_companions.is_empty(), "every companion has an animatable model and an icon %s" % str(missing_companions))
 
-	for model_id in ["hero", "goblin", "wolf", "briarling", "thornback"]:
+	for model_id in ["hero", "goblin", "wolf", "briarling", "thornback", "lantern_moth", "root_keeper"]:
 		var character: Node3D = CharacterVisualScript.new()
 		root.add_child(character)
 		_check(character.setup(model_id), "%s character builds from its model" % model_id)

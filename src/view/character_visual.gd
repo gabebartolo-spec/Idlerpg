@@ -108,6 +108,7 @@ func set_equipment(slot: String, item_name: String) -> void:
 	for point in attach_points(slot):
 		var piece := ArtCatalogScript.instantiate(ArtCatalogScript.item_model(item_name))
 		if piece != null:
+			piece.rotation_degrees = ArtCatalogScript.item_grip_degrees(item_name)
 			point.add_child(piece)
 			pieces.append(piece)
 	if not pieces.is_empty():

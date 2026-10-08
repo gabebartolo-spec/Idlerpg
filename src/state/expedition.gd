@@ -42,8 +42,9 @@ func advance(seconds: float) -> Dictionary:
 	if not active:
 		return {}
 	var elapsed: int = remainder_usec + int(round(seconds * 1000000.0))
-	var nodes: int = elapsed / Catalog.NODE_USEC
-	remainder_usec = elapsed % Catalog.NODE_USEC
+	var interval := Catalog.node_usec(route)
+	var nodes: int = elapsed / interval
+	remainder_usec = elapsed % interval
 	var events: Array[Dictionary] = []
 	for _i in mini(nodes, 5):
 		var result := _resolve_node()
@@ -64,6 +65,10 @@ func _resolve_node() -> Dictionary:
 	if id == "wolves":
 		damage = maxi(4, damage - attack)
 	if id == "guardian" and thornward:
+		damage /= 2
+	if bool(encounter.get("attack_reduction", false)):
+		damage = maxi(int(encounter.get("minimum_damage", 1)), damage - attack)
+	if bool(encounter.get("telegraphed", false)) and thornward:
 		damage /= 2
 	hp = maxi(0, hp - damage)
 	var healed: int = mini(max_hp - hp, int(encounter.get("heal", 0)))
@@ -116,7 +121,7 @@ func load_save_dict(data: Dictionary) -> void:
 	node = clampi(int(data.get("node", 0)), 0, 5)
 	if node == 5:
 		active = false
-	remainder_usec = clampi(int(data.get("remainder_usec", 0)), 0, Catalog.NODE_USEC - 1)
+	remainder_usec = clampi(int(data.get("remainder_usec", 0)), 0, Catalog.node_usec(route) - 1)
 	attack = maxi(1, int(data.get("attack", 6)))
 	max_hp = maxi(1, int(data.get("max_hp", 36)))
 	hp = clampi(int(data.get("hp", 36)), 0, max_hp)

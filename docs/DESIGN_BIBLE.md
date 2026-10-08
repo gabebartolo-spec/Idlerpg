@@ -7,6 +7,8 @@
 **Status:** implemented P0–P7 prototype; Android verification remains gated
 **Source of truth:** this document defines the intended product unless a newer explicit decision supersedes it.
 
+**8 October 2026 delivery direction:** build art, content and the necessary framework together in a substantial playable region. Test atmosphere, rewards and build choices as a complete experience. [Lanternwood](LANTERNWOOD.md) begins this slice; its local expeditions do not replace the committed real guilds and asynchronous multiplayer raids, which require R28/R29 server foundations. Several days of enjoyable progression and a real cooperative raid remain milestone acceptance targets.
+
 **5 October 2026 product update:** real guilds, PvP, cooperative raids, global bosses and guild wars are central future pillars. Generous free/light-spender progression and enjoyable play must coexist with deep optional spending. Read [the market/player research](MOBILE_GENRE_RESEARCH.md) and [44 scoped implementation tickets](RESEARCH_BACKLOG.md). Earned/paid cosmetics and seasonal free/paid passes with a purchased-pass archive are substantial engagement systems. NPC practice parties remain useful; they do not fulfill the real multiplayer commitment.
 
 **Android evidence, 5 October 2026:** the owner reports the current build runs very smoothly, but the gear menu cannot scroll back upward after scrolling down. Exact device/OS/build SHA and a fix retest are not recorded. R00 now prioritizes bespoke portrait UI design and scroll repair before further expansion; the overall verification gate remains open.
