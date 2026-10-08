@@ -44,3 +44,7 @@ For **Slayer Legend**, **Idle Slayer**, and at least one adjacent idle RPG, reco
 - Actual Android owner playtest is required; model success **isn't** evidence of fun or retention.
 
 For technical references see [ECONOMY_BASELINE.md](ECONOMY_BASELINE.md), [FRESH_SAVE_PROGRESSION.md](FRESH_SAVE_PROGRESSION.md), [MONETISATION_STUDY.md](MONETISATION_STUDY.md), [FACTION_WARFARE.md](FACTION_WARFARE.md) and [P0 issue #45](https://github.com/gabebartolo-spec/Idlerpg/issues/45).
+
+## Gacha distribution and promotion modelling (9 October)
+
+Alongside ordinary XP/gold progression simulate each banner's complete distribution: base per-rarity probability, hard pity, ten-pull guarantee, selected-target spark, free/purchased chests, all duplicate outcomes, milestones and carryover. Measure useful-drop spacing, expected/median/P90/P99 draws to any legendary *and* specifically chosen event loot, days to a complete slot set, collector saturation, token packs' true value and no-stall micro-upgrade pathways. The detailed candidate 1%/80 vs 1.5%/80 vs 2%/60 and transparent 100-chest alternative are in [GACHA_ODDS_AND_PROMOTIONS.md](GACHA_ODDS_AND_PROMOTIONS.md). Do not infer retention/conversion from synthetic pull data.
