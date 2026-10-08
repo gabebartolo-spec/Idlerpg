@@ -14,6 +14,8 @@ This is *inspiration*, not a licence to clone any game's copyrighted characters,
 
 **Product shorthand:** *Slayer Legend's rewarding growth and gacha excitement + Idle Slayer's long progression arc + WoW's RPG depth and persistent world — presented as an autonomous 3D character.*
 
+**Visual hierarchy (owner decision, 9 October 2026):** **World of Warcraft is also the primary visual inspiration**, not simply a gameplay pillar. Use original WoW-like painterly stylisation, expressive heroic proportions, legible colourful worlds, exaggerated gear and iconic enemy silhouettes, made with **low-poly, Android-friendly assets**. RuneScape is a secondary efficiency/readability reference; Kingdoms of Amalur is secondary shape inspiration. A fully voxel art direction is not currently selected. See [ART_STYLE_GUIDE.md](ART_STYLE_GUIDE.md); do not copy Blizzard's identifiable art or UI.
+
 ## Commercial priority: players should want to buy gacha tokens
 
 The owner explicitly wants revenue from **gacha-token purchases**. Do not quietly downgrade monetisation to cosmetics-only, or model the economy as though tokens are merely an unlimited free toy.
