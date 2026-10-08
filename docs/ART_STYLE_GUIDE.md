@@ -3,7 +3,8 @@
 **Status:** Production source of truth  
 **Primary platform:** Android portrait  
 **Rendering target:** Godot 4.7.2 mobile renderer  
-**References:** RuneScape, World of Warcraft, Kingdoms of Amalur  
+**Primary visual reference:** World of Warcraft — stylised, painterly heroic fantasy  
+**Secondary references:** RuneScape for efficient/readable geometry; Kingdoms of Amalur for expressive, sculpted shapes  
 **Rule:** borrow visual principles, never copy identifiable assets, characters, armour sets, locations, logos, UI, or compositions.
 
 ---
@@ -18,14 +19,15 @@ The player should be able to glance at the screen and immediately understand:
 - what gear they are wearing;
 - whether something rare or important just happened.
 
-The target is **stylised low-poly heroic fantasy**, not retro parody and not mobile-gacha gloss.
+The target is **World of Warcraft-inspired heroic fantasy, executed as original mobile-friendly low-poly 3D**. World of Warcraft is the **main visual guide**, not one of several equally weighted looks. Use its approachable, hand-painted fantasy sensibility: expressive silhouettes, bold colour grouping, exaggerated equipment, distinctive enemies, lively zones and an inviting sense of adventure. Keep the production geometry, texture complexity and rendering costs appropriate for Android.
 
-Reference blend:
-- **RuneScape:** simple geometry, immediate readability, modest asset cost, clear world spaces.
-- **World of Warcraft:** strong silhouettes, exaggerated gear, readable colour separation, memorable enemy shapes.
-- **Kingdoms of Amalur:** chunky heroic proportions, curved fantasy forms, saturated magic accents, broad decorative shapes.
+Reference hierarchy:
+- **World of Warcraft — primary:** overall character and creature art direction, expressive armour and weapons, painterly colour/material treatment, memorable landmarks, readable fantasy zones and visual progression from humble gear to dramatic legendary loot. Think recognisable in-game stylised art, **not** an attempt to reproduce WoW's cinematic realism or its UI.
+- **RuneScape — secondary production discipline:** simple/efficient shapes, clear interactable world spaces and lower asset cost; **not** the primary surface style or character proportions.
+- **Kingdoms of Amalur — secondary form inspiration:** broad curves, sculpted heroic shapes, expressive fantasy ornament and restrained magical accents, used where they reinforce WoW-like readability.
+- **Voxels — optional selective technique only:** faceted props or experiments are welcome if they match the overall painterly heroic style. **No wholesale shift to a uniform cube-grid aesthetic** without a separate visual comparison and owner decision.
 
-The result must feel original to this game.
+**Non-negotiable:** The result must have its own character and world identity. Do not copy Blizzard characters, races, armour sets, recognisable weapons, locations, faction motifs, interface elements, logos, texture designs or compositions. Visual *principles* are the reference, not assets to reproduce.
 
 ---
 
@@ -62,9 +64,9 @@ Shapes should have:
 
 Do not make the world look like placeholder geometry once production assets begin replacing greybox forms.
 
-## 2.3 Warm fantasy, not grimdark
+## 2.3 Warm, painterly fantasy, not grimdark
 
-The default world should feel adventurous and inviting.
+The default world should feel adventurous and inviting. Take WoW's clear large-scale colour grouping as inspiration: each region should have a recognisable palette and lighting mood, with readable warm/cool separation and vivid colours used with restraint at the right focal points.
 
 Use:
 - warm earth;
@@ -72,6 +74,7 @@ Use:
 - slate greys;
 - muted blue;
 - parchment/cream;
+- region-specific sky, terrain and architecture colour families;
 - occasional saturated magical accents.
 
 Avoid:
@@ -104,7 +107,7 @@ Reject assets that:
 - use wildly different proportions;
 - have anime-gacha rendering;
 - use glossy PBR realism;
-- look like voxel/Minecraft art;
+- default to uniform block-grid/Minecraft-like voxel art (selectively faceted models are fine);
 - look like generic Unreal fantasy;
 - imitate one reference game too literally.
 
@@ -226,9 +229,10 @@ Rocks:
 
 Default material style:
 - matte to lightly rough;
-- hand-painted or flat-colour feel;
-- subtle gradient/vertex colour acceptable;
-- restrained specular.
+- **painterly, hand-authored-looking colour breakup on broad readable forms** (WoW-like in spirit, with wholly original patterns and textures);
+- subtle gradient/vertex colour acceptable, including inexpensive colour blocking for low-poly models;
+- restrained specular;
+- outlines and surface accents used to reinforce silhouettes and material identity, not noisy procedural detail.
 
 Avoid:
 - glossy plastic;
@@ -444,6 +448,8 @@ If these pieces do not look like they belong in the same game, stop and correct 
 ---
 
 # 15. Approval test
+
+**Style checkpoint before another large asset batch:** compare the current adventurer, a distinct armour set and a weapon at common/legendary tiers, one enemy and one complete outdoor vignette at real Android portrait viewing size. Check for a coherent WoW-inspired painterly fantasy impression, unique designs, unmistakable gear/silhouette differences and stable frame performance. Build only the smallest representative slice before committing to a mass rebuild. This is a **visual direction and future-work criterion**, not a claim current assets have already passed.
 
 An asset is approved only if it passes all five:
 
