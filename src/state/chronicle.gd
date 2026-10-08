@@ -22,6 +22,9 @@ func record(key: String, message: String, route: String, priority: int, target: 
 func observe(event: Dictionary) -> void:
 	var kind := str(event.get("type", ""))
 	match kind:
+		"expedition_completed":
+			if bool(event.get("first", false)):
+				record("expedition:" + str(event["route"]), str(event["message"]), "expedition", 80, str(event["route"]))
 		"practice_completed":
 			if bool(event.get("first", false)):
 				record("practice:first", str(event["message"]), "practice", 80)

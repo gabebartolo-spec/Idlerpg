@@ -4,6 +4,7 @@ const IdentityScreenScript = preload("res://src/ui/identity_screen.gd")
 const JournalScreenScript = preload("res://src/ui/journal_screen.gd")
 const FishingScreenScript = preload("res://src/ui/fishing_screen.gd")
 const PracticeScreenScript = preload("res://src/ui/practice_screen.gd")
+const ExpeditionScreenScript = preload("res://src/ui/expedition_screen.gd")
 const GameStateScript = preload("res://src/game.gd")
 const AdventurerSimScript = preload("res://src/sim/adventurer_sim.gd")
 const PersistenceScript = preload("res://src/state/persistence.gd")
@@ -22,7 +23,7 @@ const ChronicleScreenScript = preload("res://src/ui/chronicle_screen.gd")
 const BossScreenScript = preload("res://src/ui/boss_screen.gd")
 const UiStyleScript = preload("res://src/ui/ui_style.gd")
 
-const ACTIVITY_POSES := {"travelling": "walk", "returning": "walk", "fighting": "attack", "recovering": "down"}
+const ACTIVITY_POSES := {"travelling": "walk", "returning": "walk", "expedition": "walk", "fighting": "attack", "recovering": "down"}
 const GEAR_SLOTS := ["weapon", "offhand", "head", "chest", "legs", "hands", "feet", "accessory"]
 const HOVERING_COMPANIONS := ["Torch Sprite", "Clockwork Raven"]
 # How far away an enemy stands, relative to an ordinary one.
@@ -66,6 +67,7 @@ var identity_panel: Control
 var journal_panel: Control
 var fishing_panel: Control
 var practice_panel: Control
+var expedition_panel: Control
 var chronicle_panel: Control
 var adventure_panel: Control
 var loadout_panel: Control
@@ -537,6 +539,10 @@ func _build_ui() -> void:
 	fishing_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	fishing_button.pressed.connect(func() -> void: _toggle_sheet(fishing_panel))
 	records.add_child(fishing_button)
+	var expedition_button := UiStyleScript.button("Expedition")
+	expedition_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	expedition_button.pressed.connect(func() -> void: _toggle_sheet(expedition_panel))
+	records.add_child(expedition_button)
 	var pursuits := HBoxContainer.new()
 	pursuits.add_theme_constant_override("separation", 8)
 	bottom_column.add_child(pursuits)
@@ -678,6 +684,11 @@ func _build_ui() -> void:
 	canvas.add_child(practice_panel)
 	practice_panel.setup(sim)
 	practice_panel.changed.connect(_save_now)
+	expedition_panel = ExpeditionScreenScript.new()
+	expedition_panel.visible = false
+	canvas.add_child(expedition_panel)
+	expedition_panel.setup(sim)
+	expedition_panel.changed.connect(_save_now)
 	chronicle_panel = ChronicleScreenScript.new()
 	chronicle_panel.visible = false
 	canvas.add_child(chronicle_panel)
@@ -736,7 +747,7 @@ func _refresh_wallet(_tokens: int) -> void:
 
 # Only one sheet, drawer or report is open at a time.
 func _close_drawers() -> void:
-	for sheet in [equipment_panel, talent_panel, boss_panel, gacha_panel, adventure_panel, loadout_panel, relic_panel, chronicle_panel, journal_panel, identity_panel, fishing_panel, practice_panel, dev_panel, return_panel]:
+	for sheet in [equipment_panel, talent_panel, boss_panel, gacha_panel, adventure_panel, loadout_panel, relic_panel, chronicle_panel, journal_panel, identity_panel, fishing_panel, practice_panel, expedition_panel, dev_panel, return_panel]:
 		if sheet != null:
 			sheet.visible = false
 
@@ -790,6 +801,12 @@ func _open_chronicle_route(route: String) -> void:
 func _open_chronicle_destination(route: String, target: String) -> void:
 	_close_drawers()
 	match route:
+		"expedition":
+			expedition_panel.open()
+			expedition_panel.mode = "story" if not sim.expedition.recap.is_empty() else "route"
+			if not target.is_empty() and sim.expedition.Catalog.ROUTES.has(target):
+				sim.expedition.selected_route = target
+			expedition_panel.refresh()
 		"practice":
 			practice_panel.open()
 		"fishing":
@@ -904,6 +921,8 @@ func _format_return_report(report: Dictionary) -> String:
 		lines.append("%d passive catches at Mossgate Pond." % int(report["fish_catches"]))
 	if int(report.get("practice_clears", 0)) > 0:
 		lines.append("%d practice dungeon clear(s) with NPC allies." % int(report["practice_clears"]))
+	if int(report.get("expeditions", 0)) > 0:
+		lines.append("%d trail expedition(s) completed." % int(report["expeditions"]))
 	if quests > 0:
 		lines.append("%d quest%s completed." % [quests, "" if quests == 1 else "s"])
 	if kills > 0:

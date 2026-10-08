@@ -179,6 +179,8 @@ Recommended first sequence: R00 → R01 → R02 → R03 → R04. R06/R10 can fol
 
 ### IRPG-R18 — Real guilds and one project / P10
 
+**R17 implementation note (VERIFY):** Two preselected five-node routes cover six authored encounters with automatic offline resolution, frozen entry builds, explicit risk/reward and free stew/Thornward counters. Event-time checkpoint replay, failure/abort and repeat reward tests protect settlement. Last Journey shows the actual ordered route story. Phone/player validation remains open. [Rules and validation](TRAIL_EXPEDITIONS.md).
+
 **Payoff:** developing and veteran adventurers both help their community. **Scope:** create/join/leave a real guild, leader transfer, capped roster and one shared project. Define damage, protection, preparation and objective contributions using existing autonomous systems; prototype each role's task and recap with shared/personal rewards. **Start:** R28/R29 service modules and guild UI. **Accept:** separate accounts affect the same server project; permissions enforced; free/developing players measurably advance objectives through mechanical play; recap names the contribution without ranking only damage or spending. Membership changes cannot duplicate rewards; earned personal ownership survives leaving; no requirement to organize others to be useful. **Validate:** mixed free/light/high-spend role trials, low-power contribution sensitivity, concurrent joins/leaves, leader inactivity, restart and sparse population. **Exclude:** NPC-only guild completion, guild trading, war or unpaid administration as the free-player role.
 
 ### IRPG-R19 — Low-pressure rotating contracts

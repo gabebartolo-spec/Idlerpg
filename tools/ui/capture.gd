@@ -175,6 +175,20 @@ func _run() -> void:
 	await _snap("practice_recap")
 	main.get("practice_panel").list.scroll_to(main.get("practice_panel").list.max_offset())
 	await _snap("practice_contributions")
+	main.call("_toggle_sheet", main.get("expedition_panel"))
+	sim.expedition.selected_route = "causeway"
+	main.get("expedition_panel").refresh()
+	await _snap("expedition_route_choice")
+	sim.fishing.prepared = 1
+	sim.request_expedition("causeway")
+	sim._begin_quest_cycle()
+	sim.simulate_elapsed(149.9)
+	main.get("expedition_panel").refresh()
+	await _snap("expedition_in_progress")
+	sim.simulate_offline(150.1)
+	main.get("expedition_panel").mode = "story"
+	main.get("expedition_panel").refresh()
+	await _snap("expedition_return_story")
 
 	main.free()
 	for path in PersistenceScript.files_for():

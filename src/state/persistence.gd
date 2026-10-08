@@ -6,7 +6,7 @@ extends RefCounted
 # These saves are for single-player continuity. They are files on the player's device and
 # a device clock, so nothing here can be trusted as online or competitive state.
 
-const SAVE_VERSION := 14
+const SAVE_VERSION := 15
 const DEFAULT_PATH := "user://idle_rpg_save.json"
 const MAX_OFFLINE_SECONDS := 7 * 24 * 60 * 60
 
@@ -242,6 +242,9 @@ static func _migrate(data: Dictionary) -> Dictionary:
 	if version == 13:
 		# Version 14 adds queued/active practice, frozen roles, contributions and first-clear settlement.
 		version = 14
+	if version == 14:
+		# Version 15 stores chosen expedition routes, node progress and settled rewards.
+		version = 15
 	data["version"] = version
 	return data
 
@@ -290,6 +293,7 @@ static func _build_report(before: Dictionary, after: Dictionary, elapsed_actual:
 		"tokens": maxi(0, int(after.get("earned_tokens", 0)) - int(before.get("earned_tokens", 0))),
 		"fish_catches": maxi(0, int(after.get("fish_catches", 0)) - int(before.get("fish_catches", 0))),
 		"practice_clears": maxi(0, int(after.get("practice_clears", 0)) - int(before.get("practice_clears", 0))),
+		"expeditions": maxi(0, int(after.get("expeditions", 0)) - int(before.get("expeditions", 0))),
 		"gold": max(0, int(after.get("gold", 0)) - int(before.get("gold", 0))),
 		"loot": loot_delta,
 		"gear": gear_delta
