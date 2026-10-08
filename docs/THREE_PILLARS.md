@@ -16,6 +16,8 @@ This is *inspiration*, not a licence to clone any game's copyrighted characters,
 
 **Visual hierarchy (owner decision, 9 October 2026):** **World of Warcraft is also the primary visual inspiration**, not simply a gameplay pillar. Use original WoW-like painterly stylisation, expressive heroic proportions, legible colourful worlds, exaggerated gear and iconic enemy silhouettes, made with **low-poly, Android-friendly assets**. RuneScape is a secondary efficiency/readability reference; Kingdoms of Amalur is secondary shape inspiration. A fully voxel art direction is not currently selected. See [ART_STYLE_GUIDE.md](ART_STYLE_GUIDE.md); do not copy Blizzard's identifiable art or UI.
 
+**9 October 2026 gacha research guardrails:** Published low base top-tier rates in successful games are *not* proof that the same exact odds maximise our revenue or enjoyment. Prototype 1%/80, 1.5%/80 and 2%/60, with separate persistent target-spark and guaranteed pulls; measure actual reward frequency, free gifts, paid/free collection curves and complete-account saturation. Special-event chest progress must count free and purchased sources equally; the proposed 50-free/50-mandatory-paid 100-chest 'guarantee' cannot be represented as a generally earnable reward. See [GACHA_ODDS_AND_PROMOTIONS.md](GACHA_ODDS_AND_PROMOTIONS.md).
+
 ## Commercial priority: players should want to buy gacha tokens
 
 The owner explicitly wants revenue from **gacha-token purchases**. Do not quietly downgrade monetisation to cosmetics-only, or model the economy as though tokens are merely an unlimited free toy.
