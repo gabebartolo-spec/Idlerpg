@@ -1,8 +1,11 @@
 # IdleRPG research-backed build backlog
 
-Updated 5 October 2026. Evidence and commercial comparisons: [MOBILE_GENRE_RESEARCH.md](MOBILE_GENRE_RESEARCH.md). Product rules and phase verification: [DESIGN_BIBLE.md](DESIGN_BIBLE.md). All **44 IRPG-R00–R43** items below are proposed; documentation does not mark gameplay as complete. R00 has partial owner-reported Android evidence below and remains open.
+Updated 5 October 2026. Evidence and commercial comparisons: [MOBILE_GENRE_RESEARCH.md](MOBILE_GENRE_RESEARCH.md). Product rules and phase verification: [DESIGN_BIBLE.md](DESIGN_BIBLE.md). IRPG-R00–R44 below are roadmap items; documentation does not mark gameplay as complete. R00 has partial owner-reported Android evidence below and remains open.
 
 ## Product agreement
+
+**9 October 2026 research and commercial addition:** [GACHA_ODDS_AND_PROMOTIONS.md](GACHA_ODDS_AND_PROMOTIONS.md) now specifies evidenced comparator odds (Genshin 0.6%/90; Wuthering Waves 0.8%/80; AFK Journey 0.72% base/60), independent rarity pity vs featured-item guarantees, three candidate rate scenarios (1%/80, 1.5%/80, 2%/60), and 100-event-chest promotions. **50 chests free + 50 mandatory purchased is a paid gate, not a universal guarantee**: prototype genuine free completion or indefinite earned progress carryover, with purchases accelerating and supporting extra collections. Odds, promised rewards, pull prices and grant provenance must be transparent and server-audited. Fix #45 and model free income/duplication before selecting final rates. Other owner directions: [endless no-stall pacing](PACING_MATH_AND_BENCHMARKS.md), [permanent income/XP boosts and passes](MONETISATION_STUDY.md), [power-relevant progression PvP](MONETISATION_STUDY.md), and [real three-faction war](FACTION_WARFARE.md). All are research/roadmap directions, **not shipped systems or confirmed revenue**.
+
 
 **9 October 2026 product and commercial direction:** **Slayer Legend, Idle Slayer and World of Warcraft** are the three explicit reference pillars, with different responsibilities specified in [THREE_PILLARS.md](THREE_PILLARS.md). **Buying gacha tokens is a central revenue goal**, not just cosmetic monetisation: R01/R10/R11/R22/R23/R25/R43 must support plentiful enjoyable free pulls, genuinely desirable optional paid summons, meaningful duplicates, long-term collection chase, legal/transparent purchase handling and fair free-player viability. The owner's new Android session reached all-build/full-legendary saturation in about 15 minutes; [P0 issue #45](https://github.com/gabebartolo-spec/Idlerpg/issues/45) blocks any claim that progression is ready. Verify whether unlimited debug tokens caused the gear result before altering drop rates; separately address the unlock-all-talents and runaway levelling economy.
 
@@ -51,8 +54,8 @@ These are hypotheses to validate, not a directive to copy every successful game'
 | R30 | Friends, profiles and safe social interaction | B / L | R13, R28 |
 | R31 | Three-player asynchronous cooperative raid | B / XL | R16, R18, R29 |
 | R32 | Community global boss | C / L | R31, R35 |
-| R33 | Snapshot PvP: normalized then progression | C / XL | R08, R29, R30, R35, R43 |
-| R34 | Asynchronous guild war pilot | C / XL | R18, R31, R33, R35, R43 |
+| R33 | PvP: equalised and commercially important progression arenas | B / XL | R08, R29, R30, R35, R43 |
+| R34 | Asynchronous guild war pilot | B / XL | R18, R31, R33, R35, R43 |
 | R35 | Live event operations and reward audit tools | B / L | R26, R29 |
 | R36 | Permanent appearance unlocks | B / M | R02, R13 |
 | R37 | Earned cosmetic pursuits | B / M | R09, R12, R15, R21, R36 |
@@ -62,6 +65,7 @@ These are hypotheses to validate, not a directive to copy every successful game'
 | R41 | Cosmetic and pass gifting | C / L | R24, R25, R30, R36 |
 | R42 | Returning-player and legacy rewards | C / M | R24, R37, R40 |
 | R43 | Population and progression simulations | A / L | R01, R08, R26 |
+| R44 | Three-faction asynchronous global warfare | B / XL | R18, R28, R29, R30, R31, R33, R34, R35, R43 |
 
 ## Claude execution contract
 
@@ -139,11 +143,15 @@ Recommended first sequence: R00 → R01 → R02 → R03 → R04. R06/R10 can fol
 
 ### IRPG-R10 — Duplicate protection and selected-item route
 
+**9 October gacha research addition:** compare an independent, persistent selected-item spark (for example one earned per draw, with target selection after 100) against existing target-protection rules. A guaranteed *rarity* drop is not a guaranteed **desired featured** item. Include unused points carryover, duplicate utility and server-safe purchase/refund handling. Candidate numbers are hypotheses, not final odds. See [GACHA_ODDS_AND_PROMOTIONS.md](GACHA_ODDS_AND_PROMOTIONS.md).
+
 **Payoff:** a generous draw feels useful even late in a collection. **Scope:** publish duplicate conversion rules and a bounded route to one selected missing item independent of rarity pity. Evaluate incomplete and saturated catalogs separately; provide useful selected-item/build progress or an optional cosmetic pursuit after functional collection completion. Prototype existing tokens/fragments only if needed. **Start:** `src/game.gd`, collection UI, persistence and R01 harness. **Accept:** expected/maximum costs visible before drawing, pity/selection saves, saturated rewards have an explained purpose, and duplicate conversion cannot fund a profitable draw loop. No endlessly increasing duplicate combat ranks. **Validate:** worst luck, complete banner, restart/multi-pull boundaries, and 30/90/180-day free/light/high-spend simulations of useful outcomes and resulting power gaps. **Exclude:** inventing new currencies or power creep merely to keep draws relevant.
 
 **Implementation note, R10 (VERIFY):** Gacha Pursuit selects a missing banner item with an exact expected-cost estimate and a 30-pull maximum (300 gross tokens before refunds); the cap grants a bonus without consuming rarity pity. Ordinary duplicates refund one token and 50 unlock a cosmetic banner keepsake. Legendary salvage is capped at eight, so refund plus salvage remains below draw cost. Save format 9 persists routes and counters; multi-pull, worst-luck, simultaneous-pity, full-banner, replay and UI tests cover the slice. Actual 1/7/30/90/180-day free/light/high sensitivity results use the real simulation with explicit assumptions and balanced ledgers. Rules, limits and remaining Android/player checks: [COLLECTION_PURSUITS.md](COLLECTION_PURSUITS.md). Functional collection usefulness still saturates; no income rule is added in R10.
 
 ### IRPG-R11 — Generous earned draws
+
+**9 October odds/economy addition:** determine true daily free-pull budget across quests, idle earnings, event chests, achievements, pass tiers, duplicates and gifts. Test 1%/80, 1.5%/80 and 2%/60 (base legendary/hard rarity pity) together with selected-item spark and ten-pull mid-tier protection. Do not mistake a base rate for a pity-adjusted rate. Model resulting time to useful draws, specific target items, all-legendary gear, duplicate saturation and constant micro-upgrades for free/light/high spend. Source comparisons in [GACHA_ODDS_AND_PROMOTIONS.md](GACHA_ODDS_AND_PROMOTIONS.md).
 
 **Payoff:** free and light-spending players see meaningful progress. **Scope:** test 100–150 tokens per ordinary simulated day (10–15 current-cost draws), with capped earning buckets independent of check-in frequency. Preserve attainable world rewards; examine whether saturated draws advance a desired item, viable build or cosmetic rather than merely filling a reward animation. All quantities are prototype assumptions. **Start:** rewards, R01 harness and return report. **Accept:** no quest-frequency exploit; comparable watched/offline income; an unlucky free player can direct progress toward a useful reward; report novelty, usefulness and saturation separately at 1/7/30/90/180 days. Compare complete spending cohorts and demonstrate free boss counters remain attainable. **Validate:** long catch-up, source/sink simulations, reward-recognition sessions and player diaries; do not equate pull volume with enjoyment. **Exclude:** forced ads, attendance streaks or continually stronger items.
 
@@ -203,9 +211,13 @@ Recommended first sequence: R00 → R01 → R02 → R03 → R04. R06/R10 can fol
 
 ### IRPG-R22 — Mock shop and value research
 
+**9 October promotion test:** include a **100-event-chest guaranteed featured item** with 10/25/50/75/100 fixed milestone preview, event-earned free chests, optional token packs and **non-expiring selected-item credit**. Test separately an explicit paid exclusive/bundle rather than deceptively requiring payment to finish a supposedly universal guarantee. A proposed 50 direct free event chests plus extra ordinary farmable currency is an **illustration**, not an agreed giveaway rate. All promotion offers must display true price, odds, source eligibility and progress carryover. See [GACHA_ODDS_AND_PROMOTIONS.md](GACHA_ODDS_AND_PROMOTIONS.md).
+
 **Payoff:** learn what players happily buy. **Scope:** clearly labeled no-charge prototype with starter keepsake, supporter offer, cosmetic suite and collector bundle at proposed localized-equivalent price anchors; disclose exact contents. **Start:** offer catalog and isolated shop UI. **Accept:** no real payment path or fake discounts/countdowns; player understands value before choosing; free path remains visible; collect preference/reasons rather than interpreting clicks as revenue. **Validate:** free/light/collector interviews and incomplete-collection edge cases. **Exclude:** real-money launch.
 
 ### IRPG-R23 — Bound paid collection and acceleration
+
+**9 October paid-gacha direction:** test repeat token purchases as a *major* revenue source; optional permanent 2× named gold-source income, XP acceleration, one-time growth offer and pass/event chest bonuses are supporting hypotheses. Model the **entire** stacked economy plus PvP power, free player retention and collector saturation. Do not manufacture a painful free experience to sell relief. See [MONETISATION_STUDY.md](MONETISATION_STUDY.md) and [GACHA_ODDS_AND_PROMOTIONS.md](GACHA_ODDS_AND_PROMOTIONS.md).
 
 **Payoff:** spending supports collection without erasing the adventure. **Scope:** model banner bundles and one non-stacking earning boost, initially testing +25% on a specified source; that input cap is a prototype assumption, not a proven power-gap cap. Include pass rewards and every concurrent entitlement in complete cohort configurations. **Start:** R01/R43 reports, server economy catalog and mock shop. **Accept:** compare free/light/high-spend 30/90/180-day useful progression and resulting power, including faster boss access, better drops and reinvestment; preserve useful free roles/world loot and publish competitive exclusions. Buyers retain desirable goals. **Validate:** stacked-benefit and feedback-loop sensitivity, boost expiry, offline accrual, refunds and normalized arena exclusion. **Exclude:** live purchases before R25, paid war attempts or declaring an earning boost combat-neutral.
 
@@ -258,6 +270,8 @@ slices, not completion of R27.
 
 ### IRPG-R33 — Two-rule-set snapshot PvP
 
+**9 October commercial direction:** actual gear rarity, paid token purchases, upgrades and permanent/temporary progression benefits should visibly matter in the **progression** arena, where strong spending players have serious rivals and prestigious competition. A separately labeled **normalised** ranked arena excludes paid combat power. Never buy guaranteed wins, competitive attempts or faction map score; analyse severe mismatches, whale-vs-whale competition and lower-power churn. See [MONETISATION_STUDY.md](MONETISATION_STUDY.md) and [FACTION_WARFARE.md](FACTION_WARFARE.md).
+
 **Payoff:** strategic rivalry and a place to show progression. **Scope:** first ship normalized arena using equal combat budgets and an accessible free ruleset roster; only then feature-flag separately labeled progression arena with power bands. Freeze server snapshots; resolve autonomous matches/replays. **Start:** authoritative encounter/matchmaking services and arena UI. **Accept:** paid boosts cannot enter normalized stats/choices; losses explain counters; progression power gaps and wait times measured; fixed free attempt budget; no hidden spend matching. **Validate:** mirrored fairness, snapshot tampering, smurfs, queue scarcity and spend-cohort win rates. **Exclude:** real-time controls, paid ranked retries or claiming power bands alone ensure fairness.
 
 ### IRPG-R34 — Guild war pilot
@@ -295,6 +309,8 @@ ownership is claimed.
 
 ### IRPG-R40 — First themed season
 
+**9 October offer rules:** event draw promotions can offer previewable guaranteed special items after a disclosed chest count; earned/purchased chests count equally; if a single event cannot reasonably be completed for free, publish a clear future free route and **carry earned progress**. No mandatory spend disguised as a free milestone, fake timers, silent featured odds or erased pity. R24 purchased pass archival promise remains.
+
 **Payoff:** a coherent adventure theme worth playing and wearing. **Scope:** one small art-reviewed seasonal set connecting attractive free rewards, paid variants, companion expression and ordinary adventure/profession/guild objectives. Use R24's current/archive mechanics and R35 configuration; set duration, tier count, XP and prices as labeled prototype assumptions. **Start:** season catalog, R37/R38 rewards and objective authoring tools. **Accept:** free track has desirable finished art; paid track emphasizes expression; solo autonomous play can complete essential progression without mandatory PvP, guild attendance or purchases. Shared objectives offer alternatives; weekly catch-up is banked, preview assets match rewards and all earned rewards deliver automatically. **Validate:** late entrant, free/light/high-spend completion models, offline/rollover/restoration, duplicate grants, phone visibility/performance and observed “want this” versus “must finish” sessions. **Exclude:** multiple concurrent seasons or launching live payments without R25 and operating readiness.
 
 ### IRPG-R41 — Cosmetic and pass gifting
@@ -304,6 +320,10 @@ ownership is claimed.
 ### IRPG-R42 — Returning-player and legacy rewards
 
 **Payoff:** return to unfinished adventures and attainable older looks. **Scope:** a concise return screen offering purchased-pass resumption, archive selection and an earned legacy catalog for older free cosmetics, with visible sources/costs and saved targeted progress. **Start:** R24 archive, R37 earned ownership and R40 season data; use prior-season fixtures. **Accept:** ended purchased passes remain completable through evergreen activity; selecting an archive preserves all others' progress. Older free cosmetics return through a published earned route, not a paid-only conversion; returning players keep ownership and find their chosen goal without a chore backlog. **Validate:** multi-season absence, expired objectives, offline season boundaries, late purchase, restoration, duplicate delivery, phone navigation and return-session enjoyment. **Exclude:** punitive returner prices, an extra attendance streak or erasing unfinished purchases.
+
+### IRPG-R44 — Three-faction asynchronous global warfare
+
+**Payoff:** a living three-faction global conflict that gives players genuine PvP results, evolving territory, rivalries and prestige to revisit. **Scope:** three original factions, real server-reconciled asynchronous campaigns, attack/defend/supply/scout roles, player/guild affiliation, a concise personal war report, anti-snowball population controls, campaign history and meaningful losing-side rewards. Strongly geared high spenders can shine in frontline encounters but cannot directly purchase territory, war points or certain victory. **Start:** [FACTION_WARFARE.md](FACTION_WARFARE.md), R18/R28/R29/R33/R34/R43. **Accept:** multiple real accounts, correct asynchronous results and archived contributions, honest low-population handling, mixed-free/paid factions with worthwhile noncombat roles and recoverable losing outcomes. **Validate:** uneven populations, offline/active parity, competitive ability and purchase stacking, retry/exploit prevention, real player returns. **Exclude:** copying WoW Horde/Alliance IP, fake human opponents, forcing attendance or launching war before server/economy foundations.
 
 ### IRPG-R43 — Population and progression simulations
 
