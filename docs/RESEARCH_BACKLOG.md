@@ -167,6 +167,8 @@ Recommended first sequence: R00 → R01 → R02 → R03 → R04. R06/R10 can fol
 
 ### IRPG-R16 — Practice dungeon / P9
 
+**R15 implementation note (VERIFY):** Mossgate Pond queues after the current outing, supplies three passive catches, and prepares persisted Pond Stew. The optional timed reel is capped at one bonus perch per ten successful casts and cannot replay after reload. Catch-up uses bounded counting; regression and rendered phone-layout checks pass. Dungeon use follows in R16; Android controls/player checks remain open. [Rules and validation](FISHING_AND_PRACTICE.md).
+
 **Payoff:** learn cooperative build roles safely. **Scope:** three rooms, one boss and two explicitly labeled NPC practice allies; preparation and recap show tank/support/damage contributions. **Start:** focused encounter/party module, sim and presentation. **Accept:** one persistent hero retains identity, roles change success, rewards settle once, practice is available without human matchmaking. **Validate:** wipe/retry/reload, role trials and parity. **Exclude:** pretending NPCs are real people; this does not complete multiplayer.
 
 ### IRPG-R17 — Short route-choice expedition

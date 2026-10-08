@@ -155,6 +155,16 @@ func _run() -> void:
 	main.call("_toggle_gacha")
 	gacha.show_mode("summon")
 	await _snap("earned_token_countdown")
+	sim.set_fishing(true)
+	sim._begin_quest_cycle()
+	sim.advance(68.0)
+	main.call("_toggle_sheet", main.get("fishing_panel"))
+	await _snap("fishing_pond")
+	sim.prepare_stew()
+	main.get("fishing_panel").refresh()
+	await _snap("fishing_prepared")
+	main.call("_close_drawers")
+	await _snap("fishing_watch")
 
 	main.free()
 	for path in PersistenceScript.files_for():

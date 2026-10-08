@@ -2,6 +2,7 @@ extends Node
 
 const IdentityScreenScript = preload("res://src/ui/identity_screen.gd")
 const JournalScreenScript = preload("res://src/ui/journal_screen.gd")
+const FishingScreenScript = preload("res://src/ui/fishing_screen.gd")
 const GameStateScript = preload("res://src/game.gd")
 const AdventurerSimScript = preload("res://src/sim/adventurer_sim.gd")
 const PersistenceScript = preload("res://src/state/persistence.gd")
@@ -59,6 +60,7 @@ var talent_panel: Control
 var boss_panel: Control
 var identity_panel: Control
 var journal_panel: Control
+var fishing_panel: Control
 var chronicle_panel: Control
 var adventure_panel: Control
 var loadout_panel: Control
@@ -181,6 +183,15 @@ func _build_world() -> void:
 	_build_wolf_den()
 	_build_horizon()
 	_build_briarfen()
+	var pond := MeshInstance3D.new()
+	var water := CylinderMesh.new()
+	water.top_radius = 1.4
+	water.bottom_radius = 1.4
+	water.height = 0.04
+	pond.mesh = water
+	pond.position = preload("res://src/data/fishing_catalog.gd").POSITION + Vector3(-1.5, 0.03, 0.0)
+	pond.material_override = _material(Color(0.15, 0.48, 0.67))
+	add_child(pond)
 
 	var trees := [
 		Vector3(-6.8, 0.0, -2.5),
@@ -469,6 +480,10 @@ func _build_ui() -> void:
 	identity_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	identity_button.pressed.connect(func() -> void: _toggle_sheet(identity_panel))
 	records.add_child(identity_button)
+	var fishing_button := UiStyleScript.button("Fishing")
+	fishing_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	fishing_button.pressed.connect(func() -> void: _toggle_sheet(fishing_panel))
+	records.add_child(fishing_button)
 	var pursuits := HBoxContainer.new()
 	pursuits.add_theme_constant_override("separation", 8)
 	bottom_column.add_child(pursuits)
@@ -596,6 +611,11 @@ func _build_ui() -> void:
 	journal_panel.visible = false
 	canvas.add_child(journal_panel)
 	journal_panel.setup(sim)
+	fishing_panel = FishingScreenScript.new()
+	fishing_panel.visible = false
+	canvas.add_child(fishing_panel)
+	fishing_panel.setup(sim)
+	fishing_panel.changed.connect(_save_now)
 	chronicle_panel = ChronicleScreenScript.new()
 	chronicle_panel.visible = false
 	canvas.add_child(chronicle_panel)
@@ -654,7 +674,7 @@ func _refresh_wallet(_tokens: int) -> void:
 
 # Only one sheet, drawer or report is open at a time.
 func _close_drawers() -> void:
-	for sheet in [equipment_panel, talent_panel, boss_panel, gacha_panel, adventure_panel, loadout_panel, relic_panel, chronicle_panel, journal_panel, identity_panel, dev_panel, return_panel]:
+	for sheet in [equipment_panel, talent_panel, boss_panel, gacha_panel, adventure_panel, loadout_panel, relic_panel, chronicle_panel, journal_panel, identity_panel, fishing_panel, dev_panel, return_panel]:
 		if sheet != null:
 			sheet.visible = false
 
@@ -708,6 +728,8 @@ func _open_chronicle_route(route: String) -> void:
 func _open_chronicle_destination(route: String, target: String) -> void:
 	_close_drawers()
 	match route:
+		"fishing":
+			fishing_panel.open()
 		"journal":
 			journal_panel.open()
 			journal_panel.select(target)
@@ -814,6 +836,8 @@ func _format_return_report(report: Dictionary) -> String:
 
 	if int(report.get("tokens", 0)) > 0:
 		lines.append("+%d earned summon tokens." % int(report["tokens"]))
+	if int(report.get("fish_catches", 0)) > 0:
+		lines.append("%d passive catches at Mossgate Pond." % int(report["fish_catches"]))
 	if quests > 0:
 		lines.append("%d quest%s completed." % [quests, "" if quests == 1 else "s"])
 	if kills > 0:
