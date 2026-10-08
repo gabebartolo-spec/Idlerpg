@@ -16,10 +16,10 @@ Evaluate anticipation → reveal → meaningful gain → visible recognition →
 | Achievements and concise returns | Actual milestone/reward presentation, persistent ownership and usable next pursuit | Chronicle/goals exist; presentation/content needs further work |
 | Real guild membership | Separate authenticated accounts joining the same persistent server-owned roster with enforced roles/permissions | Shared persistent roster and playable create/join/leave screens implemented; physical phone checks remain |
 | Shared asynchronous raid | Three independent accounts contribute to one persistent server raid; retry/concurrency/reward tests plus client demonstration | Three independent accounts drive actual prepare/open/Wear controls against shared service; phone and participant evidence remain |
-| Trusted progression and duplicate-safe server grants | Server-owned economy, transactional/idempotent grants, client reconciliation and interruption tests | Separate supply economy, transactional chest grants and concurrent spending verified; full game integration and raid rewards still required |
+| Trusted progression and duplicate-safe server grants | Server-owned economy, transactional/idempotent grants, client reconciliation and interruption tests | Separate supply economy, raid settlement, transactional chest grants, actual Wear controls and concurrent spending verified; regional progression integration and phone evidence remain |
 | 30-second to two-minute sessions | Actual portrait phone tasks completed without long reading or forced attendance | Concise UI and comfort options implemented; device evidence still open |
 | Existing progress and offline continuity | Save migrations, real save/return flow, duplicate prevention and measured phone catch-up | Desktop coverage exists; repeat for new systems and Android |
-| Android-ready build and pack | Installable APK/build SHA, install/suspend/resume checks, participant guide, feedback sheet and issue-report instructions | Build environment/device checks and pack incomplete |
+| Android-ready build and pack | Installable APK/build SHA, install/suspend/resume checks, participant guide, feedback sheet and issue-report instructions | Export preset/icons and participant pack with local feedback form prepared; owner handles APK export; reachable host, APK and device evidence pending |
 
 ## Execution order
 
