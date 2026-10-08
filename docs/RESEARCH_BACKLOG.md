@@ -165,7 +165,7 @@ Recommended first sequence: R00 → R01 → R02 → R03 → R04. R06/R10 can fol
 
 **Payoff:** peaceful variety and useful preparation. **Scope:** one fishing spot, three catches, passive activity plus optional short minigame; catches prepare one dungeon consumable. **Start:** new profession catalog, sim activity, bounded minigame UI. **Accept:** passive-only players obtain all functional preparation; active play offers modest optional upside; stopping/reloading cannot duplicate catches. **Validate:** offline parity, interruption and real phone controls. **Exclude:** other professions or energy purchases.
 
-**R15 implementation note (VERIFY):** Mossgate Pond queues after the current outing, supplies three passive catches, and prepares persisted Pond Stew. The optional timed reel is capped at one bonus perch per ten successful casts and cannot replay after reload. Catch-up uses bounded counting; regression and rendered phone-layout checks pass. Dungeon use follows in R16; Android controls/player checks remain open. [Rules and validation](FISHING_AND_PRACTICE.md).
+**R15 implementation note (VERIFY):** Mossgate Pond queues after the current outing, supplies three passive catches, and prepares persisted Pond Stew. The optional timed reel is capped at one bonus perch per ten successful casts and cannot replay after reload. Catch-up uses bounded counting; regression and rendered phone-layout checks pass. Dungeon use is implemented in R16; Android controls/player checks remain open. [Rules and validation](FISHING_AND_PRACTICE.md).
 
 ### IRPG-R16 — Practice dungeon / P9
 
@@ -177,9 +177,9 @@ Recommended first sequence: R00 → R01 → R02 → R03 → R04. R06/R10 can fol
 
 **Payoff:** occasional adventure surprises with a real decision. **Scope:** one five-node expedition with two preselected routes, six authored encounters and a final reward; auto-resolve while away. **Start:** new expedition catalog/controller and policies. **Accept:** routes have legible risk/reward; selection saves; return tells a coherent sequence; free retries use time/preparation rather than paid rescue. **Validate:** deterministic replay, abort and reward settlement. **Exclude:** infinite procedural campaign or required live choices.
 
-### IRPG-R18 — Real guilds and one project / P10
-
 **R17 implementation note (VERIFY):** Two preselected five-node routes cover six authored encounters with automatic offline resolution, frozen entry builds, explicit risk/reward and free stew/Thornward counters. Event-time checkpoint replay, failure/abort and repeat reward tests protect settlement. Last Journey shows the actual ordered route story. Phone/player validation remains open. [Rules and validation](TRAIL_EXPEDITIONS.md).
+
+### IRPG-R18 — Real guilds and one project / P10
 
 **Payoff:** developing and veteran adventurers both help their community. **Scope:** create/join/leave a real guild, leader transfer, capped roster and one shared project. Define damage, protection, preparation and objective contributions using existing autonomous systems; prototype each role's task and recap with shared/personal rewards. **Start:** R28/R29 service modules and guild UI. **Accept:** separate accounts affect the same server project; permissions enforced; free/developing players measurably advance objectives through mechanical play; recap names the contribution without ranking only damage or spending. Membership changes cannot duplicate rewards; earned personal ownership survives leaving; no requirement to organize others to be useful. **Validate:** mixed free/light/high-spend role trials, low-power contribution sensitivity, concurrent joins/leaves, leader inactivity, restart and sparse population. **Exclude:** NPC-only guild completion, guild trading, war or unpaid administration as the free-player role.
 
