@@ -51,6 +51,15 @@ jobs:
       - name: Install playtest service dependencies
         run: python -m pip install -r server/requirements.txt
 
+      - name: Verify Android exported resources without SDK
+        run: python tools/verify_android_pack.py --godot "$HOME/godot/godot" --report android-resource-evidence.json
+
+      - name: Keep Android resource evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-resource-evidence
+          path: android-resource-evidence.json
+
       - name: Verify durable service and live Godot clients
         run: |
           python -m unittest server.test_service server.test_raids -v
