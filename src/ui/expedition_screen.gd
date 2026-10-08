@@ -1,5 +1,6 @@
 extends "res://src/ui/sheet.gd"
 signal changed
+signal route_requested(route: String)
 const Catalog = preload("res://src/data/expedition_catalog.gd")
 var sim: Node
 var tabs: Dictionary
@@ -7,6 +8,7 @@ var status: Label
 var list: Control
 var start_button: Button
 var stop_button: Button
+var reward_button: Button
 var content_key: String = ""
 var mode: String = "route"
 var mode_tabs: Dictionary
@@ -30,6 +32,9 @@ func setup(sim_node: Node) -> void:
 		changed.emit())
 	tabs.merge(woodland_tabs)
 	list = add_list(column)
+	reward_button = Style.button("Open earned chest", true)
+	reward_button.pressed.connect(func() -> void: route_requested.emit("rewards"))
+	column.add_child(reward_button)
 	start_button = Style.button("Explore after this outing", true)
 	start_button.pressed.connect(func() -> void:
 		if sim.request_expedition(sim.expedition.selected_route):
@@ -55,6 +60,7 @@ func paragraph(text: String, color: Color = Style.TEXT) -> void:
 
 func refresh() -> void:
 	var state = sim.expedition
+	reward_button.visible = mode == "story" and not sim.reward_chests.pending.is_empty()
 	subtitle_label.text = "Trails of Mossgate"
 	mark_tabs(tabs, state.selected_route)
 	mark_tabs(mode_tabs, mode)

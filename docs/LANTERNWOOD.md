@@ -11,7 +11,7 @@ Lantern Hollow and Keeper's Rise extend the existing autonomous expeditions with
 | Lantern Hollow | Gentle Greenway clear | 15 min | 92 / 37 | Lantern Crook |
 | Keeper's Rise | Hollow and Causeway clears | 30 min | 142 / 52 | Keeper Crown |
 
-Each route has five autonomous encounters. Clock duration comes from the selected route, including after a reload. Builds freeze at departure; no live input or attendance is required. An expedition finishes before normal adventure resumes; it never repeats itself automatically. The displayed total includes cache gold. Found cache gold stays on failure/abort; final gold and appearance ownership require a successful clear. A later clear can restore missing earned ownership, without adding a second provenance record or changing the player's equipped appearance.
+Each route has five autonomous encounters. Clock duration comes from the selected route, including after a reload. Builds freeze at departure; no live input or attendance is required. An expedition finishes before normal adventure resumes; it never repeats itself automatically. The displayed total includes cache gold. Found cache gold stays on failure/abort; successful clears secure final gold and unowned appearances in [earned chests](EARNED_CHESTS.md), paid on opening. A later clear can restore missing earned ownership through a chest, without adding a second provenance record or changing the player's equipped appearance.
 
 Hollow: lantern gate → moths → mooncap clearing → lamplighter cache → root keeper. Rise: moths → briar tunnel → mooncap clearing → lamplighter cache → elder keeper.
 

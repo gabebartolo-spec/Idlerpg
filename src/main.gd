@@ -19,6 +19,7 @@ const ArtCatalogScript = preload("res://src/data/art_catalog.gd")
 const CharacterVisualScript = preload("res://src/view/character_visual.gd")
 const TrailAudioScript = preload("res://src/view/trail_audio.gd")
 const LanternHollowScript = preload("res://src/view/lantern_hollow.gd")
+const RewardScreenScript = preload("res://src/ui/reward_screen.gd")
 const GearScreenScript = preload("res://src/ui/gear_screen.gd")
 const TalentScreenScript = preload("res://src/ui/talent_screen.gd")
 const GachaScreenScript = preload("res://src/ui/gacha_screen.gd")
@@ -84,6 +85,7 @@ var presentation_controller: Node
 var fishing_panel: Control
 var practice_panel: Control
 var expedition_panel: Control
+var reward_panel: Control
 var chronicle_panel: Control
 var adventure_panel: Control
 var loadout_panel: Control
@@ -684,6 +686,12 @@ func _build_ui() -> void:
 	canvas.add_child(expedition_panel)
 	expedition_panel.setup(sim)
 	expedition_panel.changed.connect(_save_now)
+	expedition_panel.route_requested.connect(_open_chronicle_route)
+	reward_panel = RewardScreenScript.new()
+	reward_panel.visible = false
+	canvas.add_child(reward_panel)
+	reward_panel.setup(sim, game.presentation)
+	reward_panel.changed.connect(_on_gear_changed)
 	chronicle_panel = ChronicleScreenScript.new()
 	chronicle_panel.visible = false
 	canvas.add_child(chronicle_panel)
@@ -766,7 +774,7 @@ func _refresh_wallet(_tokens: int) -> void:
 
 # Only one sheet, drawer or report is open at a time.
 func _close_drawers() -> void:
-	for sheet in [equipment_panel, talent_panel, boss_panel, gacha_panel, wardrobe_panel, adventure_panel, loadout_panel, relic_panel, chronicle_panel, journal_panel, guide_panel, options_panel, menu_panel, identity_panel, fishing_panel, practice_panel, expedition_panel, dev_panel, return_panel]:
+	for sheet in [equipment_panel, talent_panel, boss_panel, gacha_panel, wardrobe_panel, adventure_panel, loadout_panel, relic_panel, chronicle_panel, journal_panel, guide_panel, options_panel, menu_panel, identity_panel, fishing_panel, practice_panel, expedition_panel, reward_panel, dev_panel, return_panel]:
 		if sheet != null:
 			sheet.visible = false
 
@@ -807,7 +815,9 @@ func _show_return_report(report: Dictionary) -> void:
 		return
 	_close_drawers()
 	guide_panel.away_notes = _format_return_report(report)
-	return_panel.show_report(report, _compact_return_report(report))
+	var presentation_report := report.duplicate(true)
+	presentation_report["chests_ready"] = sim.reward_chests.pending.size()
+	return_panel.show_report(presentation_report, _compact_return_report(report))
 	return_label = return_panel.summary
 	if return_talent_button != null:
 		var earned_points: int = int(report.get("talent_points", 0))
@@ -821,6 +831,8 @@ func _open_chronicle_route(route: String) -> void:
 func _open_chronicle_destination(route: String, target: String) -> void:
 	_close_drawers()
 	match route:
+		"rewards":
+			reward_panel.open()
 		"wardrobe":
 			wardrobe_panel.open()
 		"options":
@@ -1083,6 +1095,8 @@ func _refresh_sim_ui() -> void:
 		sim.gold
 	]
 	activity_label.text = _compact_activity()
+	if menu_panel != null:
+		menu_panel.routes["rewards"].text = "Rewards · %d ready" % sim.reward_chests.pending.size() if not sim.reward_chests.pending.is_empty() else "Rewards"
 	quest_label.text = sim.current_quest_text()
 	if talent_button != null:
 		var points: int = sim.talent_points_available()
@@ -1112,7 +1126,9 @@ func _compact_event(event: Dictionary) -> String:
 		"relic_obtained":
 			return "+ " + str(event.get("relic", "New relic"))
 		"expedition_completed":
-			return "+%d gold · Expedition complete" % int(sim.expedition.recap.get("gold", 0)) if event.get("won", false) else "Returned early · gold kept"
+			return "Chest ready · Expedition complete" if event.get("won", false) else "Returned early · gold kept"
+		"chest_opened":
+			return "+%d gold · Chest opened" % int(event.get("gold", 0))
 		"practice_completed":
 			return "Practice won!" if event.get("won", false) else "Practice ended · try another role"
 	return ""
@@ -1123,7 +1139,7 @@ func _on_sim_event(event: Dictionary) -> void:
 		trail_audio.play_event(event_type, bool(event.get("won", true)))
 	# Full stories remain in the journal/guide. The normal HUD is a glance.
 	# Important save warnings stay visible until a successful save.
-	if not save_notice and event_type in ["level_up", "gear_obtained", "relic_obtained", "expedition_completed", "practice_completed"]:
+	if not save_notice and event_type in ["level_up", "gear_obtained", "relic_obtained", "expedition_completed", "practice_completed", "chest_opened"]:
 		event_label.text = _compact_event(event)
 		event_label.visible = true
 		event_clock = 5.0

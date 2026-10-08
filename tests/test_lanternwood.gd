@@ -71,10 +71,14 @@ func _run() -> void:
 	offline.simulate_offline(.1)
 	resumed.simulate_offline(.1)
 	check(watched.to_save_dict() == offline.to_save_dict() and resumed.to_save_dict() == offline.to_save_dict(), "long fractional checkpoint resumes to identical final rewards and ownership")
-	check(offline.gold == 92 and offline.wardrobe.owned["lantern_crook"]["sources"] == ["expedition:hollow"], "first clear permanently grants one cosmetic with honest earned provenance")
-	check(event_saves.size() == 1 and event_saves[0]["wardrobe"]["owned"].has("lantern_crook") and event_saves[0]["gold"] == 92, "event-triggered save sees fully settled cosmetic and gold rewards")
+	check(offline.gold == 12 and not offline.wardrobe.owned.has("lantern_crook") and offline.reward_chests.pending.size() == 1, "first clear banks cache gold and secures completion contents in one chest")
+	check(event_saves.size() == 1 and event_saves[0]["reward_chests"]["pending"].size() == 1 and event_saves[0]["gold"] == 12, "event-triggered save sees a settled chest before final contents are claimed")
+	for claimant in [watched, offline, resumed]:
+		claimant.claim_reward_chest(claimant.reward_chests.pending[0]["id"])
+	check(offline.gold == 92 and offline.wardrobe.owned["lantern_crook"]["sources"] == ["expedition:hollow"], "opening pays the original total and permanently grants the earned look")
 	var restored := hero()
 	restored.load_save_dict(JSON.parse_string(JSON.stringify(event_saves[0])))
+	restored.claim_reward_chest(restored.reward_chests.pending[0]["id"])
 	check(restored.wardrobe.wear("lantern_crook") and restored.wardrobe.visible_item("weapon", "") == "Lantern Crook", "earned cosmetic survives JSON restore and is wearable without owning combat gear")
 	check(not Gear.has_item("Lantern Crook") and not Gear.has_item("Keeper Crown"), "new earned looks never enter the stat or summon economy")
 	var base_attack: int = restored.effective_attack()
@@ -90,6 +94,8 @@ func _run() -> void:
 	offline.fishing.prepared = 1
 	offline._begin_quest_cycle()
 	offline.simulate_offline(1800)
+	for receipt in offline.reward_chests.pending.duplicate(true):
+		offline.claim_reward_chest(receipt["id"])
 	check(offline.expedition.gold_earned == 142 and offline.wardrobe.owned.has("keeper_crown"), "earned early gear clears Rise and awards its second distinct permanent look")
 	var cancel := prepared_hero()
 	cancel.request_expedition("hollow")

@@ -171,6 +171,8 @@ Versions 10–12 add the earned-token remainder and wallet claim cursor, permane
 
 ## Opt-in audio (format 18)
 
+Format 20 adds saved earned-trail chest receipts. New completion gold and unowned route looks are secured on completion, then delivered together when opened. Cache gold remains immediately banked. Previously banked gold/owned looks are preserved without retroactive chest grants. See [earned chests](EARNED_CHESTS.md).
+
 Format 19 recognizes Lanternwood's two additional expedition routes, their longer node clocks and earned cosmetic mappings. Existing routes retain their minute-long node clocks and clear flags. Cosmetic ownership settles alongside completion gold before a completion event can save; no old save is credited with an invented clear. See [Lanternwood](LANTERNWOOD.md).
 
 `game.presentation` adds independent music and reward-sound booleans, both off
