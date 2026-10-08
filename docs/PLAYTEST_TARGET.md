@@ -12,11 +12,11 @@ Evaluate anticipation → reveal → meaningful gain → visible recognition →
 |---|---|---|
 | Cohesive polished region with several days of authored pursuits | Real phone playthroughs, content/progression inventory and seven-day free-player progression trials | Lanternwood art/routes implemented; multi-day pursuits still incomplete |
 | Three viable earned builds | Reproducible earned loadouts with distinct roles and clear encounters | Isolated attack/protection/party trials exist; complete regional builds still required |
-| Desirable visible rewards and satisfying reveals | Preview→pursuit→earn→open→wear flow; observed desirability feedback | Two earned looks exist; saved chest/reveal flow now being implemented |
+| Desirable visible rewards and satisfying reveals | Preview→pursuit→earn→open→wear flow; observed desirability feedback | Two earned looks and saved chest/reveal/wear flow implemented; observed desirability still required |
 | Achievements and concise returns | Actual milestone/reward presentation, persistent ownership and usable next pursuit | Chronicle/goals exist; presentation/content needs further work |
-| Real guild membership | Separate authenticated accounts joining the same persistent server-owned roster with enforced roles/permissions | Missing; no NPC or mock substitute |
+| Real guild membership | Separate authenticated accounts joining the same persistent server-owned roster with enforced roles/permissions | Durable service roster verified with three independent Godot HTTP clients; playable guild screen still required |
 | Shared asynchronous raid | Three independent accounts contribute to one persistent server raid; retry/concurrency/reward tests plus client demonstration | Missing; practice dungeon remains explicitly local NPC content |
-| Trusted progression and duplicate-safe server grants | Server-owned economy, transactional/idempotent grants, client reconciliation and interruption tests | Local saves are not trusted online state; service foundations required |
+| Trusted progression and duplicate-safe server grants | Server-owned economy, transactional/idempotent grants, client reconciliation and interruption tests | Separate supply economy, transactional chest grants and concurrent spending verified; full game integration and raid rewards still required |
 | 30-second to two-minute sessions | Actual portrait phone tasks completed without long reading or forced attendance | Concise UI and comfort options implemented; device evidence still open |
 | Existing progress and offline continuity | Save migrations, real save/return flow, duplicate prevention and measured phone catch-up | Desktop coverage exists; repeat for new systems and Android |
 | Android-ready build and pack | Installable APK/build SHA, install/suspend/resume checks, participant guide, feedback sheet and issue-report instructions | Build environment/device checks and pack incomplete |

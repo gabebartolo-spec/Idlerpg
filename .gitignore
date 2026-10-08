@@ -12,6 +12,8 @@ export_credentials.cfg
 
 # Python
 __pycache__/
+.venv/
+server/data/
 
 # Exported builds
 build/
