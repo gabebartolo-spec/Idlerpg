@@ -44,6 +44,8 @@ func _run() -> void:
 	_check(instance.get("hero_visual") != null, "main scene creates the watched 3D adventurer")
 	_check(instance.get("activity_label") != null, "main scene creates current-activity UI")
 	_check(instance.get("equipment_panel") != null, "main scene creates the equipment drawer")
+	var safe: Control = instance.find_child("SafeArea", true, false)
+	_check(safe != null and safe.is_ancestor_of(instance.get("equipment_panel")) and safe.is_ancestor_of(instance.get("hero_label")) and safe.is_ancestor_of(instance.get("talent_button")), "HUD, navigation and drawers share the safe display parent")
 	_check(instance.get("talent_panel") != null, "main scene creates the talent drawer")
 	_check(instance.get("gacha_collection_view") != null, "main scene creates the gacha collection view")
 	_check(instance.get("gacha_history_view") != null, "main scene creates the summon history view")

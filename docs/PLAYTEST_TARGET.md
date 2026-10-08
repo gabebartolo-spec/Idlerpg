@@ -12,16 +12,16 @@ Evaluate anticipation → reveal → meaningful gain → visible recognition →
 
 | Requirement | Evidence needed | Current state |
 |---|---|---|
-| Cohesive polished region with several days of authored pursuits | Real phone playthroughs, content/progression inventory and seven-day free-player progression trials | Three authored 2h/8h/24h gear journeys and 102h mastery horizon added to Lanternwood; fresh-save seven-day progression and device trials remain |
+| Cohesive polished region with several days of authored pursuits | Real phone playthroughs, content/progression inventory and seven-day free-player progression trials | Three authored 2h/8h/24h gear journeys and 102h mastery horizon; two fresh-save scripted seven-day schedules completed; owner phone experience remains |
 | Three viable earned builds | Reproducible earned loadouts with distinct roles and clear encounters | Fresh-save acquisition proven without draws in two seven-day scripted schedules; saved recipes restore/apply and complete deep journeys; owner phone assessment remains |
-| Desirable visible rewards and satisfying reveals | Preview→pursuit→earn→open→wear flow; observed desirability feedback | Two earned looks and saved chest/reveal/wear flow implemented; observed desirability still required |
+| Desirable visible rewards and satisfying reveals | Preview→pursuit→earn→open→wear flow; observed desirability feedback | Three regional gear rewards, permanent earned appearances and Warden Lantern; actual reward art emerges during reveals, Equip and show makes gear visible; owner desirability feedback remains |
 | Achievements and concise returns | Actual milestone/reward presentation, persistent ownership and usable next pursuit | Regional keepsake collection, three once-only clear masteries and permanent profile titles added; phone/participant evidence remains |
 | Real guild membership | Separate authenticated accounts joining the same persistent server-owned roster with enforced roles/permissions | Shared persistent roster and playable create/join/leave screens implemented; physical phone checks remain |
 | Shared asynchronous raid | Three independent accounts contribute to one persistent server raid; retry/concurrency/reward tests plus client demonstration | Three independent accounts drive actual prepare/open/Wear controls against shared service; phone and participant evidence remain |
-| Trusted progression and duplicate-safe server grants | Server-owned economy, transactional/idempotent grants, client reconciliation and interruption tests | Separate supply economy, raid settlement, transactional chest grants, actual Wear controls and concurrent spending verified; regional progression integration and phone evidence remain |
-| 30-second to two-minute sessions | Actual portrait phone tasks completed without long reading or forced attendance | Concise UI and comfort options implemented; device evidence still open |
+| Trusted progression and duplicate-safe server grants | Server-owned economy, transactional/idempotent grants, client reconciliation and interruption tests | Separate supply economy, raid settlement, transactional chest grants, Wear controls and concurrent spending verified; local regional rewards and saves verified independently; phone evidence remains |
+| 30-second to two-minute sessions | Actual portrait phone tasks completed without long reading or forced attendance | Concise UI, comfort options and display-safe HUD/sheets implemented; simulated cutout/bar layout and touches tested; actual device task times remain unmeasured |
 | Existing progress and offline continuity | Save migrations, real save/return flow, duplicate prevention and measured phone catch-up | Desktop coverage exists; repeat for new systems and Android |
-| Android-ready build and pack | Installable APK/build SHA, install/suspend/resume checks, participant guide, feedback sheet and issue-report instructions | Export preset/icons and participant pack with local feedback form prepared; owner handles APK export; reachable host, APK and device evidence pending |
+| Android-ready build and pack | Installable APK/build SHA, install/suspend/resume checks, owner guide, optional feedback and issue-report instructions | Export preset/icons and owner pack prepared; owner exports APK from Godot; installation and device evidence pending; public multiplayer hosting deferred |
 
 ## Execution order
 
@@ -31,4 +31,4 @@ Evaluate anticipation → reveal → meaningful gain → visible recognition →
 4. Integrate the shared raid into the actual game and test the complete client→server→reward loop.
 5. Finish Android delivery and the playtest pack, then collect actual playtest evidence when participants/device access are available.
 
-No paid infrastructure or live purchases are necessary for this playtest. Local development services are useful, but the delivered multiplayer playtest needs a reachable deployment chosen for the intended players; local three-client verification alone does not prove participant access.
+No paid infrastructure or live purchases are necessary. Three independent accounts against the local shared server demonstrate multiplayer correctness. If the owner chooses to test guilds on a phone, that phone will need access to the service; public hosting and additional testers are deferred. Local verification does not prove phone connectivity or enjoyment.

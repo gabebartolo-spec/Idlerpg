@@ -514,8 +514,11 @@ func _material(colour: Color) -> StandardMaterial3D:
 	return material
 
 func _build_ui() -> void:
-	var canvas := CanvasLayer.new()
-	add_child(canvas)
+	var layer := CanvasLayer.new()
+	add_child(layer)
+	var canvas := preload("res://src/ui/safe_area.gd").new()
+	canvas.name = "SafeArea"
+	layer.add_child(canvas)
 
 	var top := MarginContainer.new()
 	top.anchor_right = 1.0
