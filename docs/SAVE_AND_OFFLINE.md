@@ -169,6 +169,12 @@ Version 9 adds persisted selected-item pursuits and cosmetic duplicate counters.
 
 Versions 10–12 add the earned-token remainder and wallet claim cursor, permanent field journal, and adventurer identity. Saving settles earned income before serializing both halves. Missing older fields default safely; journal legacy seeding grants no retrospective rewards. Rules and validation: [ADVENTURER_LIFE.md](ADVENTURER_LIFE.md).
 
+## Opt-in audio (format 18)
+
+`game.presentation` adds independent music and reward-sound booleans, both off
+for new/legacy saves. Existing text/motion choices survive the addition.
+Audio playback never changes simulation or catch-up results.
+
 ## Permanent appearance ownership (format 17)
 
 `sim.wardrobe` owns curated cosmetic IDs, provenance and chosen slots separately

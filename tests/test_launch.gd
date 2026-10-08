@@ -144,6 +144,12 @@ func _run() -> void:
 	_check(instance.get("game").presentation.larger_text and instance.get("game").presentation.reduced_motion, "options actions change both saved comfort preferences")
 	_check(sim.to_save_dict() == before_options, "changing live presentation leaves every simulated outcome unchanged")
 	_check(instance.get("hero_visual").reduced_motion and not instance.get("talent_proc_visual").visible, "reduced motion reaches the real watched hero and suppresses optional pulses")
+	options.music_button.pressed.emit()
+	_check(instance.get("trail_audio").music_player.playing and not instance.get("trail_audio").effect_player.playing, "Options independently enables the real trail music")
+	options.sounds_button.pressed.emit()
+	_check(instance.get("game").presentation.sounds and sim.to_save_dict() == before_options, "live audio choices preserve all combat/economy state")
+	options.music_button.pressed.emit()
+	_check(not instance.get("trail_audio").music_player.playing, "Options stops trail music immediately")
 	instance.call("_toggle_sheet", menu)
 	for destination in ["fishing", "practice", "adventure", "builds", "identity", "journal"]:
 		menu.routes[destination].pressed.emit()
@@ -161,6 +167,7 @@ func _run() -> void:
 	_check(instance.get("hero_visual").worn_names["head"] == sim.equipped_item("head"), "clearing appearance restores the actual equipment model")
 	instance.queue_free()
 	await process_frame
+	await create_timer(0.3).timeout
 	_remove_saves()
 
 	print("Launch smoke tests complete: %d failure(s)" % failures)

@@ -48,7 +48,7 @@ func _run() -> void:
 	preferences.load_save_dict({"larger_text": "yes", "reduced_motion": 7, "unknown": true})
 	check(not preferences.larger_text and not preferences.reduced_motion, "malformed preference types cannot enable settings")
 	preferences.load_save_dict("not a dictionary")
-	check(preferences.to_save_dict() == {"larger_text": false, "reduced_motion": false}, "invalid preference blocks retain safe defaults")
+	check(preferences.to_save_dict() == {"larger_text": false, "reduced_motion": false, "music": false, "sounds": false}, "invalid preference blocks retain safe defaults")
 	var canvas := CanvasLayer.new()
 	root.add_child(canvas)
 	var body: Label = Style.label("Open counters, bigger letters", 24)

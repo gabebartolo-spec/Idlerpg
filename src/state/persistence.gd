@@ -6,7 +6,7 @@ extends RefCounted
 # These saves are for single-player continuity. They are files on the player's device and
 # a device clock, so nothing here can be trusted as online or competitive state.
 
-const SAVE_VERSION := 17
+const SAVE_VERSION := 18
 const DEFAULT_PATH := "user://idle_rpg_save.json"
 const MAX_OFFLINE_SECONDS := 7 * 24 * 60 * 60
 
@@ -255,6 +255,9 @@ static func _migrate(data: Dictionary) -> Dictionary:
 	if version == 16:
 		# Version 17 preserves curated appearance ownership and equipped looks.
 		version = 17
+	if version == 17:
+		# Version 18 adds independent, opt-in music and reward sounds.
+		version = 18
 	data["version"] = version
 	return data
 

@@ -17,7 +17,8 @@ camera following, the defeated pose and a static boss windup cue remain: they
 communicate resolved state and location. Both options can be switched back at
 any time. They never change simulation clocks, RNG, combat, drops or income.
 
-Save format 16 stores these booleans under `game.presentation`. Older saves
+Save format 16 stores these booleans under `game.presentation`. Format 18 adds
+independent opt-in Music/Sounds switches; see `docs/TRAIL_AUDIO.md`. Older saves
 default to standard text/motion; malformed preference values are ignored.
 Preferences are saved immediately when changed through Options and survive
 ordinary close/reopen and offline settlement.
@@ -27,4 +28,4 @@ simulation snapshot unchanged, rebuilding rows, repeated toggling, static and
 ordinary poses, stopped scroll inertia and More navigation. The complete UI
 input/layout suite also runs with Larger text enabled. Real 405 × 720 desktop
 renders are inspected. Android sustained frames, memory, battery behavior,
-real touch comfort and audio remain open for R27.
+real touch comfort and speaker/headphone balance remain open for R27.
