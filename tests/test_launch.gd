@@ -130,6 +130,26 @@ func _run() -> void:
 	_check(instance.get("boss_panel").visible and not instance.get("gacha_panel").visible, "boss highlights open boss management alone")
 	instance.call("_open_chronicle_destination", "chronicle", "")
 	_check(instance.get("chronicle_panel").visible and not instance.get("boss_panel").visible, "chronicle opens with other overlays closed")
+	instance.set_process(false)
+	var before_options: Dictionary = sim.to_save_dict()
+	instance.call("_toggle_sheet", instance.get("menu_panel"))
+	var menu: Control = instance.get("menu_panel")
+	_check(menu.visible and menu.routes.has("practice") and menu.routes.has("journal") and not instance.get("chronicle_panel").visible, "More menu keeps the full game reachable in one overlay")
+	menu.options_button.pressed.emit()
+	var options: Control = instance.get("options_panel")
+	_check(options.visible and not menu.visible, "More opens options without stacked sheets")
+	options.text_button.pressed.emit()
+	options.motion_button.pressed.emit()
+	await process_frame
+	_check(instance.get("game").presentation.larger_text and instance.get("game").presentation.reduced_motion, "options actions change both saved comfort preferences")
+	_check(sim.to_save_dict() == before_options, "changing live presentation leaves every simulated outcome unchanged")
+	_check(instance.get("hero_visual").reduced_motion and not instance.get("talent_proc_visual").visible, "reduced motion reaches the real watched hero and suppresses optional pulses")
+	instance.call("_toggle_sheet", menu)
+	for destination in ["fishing", "practice", "adventure", "builds", "identity", "journal"]:
+		menu.routes[destination].pressed.emit()
+		var panel_name: String = {"adventure": "adventure_panel", "builds": "loadout_panel", "identity": "identity_panel", "journal": "journal_panel", "fishing": "fishing_panel", "practice": "practice_panel"}[destination]
+		_check(instance.get(panel_name).visible and not menu.visible, "More route opens " + destination)
+		instance.call("_toggle_sheet", menu)
 	instance.queue_free()
 	await process_frame
 	_remove_saves()

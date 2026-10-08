@@ -76,6 +76,12 @@ func _fill(list: Control, count: int) -> void:
 		list.content.add_child(button)
 
 func _run() -> void:
+	if OS.get_cmdline_user_args().has("--large-text"):
+		var preferences: RefCounted = preload("res://src/state/presentation_preferences.gd").new()
+		preferences.larger_text = true
+		var presentation: Node = preload("res://src/ui/presentation_controller.gd").new()
+		root.add_child(presentation)
+		presentation.setup(preferences, root)
 	await _test_touch_list()
 	await _test_gear_screen()
 	await _test_talent_screen()

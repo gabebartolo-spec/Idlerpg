@@ -21,6 +21,12 @@ const BAR_WIDTH := 6.0
 var content: VBoxContainer
 var offset: float = 0.0
 var velocity: float = 0.0
+var reduced_motion: bool = false
+
+func set_reduced_motion(value: bool) -> void:
+	reduced_motion = value
+	if value:
+		velocity = 0.0
 
 var _touch: int = -1
 var _touch_start: Vector2 = Vector2.ZERO
@@ -94,6 +100,8 @@ func _input(event: InputEvent) -> void:
 			elif not _dragging and touch.position.distance_to(_touch_start) <= DRAG_THRESHOLD:
 				velocity = 0.0
 				_tap(touch.position)
+			if reduced_motion:
+				velocity = 0.0
 			_dragging = false
 			get_viewport().set_input_as_handled()
 	elif event is InputEventScreenDrag:
@@ -104,7 +112,7 @@ func _input(event: InputEvent) -> void:
 			_dragging = true
 		if _dragging:
 			scroll_to(offset - drag.relative.y)
-			velocity = -drag.velocity.y
+			velocity = 0.0 if reduced_motion else -drag.velocity.y
 		get_viewport().set_input_as_handled()
 	elif event is InputEventMouseButton:
 		var button := event as InputEventMouseButton
