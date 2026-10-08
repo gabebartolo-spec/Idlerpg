@@ -816,7 +816,7 @@ func add_gear(item_name: String) -> bool:
 	_emit_event("gear_obtained", "Found %s." % item_name, {"gear": item_name, "useful": useful})
 	return true
 
-func equip_gear(item_name: String) -> bool:
+func equip_gear(item_name: String, show_item: bool = false) -> bool:
 	if not GearCatalogScript.has_item(item_name):
 		return false
 	if int(gear_inventory.get(item_name, 0)) <= 0:
@@ -825,6 +825,8 @@ func equip_gear(item_name: String) -> bool:
 	if slot_name.is_empty() or not equipped.has(slot_name):
 		return false
 	equipped[slot_name] = item_name
+	if show_item:
+		wardrobe.clear(slot_name)
 	hero_hp = min(hero_hp, effective_max_hp())
 	_emit_event("gear_equipped", "Equipped %s." % item_name, {"gear": item_name, "slot": slot_name})
 	return true

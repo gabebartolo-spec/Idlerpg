@@ -49,6 +49,8 @@ func run() -> void:
 		await snap(route + "_pursuit")
 		sim.request_expedition(route)
 		sim._begin_quest_cycle()
+		# Hours of simulated travel outlast the previous five-second HUD notice.
+		main.event_clock = 0
 		sim.simulate_offline(Trails.node_usec(route) * 5 / 1000000.0)
 		main._open_chronicle_destination("rewards", "")
 		main.reward_panel.action_button.pressed.emit()
@@ -67,6 +69,23 @@ func run() -> void:
 			child.pressed.emit()
 			break
 	await snap("guardian_recipe")
+	var cursor: int = sim.chronicle.sequence
+	for repeat in 2:
+		main.event_clock = 0
+		sim.request_expedition("lamplighter")
+		sim._begin_quest_cycle()
+		sim.simulate_offline(24 * 3600)
+		if not sim.reward_chests.pending.is_empty(): sim.claim_reward_chest(sim.reward_chests.pending[0]["id"])
+	main._close_drawers()
+	main.return_panel.show_report({"highlights": sim.chronicle.highlights_since(cursor)}, "Two lamp circuits completed")
+	await snap("mastery_return")
+	main._open_chronicle_destination("identity", "lamp_master")
+	for child in main.identity_panel.title_list.content.get_children():
+		if child is Button and child.text == "Earned: Keeper of the Lamps":
+			child.pressed.emit()
+			break
+	main.identity_panel.title_list.scroll_to(main.identity_panel.title_list.max_offset())
+	await snap("mastery_profile")
 	main.free()
 	await process_frame
 	for path in paths:

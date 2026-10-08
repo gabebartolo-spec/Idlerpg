@@ -53,7 +53,7 @@ func refresh() -> void:
 		button.disabled = not earned
 		button.pressed.connect(_title.bind(id))
 		title_list.content.add_child(button)
-	var clue := Style.label("Scout: complete the opening errand. Thornbreaker and the keepsake: win your first boss fight. Titles and accents grant no stats.", 20, Style.MUTED)
+	var clue := Style.label("Trail titles: three safe returns. Titles and accents are looks only.", 20, Style.MUTED)
 	clue.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	title_list.content.add_child(clue)
 func _title(id: String) -> void:

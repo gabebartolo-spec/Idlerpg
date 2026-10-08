@@ -117,13 +117,17 @@ func refresh() -> void:
 			paragraph("Your next adventure starts here.", Style.MUTED)
 		else:
 			paragraph("Adventure complete!" if state.recap["won"] else "Returned early")
-			paragraph("+%d gold" % state.recap["gold"], Style.ACCENT)
+			var receipt: Dictionary = {}
+			for pending in sim.reward_chests.pending:
+				if pending["id"] == "trail:%d" % int(state.recap.get("run", 0)): receipt = pending
+			paragraph("%d gold kept · %d in chest" % [int(state.recap["gold"]) - int(receipt["gold"]), int(receipt["gold"])] if not receipt.is_empty() else "+%d gold collected" % int(state.recap["gold"]), Style.ACCENT)
 			paragraph("%s · %d/5 stages" % [Catalog.ROUTES[state.recap["route"]]["name"], state.recap["nodes"]], Style.MUTED)
 			if state.recap["stew_used"]:
 				paragraph("Stew used", Style.MUTED)
-			var look: String = Catalog.ROUTES[state.recap["route"]].get("look", "")
-			if bool(state.recap["won"]) and not look.is_empty():
-				paragraph("Look earned · " + str(preload("res://src/data/appearance_catalog.gd").LOOKS[look]["name"]), Style.ACCENT)
+			var look: String = receipt.get("look", "")
+			if not look.is_empty():
+				paragraph("In chest · " + str(preload("res://src/data/appearance_catalog.gd").LOOKS[look]["name"]), Style.ACCENT)
+			if not str(receipt.get("gear", "")).is_empty(): paragraph("In chest · " + str(receipt["gear"]), Style.ACCENT)
 		return
 	var selected: Dictionary = Catalog.ROUTES[state.selected_route]
 	paragraph(str(selected.get("risk", "Easy trail" if state.selected_route == "greenway" else "Risky trail")))
@@ -137,12 +141,25 @@ func refresh() -> void:
 	if state.selected_route == "causeway":
 		paragraph("Bring stew or thorn protection", Style.MUTED)
 	if selected.has("look"):
-		paragraph("Earn " + str(preload("res://src/data/appearance_catalog.gd").LOOKS[selected["look"]]["name"]), Style.ACCENT)
+		var item: Dictionary = preload("res://src/data/appearance_catalog.gd").LOOKS[selected["look"]]
+		var line := HBoxContainer.new()
+		add_icon(line, preload("res://src/data/art_catalog.gd").item_icon(item["item"]))
+		line.get_child(0).custom_minimum_size = Vector2(128, 128)
+		var pending_look := false
+		for receipt in sim.reward_chests.pending: pending_look = pending_look or receipt.get("look", "") == selected["look"]
+		var ownership := " · owned" if sim.wardrobe.owned.has(selected["look"]) else (" · in chest" if pending_look else " · earn")
+		var words := Style.label(str(item["name"]) + ownership, 26, Style.ACCENT)
+		words.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		words.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		line.add_child(words)
+		list.content.add_child(line)
 	if selected.has("gear"):
 		var reward: String = selected["gear"]
 		var line := HBoxContainer.new()
 		add_icon(line, preload("res://src/data/art_catalog.gd").item_icon(reward))
-		var words := Style.label(reward, 26, Style.ACCENT)
+		line.get_child(0).custom_minimum_size = Vector2(128, 128)
+		var effect: String = GearCatalog.EFFECTS.get(GearCatalog.effect(reward), {}).get("name", "")
+		var words := Style.label(reward + "\n" + effect, 26, Style.ACCENT)
 		words.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		words.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		line.add_child(words)

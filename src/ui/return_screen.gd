@@ -31,7 +31,10 @@ func show_report(report: Dictionary, totals: String) -> void:
 		button.alignment = HORIZONTAL_ALIGNMENT_LEFT
 		button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		button.custom_minimum_size.y = 110.0
-		button.pressed.connect(func() -> void: destination_requested.emit(str(event["route"]), str(event.get("target", ""))))
+		button.pressed.connect(func() -> void:
+			var id := str(event.get("key", "")).trim_prefix("goal:")
+			var title: String = preload("res://src/state/adventurer_identity.gd").TITLES.get(id, "")
+			destination_requested.emit("identity" if not title.is_empty() else str(event["route"]), id if not title.is_empty() else str(event.get("target", ""))))
 		list.content.add_child(button)
 	summary = Style.label(totals, 24)
 	summary.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -41,6 +44,10 @@ func show_report(report: Dictionary, totals: String) -> void:
 
 func _highlight_title(event: Dictionary) -> String:
 	var target := str(event.get("target", ""))
+	if str(event.get("key", "")).begins_with("goal:"):
+		var id := str(event["key"]).trim_prefix("goal:")
+		var title: String = preload("res://src/state/adventurer_identity.gd").TITLES.get(id, "")
+		return "Title earned · " + title if not title.is_empty() else "Achievement complete"
 	match str(event.get("route", "")):
 		"gear", "relics":
 			return "+ " + target if not target.is_empty() else "New find"
