@@ -7,6 +7,8 @@
 **Status:** implemented P0–P7 prototype; Android verification remains gated
 **Source of truth:** this document defines the intended product unless a newer explicit decision supersedes it.
 
+**9 October 2026 visual decision:** **World of Warcraft is the primary visual reference** for the Idle RPG: original painterly, colourful, exaggerated, readable fantasy aesthetics realised with low-poly/mobile-efficient assets. RuneScape and Kingdoms of Amalur are supporting references rather than equal visual targets; voxels may inform individual props but are not the default visual language. Production source of truth: [ART_STYLE_GUIDE.md](ART_STYLE_GUIDE.md). No copied Blizzard IP or WoW-style hotbar clutter. This directs future asset batches; it does not claim existing art has already changed.
+
 **9 October 2026 owner direction — three pillars and token sales:** The game's three reference pillars are **Slayer Legend** (idle power growth and a compelling gacha-token economy), **Idle Slayer** (long-term layered progression) and **World of Warcraft** (RPG identity, builds, loot, world and social play). **Commercial success includes players voluntarily buying gacha tokens**; free summons, enticing paid summon options, worthwhile collection depth and meaningful upgrade paths must coexist. Do not water this objective down to cosmetics-only, but do not force purchases, trivialize free play or make a 15-minute session exhaust all builds and legendary items. The detailed design contract is [THREE_PILLARS.md](THREE_PILLARS.md); address the progression playtest blocker in [issue #45](https://github.com/gabebartolo-spec/Idlerpg/issues/45).
 
 **8 October 2026 delivery direction:** build art, content and the necessary framework together in a substantial playable region. Test atmosphere, rewards and build choices as a complete experience. [Lanternwood](LANTERNWOOD.md) begins this slice; its local expeditions do not replace the committed real guilds and asynchronous multiplayer raids, which require R28/R29 server foundations. Several days of enjoyable progression and a real cooperative raid remain milestone acceptance targets.
@@ -320,7 +322,7 @@ Production visuals must follow `docs/ART_STYLE_GUIDE.md`, which locks the origin
 
 ## 5.1 Visual target
 
-Aim for **readable low-poly 3D MMO nostalgia**, not an exact imitation of any existing game's assets or world.
+Aim for **original World of Warcraft-inspired, colourful, painterly fantasy in mobile-friendly low-poly 3D**, not an exact imitation of any existing game's characters, assets, art, UI or world.
 
 Desired qualities:
 - simple silhouettes;
