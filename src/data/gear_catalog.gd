@@ -64,7 +64,7 @@ const SALVAGE_TOKENS := {
 	"Common": 1,
 	"Rare": 2,
 	"Epic": 5,
-	"Legendary": 15
+	"Legendary": 8
 }
 
 static func has_item(item_name: String) -> bool:

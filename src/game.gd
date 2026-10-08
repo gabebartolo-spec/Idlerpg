@@ -7,6 +7,10 @@ signal draw_finished(banner_id: String, results: Array)
 const SUMMON_COST: int = 10
 const STARTING_TOKENS: int = 250
 const RARITY_CHANCES := {"Common": 68, "Rare": 22, "Epic": 9, "Legendary": 1}
+const ROUTE_LIMIT := 30
+const DUPLICATE_REFUND := 1
+const KEEPSAKE_DUPLICATES := 50
+const KEEPSAKES := {"gear": "Cache Curator", "companions": "Pact Keeper", "relics": "Vault Archivist"}
 
 const BANNERS: Dictionary = {
 	"gear": {
@@ -45,12 +49,15 @@ var collection: Dictionary = {}
 var favourites: Dictionary = {}
 var locked_items: Dictionary = {}
 var summon_history: Array[Dictionary] = []
+var pursuits: Dictionary = {}
+var duplicate_counts: Dictionary = {}
 var rng: RandomNumberGenerator = RandomNumberGenerator.new()
 
 func _ready() -> void:
 	rng.randomize()
 	for banner_id in BANNERS.keys():
 		pity[banner_id] = 0
+		duplicate_counts[banner_id] = 0
 		collection[banner_id] = {}
 
 func set_seed(seed_value: int) -> void:
@@ -163,6 +170,8 @@ func dev_reset_pity() -> void:
 
 func to_save_dict() -> Dictionary:
 	return {
+		"pursuits": pursuits.duplicate(true),
+		"duplicate_counts": duplicate_counts.duplicate(true),
 		"gacha_tokens": gacha_tokens,
 		"pity": pity.duplicate(true),
 		"collection": collection.duplicate(true),
@@ -215,7 +224,60 @@ func load_save_dict(data: Dictionary) -> void:
 		rng.state = str(data["rng_state"]).to_int()
 
 	dev_infinite_tokens = false
+	pursuits.clear()
+	duplicate_counts.clear()
+	var saved_pursuits: Dictionary = data.get("pursuits", {})
+	var saved_duplicates: Dictionary = data.get("duplicate_counts", {})
+	for banner_id in BANNERS:
+		duplicate_counts[banner_id] = clampi(int(saved_duplicates.get(banner_id, 0)), 0, KEEPSAKE_DUPLICATES)
+		var entry: Dictionary = saved_pursuits.get(banner_id, {})
+		var target := str(entry.get("target", ""))
+		if not item_rarity(banner_id, target).is_empty() and collection_count(banner_id, target) == 0:
+			pursuits[banner_id] = {"target": target, "progress": clampi(int(entry.get("progress", 0)), 0, ROUTE_LIMIT - 1)}
 	wallet_changed.emit(gacha_tokens)
+
+func choose_pursuit(banner_id: String, item_name: String) -> bool:
+	if item_rarity(banner_id, item_name).is_empty() or collection_count(banner_id, item_name) > 0:
+		return false
+	if str(pursuits.get(banner_id, {}).get("target", "")) != item_name:
+		pursuits[banner_id] = {"target": item_name, "progress": 0}
+	return true
+
+# Gross costs before refunds, including exact rarity-pity probabilities. The route
+# grants a bonus item at the cap rather than replacing a roll or its legendary pity.
+func pursuit_quote(banner_id: String, item_name: String = "") -> Dictionary:
+	var entry: Dictionary = pursuits.get(banner_id, {})
+	if item_name.is_empty():
+		item_name = str(entry.get("target", ""))
+	var rarity := item_rarity(banner_id, item_name)
+	if rarity.is_empty() or collection_count(banner_id, item_name) > 0:
+		return {}
+	var progress := int(entry.get("progress", 0)) if entry.get("target", "") == item_name else 0
+	var remaining := ROUTE_LIMIT - progress
+	var pool_size: int = BANNERS[banner_id]["items"][rarity].size()
+	var chance := float(RARITY_CHANCES[rarity]) / 100.0 / pool_size
+	var states := {mini(89, int(pity.get(banner_id, 0))): 1.0}
+	var expected := 0.0
+	for _draw in remaining:
+		var next := {}
+		for pity_count in states:
+			var mass := float(states[pity_count])
+			expected += mass
+			var legendary := 1.0 if int(pity_count) >= 89 else float(RARITY_CHANCES["Legendary"]) / 100.0
+			var hit := (1.0 / pool_size if rarity == "Legendary" else 0.0) if int(pity_count) >= 89 else chance
+			var leg_survival := legendary - (hit if rarity == "Legendary" else 0.0)
+			var other_survival := 1.0 - legendary - (hit if rarity != "Legendary" else 0.0)
+			next[0] = float(next.get(0, 0.0)) + mass * leg_survival
+			if other_survival > 0.0:
+				next[int(pity_count) + 1] = float(next.get(int(pity_count) + 1, 0.0)) + mass * other_survival
+		states = next
+	var guaranteed_within := mini(remaining, pity_remaining(banner_id)) if rarity == "Legendary" and pool_size == 1 else remaining
+	return {"target": item_name, "progress": progress, "remaining": guaranteed_within,
+		"maximum_cost": guaranteed_within * SUMMON_COST, "expected_cost": expected * SUMMON_COST}
+
+func keepsake_text(banner_id: String) -> String:
+	var count := int(duplicate_counts.get(banner_id, 0))
+	return "Keepsake: %s" % KEEPSAKES[banner_id] if count >= KEEPSAKE_DUPLICATES else "Optional keepsake: %s · %d/%d duplicates" % [KEEPSAKES[banner_id], count, KEEPSAKE_DUPLICATES]
 
 func pull(banner_id: String, count: int = 1) -> Dictionary:
 	if not BANNERS.has(banner_id):
@@ -232,13 +294,34 @@ func pull(banner_id: String, count: int = 1) -> Dictionary:
 		wallet_changed.emit(gacha_tokens)
 
 	var results: Array = []
+	var refunds := 0
 	for _i in range(count):
-		results.append(_roll_one(banner_id))
+		var result := _roll_one(banner_id)
+		results.append(result)
+		if not result["is_new"]:
+			duplicate_counts[banner_id] = mini(KEEPSAKE_DUPLICATES, int(duplicate_counts.get(banner_id, 0)) + 1)
+			if not dev_infinite_tokens:
+				refunds += DUPLICATE_REFUND
+				gacha_tokens += DUPLICATE_REFUND
+				result["refund"] = DUPLICATE_REFUND
+		var entry: Dictionary = pursuits.get(banner_id, {})
+		if not entry.is_empty():
+			var target := str(entry["target"])
+			if collection_count(banner_id, target) > 0:
+				pursuits.erase(banner_id)
+			else:
+				entry["progress"] = int(entry["progress"]) + 1
+				if int(entry["progress"]) >= ROUTE_LIMIT:
+					results.append(_grant_item(banner_id, target, item_rarity(banner_id, target), true))
+					pursuits.erase(banner_id)
+	# Refresh observers after refunds, not only after the up-front deduction.
+	wallet_changed.emit(gacha_tokens)
 
 	draw_finished.emit(banner_id, results)
 	return {
 		"ok": true,
 		"cost": 0 if dev_infinite_tokens else cost,
+		"refunds": refunds,
 		"results": results
 	}
 
@@ -249,6 +332,9 @@ func _roll_one(banner_id: String) -> Dictionary:
 
 	var items: Array = BANNERS[banner_id]["items"][rarity]
 	var item_name: String = str(items[rng.randi_range(0, items.size() - 1)])
+	return _grant_item(banner_id, item_name, rarity)
+
+func _grant_item(banner_id: String, item_name: String, rarity: String, route_bonus: bool = false) -> Dictionary:
 	var previous_count := collection_count(banner_id, item_name)
 	var new_count := previous_count + 1
 	var banner_collection: Dictionary = collection.get(banner_id, {})
@@ -260,8 +346,11 @@ func _roll_one(banner_id: String) -> Dictionary:
 		"rarity": rarity,
 		"banner": banner_id,
 		"is_new": previous_count == 0,
-		"copy": new_count
+		"copy": new_count,
+		"refund": DUPLICATE_REFUND if previous_count > 0 and not dev_infinite_tokens and not route_bonus else 0
 	}
+	if route_bonus:
+		result["route_bonus"] = true
 	summon_history.push_front(result.duplicate(true))
 	if summon_history.size() > 50:
 		summon_history.resize(50)

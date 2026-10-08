@@ -59,7 +59,7 @@ removing a destination and return immediately if destination removal fails.
 
 ## Versions
 
-`SAVE_VERSION` is 4. `_migrate` in `src/state/persistence.gd` upgrades older saves one
+`SAVE_VERSION` is 9. `_migrate` in `src/state/persistence.gd` upgrades older saves one
 version at a time, and a loaded save is immediately rewritten in the current format.
 
 | Version | Change |
@@ -162,3 +162,5 @@ Version 4 adds bounded milestone entries, a monotonic sequence and remembered fi
 Version 5 adds three once-only goals and tracking. Older satisfied criteria seed completed markers without retroactive gold or invented history. Version 6 stores selected and current-outing policies separately, with the outing quarry and early-return flag. Older saves retain Push progression. Version 7 adds three empty optional named loadout slots. Version 8 adds one active relic and permanent guaranteed earned ownership; older progressed saves receive the opening-errand travel relic and first-boss health relic when their progress supports it, without auto-equipping. Empty relic choice in older presets remains valid.
 
 Banner relic ownership stays in game collection; earned alternatives stay in simulation state, and presentation uses their union. After both sim and game restore, invalid/unowned active relics clear before catch-up. Loadouts validate ownership, slots, points and prerequisites before mutation. Selecting a policy mid-outing changes only the next outing. Goals, earned relics and presets participate in saved-state comparison, so catch-up cannot batch across an unrecorded transition. See [ADVENTURE_AND_BUILDS.md](ADVENTURE_AND_BUILDS.md).
+
+Version 9 adds persisted selected-item pursuits and cosmetic duplicate counters. Versions 1–8 retain their progress without retrospective refunds. See [COLLECTION_PURSUITS.md](COLLECTION_PURSUITS.md).

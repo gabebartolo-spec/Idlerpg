@@ -80,11 +80,11 @@ func _tables(results: Dictionary) -> String:
 				p["gear_attack"]["mean"], int(p["gear_attack"]["p10"]), p["gear_hp"]["mean"], int(p["gear_hp"]["p10"])])
 
 	lines += ["", "## Token ledger: mean per account over the whole run", "",
-		"| Cell | Starting | Purchased | Income | From salvage | Spent on draws | Salvage returned per token spent |", "|---|---:|---:|---:|---:|---:|---:|"]
+		"| Cell | Starting | Purchased | Income | From salvage | Duplicate refunds | Spent on draws | Salvage returned per token spent |", "|---|---:|---:|---:|---:|---:|---:|---:|"]
 	for cell in results["cells"]:
 		var l: Dictionary = results["cells"][cell]["collection"]["token_ledger"]
-		lines.append("| %s | %.0f | %.0f | %.0f | %.1f | %.1f | %s |" % [cell, l["tokens_started"], l["tokens_purchased"], l["tokens_income"],
-			l["tokens_salvaged"], l["tokens_spent"], _percent(l["salvage_returned_per_token_spent"])])
+		lines.append("| %s | %.0f | %.0f | %.0f | %.1f | %.1f | %.1f | %s |" % [cell, l["tokens_started"], l["tokens_purchased"], l["tokens_income"],
+			l["tokens_salvaged"], l["tokens_duplicates"], l["tokens_spent"], _percent(l["salvage_returned_per_token_spent"])])
 
 	lines += ["", "## Progression: the adventurer over time (simulated in full)", "",
 		"| Cell | Time | Level | Attack | Health | Attack from gear | Quests done | Gold | Deaths | Talents |", "|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|"]

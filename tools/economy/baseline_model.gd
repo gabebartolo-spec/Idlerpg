@@ -48,6 +48,7 @@ class Account:
 	var tokens_purchased: int = 0
 	var tokens_income: int = 0
 	var tokens_salvaged: int = 0
+	var tokens_duplicates: int = 0
 	var tokens_spent: int = 0
 	var gold_from_quests: int = 0
 	var gold_from_discoveries: int = 0
@@ -233,7 +234,9 @@ func _check_in(account: Account, day: int) -> void:
 	while game.gacha_tokens >= cost:
 		var banner: String = pattern[account.pull_index % pattern.size()]
 		account.pull_index += 1
-		var result: Dictionary = game.pull(banner, 1)["results"][0]
+		var response: Dictionary = game.pull(banner, 1)
+		account.tokens_duplicates += int(response["refunds"])
+		var result: Dictionary = response["results"][0]
 		account.tokens_spent += cost
 		account.draws[day] += 1
 		if bool(result["is_new"]):
@@ -307,7 +310,7 @@ func _end_day(account: Account, day: int) -> void:
 
 
 func _check_ledger(account: Account, label: String) -> void:
-	var expected := account.tokens_started + account.tokens_purchased + account.tokens_income + account.tokens_salvaged - account.tokens_spent
+	var expected := account.tokens_started + account.tokens_purchased + account.tokens_income + account.tokens_salvaged + account.tokens_duplicates - account.tokens_spent
 	if expected != account.game.gacha_tokens or account.game.gacha_tokens < 0:
 		ledger_failures.append("%s: tokens %d, ledger says %d" % [label, account.game.gacha_tokens, expected])
 	var gold_earned: int = account.gold_from_quests + account.gold_from_discoveries + account.gold_from_goals
@@ -404,7 +407,7 @@ func _summarise_collection(accounts: Array[Account]) -> Dictionary:
 		checkpoints["day_%d" % day] = point
 
 	var ledger := {}
-	for key in ["tokens_started", "tokens_purchased", "tokens_income", "tokens_salvaged", "tokens_spent"]:
+	for key in ["tokens_started", "tokens_purchased", "tokens_income", "tokens_salvaged", "tokens_duplicates", "tokens_spent"]:
 		var total := 0.0
 		for account in accounts:
 			total += float(account.get(key))

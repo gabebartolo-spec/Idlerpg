@@ -120,6 +120,24 @@ func _run() -> void:
 		"gear": {"Briarheart Charm": 1, "Crownblade": 1}})
 	await _snap("return_highlights")
 
+	main.call("_toggle_gacha")
+	gacha.select_banner("gear")
+	gacha.show_mode("pursuit")
+	gacha.pursuit_selected = "Crownblade"
+	gacha.refresh()
+	await _snap("collection_pursuit")
+	gacha._choose_pursuit()
+	if game.pursuits.has("gear"):
+		game.pursuits["gear"]["progress"] = 12
+	gacha.refresh()
+	await _snap("pursuit_progress")
+	for item in game.collection_items("gear"):
+		game.collection["gear"][item] = 1
+	game.pursuits.erase("gear")
+	game.duplicate_counts["gear"] = 50
+	gacha.refresh()
+	await _snap("collection_keepsake")
+
 	main.free()
 	for path in PersistenceScript.files_for():
 		if FileAccess.file_exists(path):

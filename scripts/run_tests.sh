@@ -13,6 +13,7 @@ run_test() {
 }
 
 run_test tests/test_gacha.gd
+run_test tests/test_collection_route.gd
 run_test tests/test_adventurer_sim.gd
 run_test tests/test_launch.gd
 run_test tests/test_persistence.gd
