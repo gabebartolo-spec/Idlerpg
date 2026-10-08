@@ -44,6 +44,7 @@ run_test tests/test_reward_chests.gd
 run_test tests/test_reward_chests.gd --large-text
 run_test tests/test_adventurer_sim.gd
 run_test tests/test_launch.gd
+run_test tests/test_safe_area.gd
 run_test tests/test_persistence.gd
 run_test tests/test_save_resilience.gd
 run_test tests/test_chronicle.gd

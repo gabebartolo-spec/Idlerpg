@@ -1,16 +1,14 @@
 # Release and phone evidence
 
-All unchecked items below remain **pending**. Fill observations from real devices and participant play; do not replace them with simulated evidence.
+The owner is the only tester. These are optional reference checks for their APK, not a recruitment or attendance requirement. All unchecked items remain **pending**; record real phone observations rather than substituting simulations.
 
 | Field | Recorded value |
 |---|---|
 | Source commit / build date | Pending |
 | Version / package | 0.2.0-playtest2 / com.gabebartolo.idlerpg |
 | APK SHA-256 / delivery location | Pending owner export |
-| HTTPS service / deployment revision | Pending deployment |
+| Shared service / deployment revision | Local three-client demonstration verified; phone access deferred until needed |
 | Device / Android version / tester / date | Pending |
-| Participant feedback-sharing channel | Pending |
-| Feedback retention/deletion date | Pending |
 
 ## Device checks
 
@@ -28,10 +26,8 @@ All unchecked items below remain **pending**. Fill observations from real device
 
 Record failures with exact action, expected/actual outcome and build/device. Check boxes only after the actual flow passes.
 
-## Study observations
+## Optional owner notes
 
-| Participant | Day | Prompted? | Session observed / self-reported | Desired reward | Satisfying / disappointing moment | Return intent | Actual later return evidence |
-|---|---|---|---|---|---|---|---|
-| Pending | | | | | | | |
+Tell Codex what you wanted to earn, what felt satisfying or disappointing, and whether you wanted to return. The local feedback form is optional. No daily log is required.
 
-Current automated evidence: desktop save/reward suites and three independent clients against a real temporary HTTP service. This establishes correctness of those tested flows, not Android usability, participant access, enjoyment or retention. Multi-day regional content and three complete earned regional builds remain unfinished.
+Current automated evidence: desktop save/reward suites, two fresh-save scripted seven-day schedules earning all three regional builds, deep-journey completion with each build, and three independent clients against a real temporary HTTP service. Display-inset tests cover stretched coordinates, touch actions, large text and changing safe bounds. These establish tested correctness; Android usability, desirability, enjoyment and voluntary returns still need your experience on the phone.

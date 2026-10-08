@@ -9,3 +9,7 @@
 The pack contains no actual participant responses. Ten players and seven days are study targets.
 
 Owner-only revision: no participant-number selection and every question is optional. In the actual desktop browser, a single clearly labelled TEST ONLY desired-reward note saved with all other answers blank and restored automatically after reload. No participant response is included in the pack. The formal group protocol is deferred reference material.
+
+Phone-layout revision: all 39 game-suite runs pass, including fresh-save seven-day acquisition, save migration, rewards and the new safe-area integration. An actual rendered 405×720 desktop check with simulated cutouts/bars and larger text passes touch-to-equip and bottom-action containment. The first rendered attempt exposed sheet overflow despite a passing headless check; sheets now expand upward to preserve the bottom edge. This is desktop simulation, not physical-phone evidence. Existing reward-recognition commit 9de15a3 also passed its exact-head CI run 37812061761.
+
+After the shared sheet change, three independent rendered Godot clients passed the actual guild controls, shared raid settlement, reward restore/Wear and retry flows against a real temporary HTTP service. The actual main-scene pursuit, reveal and mastery captures also render without script errors. Helpers stopped and isolated capture saves were restored.

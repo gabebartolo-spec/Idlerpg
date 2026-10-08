@@ -52,6 +52,9 @@ func build_sheet(title: String, world_share: float = WORLD_SHARE) -> VBoxContain
 	sheet.anchor_top = world_share
 	sheet.anchor_right = 1.0
 	sheet.anchor_bottom = 1.0
+	# Font metrics or small safe areas can force the sheet above its requested
+	# height. Expand toward the world, keeping bottom actions inside safe bounds.
+	sheet.grow_vertical = Control.GROW_DIRECTION_BEGIN
 	var surface := Style.box(Style.SURFACE, 22.0, 20.0)
 	surface.corner_radius_bottom_left = 0
 	surface.corner_radius_bottom_right = 0
