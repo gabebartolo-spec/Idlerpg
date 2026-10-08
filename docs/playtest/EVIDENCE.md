@@ -5,7 +5,7 @@ All unchecked items below remain **pending**. Fill observations from real device
 | Field | Recorded value |
 |---|---|
 | Source commit / build date | Pending |
-| Version / package | 0.2.0-playtest1 / com.gabebartolo.idlerpg |
+| Version / package | 0.2.0-playtest2 / com.gabebartolo.idlerpg |
 | APK SHA-256 / delivery location | Pending owner export |
 | HTTPS service / deployment revision | Pending deployment |
 | Device / Android version / tester / date | Pending |

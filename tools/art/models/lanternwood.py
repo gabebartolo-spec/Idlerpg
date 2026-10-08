@@ -6,6 +6,40 @@ from lowpoly import Part
 from . import model
 
 
+@model("mothglass_spear", "weapon", item="Mothglass Spear")
+def mothglass_spear():
+    part = Part("mothglass_spear")
+    part.cyl(.035, 1.30, (0, 0, .24), "wood_dark", sides=6, top=.025)
+    part.cyl(.055, .24, (0, 0, 0), "cloth_cream", sides=6)
+    part.prism([(-.13, .70), (0, 1.07), (.13, .70), (0, .62)], .035, (0, 0, 0), "moon")
+    for sign in (-1, 1):
+        part.prism([(0, .58), (sign*.24, .73), (sign*.19, .52), (0, .43)], .04, (0, 0, 0), "cloth_cream")
+    part.cyl(.07, .08, (0, 0, .50), "bronze", sides=6)
+    return [part]
+
+
+@model("mooncap_mantle", "armour", item="Mooncap Mantle")
+def mooncap_mantle():
+    part = Part("mooncap_mantle")
+    part.box((.46, .29, .48), (0, 0, 0), "shadow", taper=1.25, bevel=.035)
+    part.box((.08, .035, .43), (0, -.17, 0), "cloth_cream")
+    for sign in (-1, 1):
+        part.ball(.17, (sign*.30, 0, .20), "cloth_blue", detail=1, scale=(1.2, 1, .45))
+        part.ball(.045, (sign*.31, -.12, .23), "moon", detail=1, scale=(1, .5, .6))
+    part.prism([(-.07,.1),(.07,.1),(.08,-.02),(0,-.1),(-.08,-.02)], .025, (0, -.19, 0), "moon")
+    return [part]
+
+
+@model("lamplighter_seal", "armour", item="Lamplighter Seal")
+def lamplighter_seal():
+    part = Part("lamplighter_seal")
+    part.cyl(.09, .035, (0, 0, 0), "bronze", sides=8, rot=(90, 0, 0))
+    part.prism([(-.04,-.04),(.04,-.04),(.05,.025),(0,.07),(-.05,.025)], .02, (0, -.03, 0), "window")
+    for sign in (-1, 1):
+        part.cyl(.012, .19, (sign*.065, 0, .09), "wood_dark", sides=4, rot=(0, sign*30, 0))
+    return [part]
+
+
 def lamp(part, x, y, z, size=1.0):
     part.box((.22*size, .20*size, .28*size), (x, y, z), "window", bevel=.025*size)
     for dx in (-.13, .13):

@@ -23,7 +23,9 @@ func setup(sim_node: Node, preferences: RefCounted) -> void:
 	column.add_child(action_button)
 	wear_button = Style.button("Wear your new look")
 	wear_button.pressed.connect(func() -> void:
-		if sim.wardrobe.wear(str(viewing.get("look", ""))):
+		var gear := str(viewing.get("gear", ""))
+		var applied: bool = sim.equip_gear(gear) if not gear.is_empty() else sim.wardrobe.wear(str(viewing.get("look", "")))
+		if applied:
 			refresh()
 			changed.emit())
 	column.add_child(wear_button)
@@ -51,11 +53,26 @@ func refresh() -> void:
 	chest.reduced_motion = settings.reduced_motion
 	chest.opened = not viewing.is_empty()
 	subtitle_label.text = "%d chest%s ready" % [sim.reward_chests.pending.size(), "" if sim.reward_chests.pending.size() == 1 else "s"]
-	wear_button.visible = not str(viewing.get("look", "")).is_empty()
-	wear_button.disabled = wear_button.visible and sim.wardrobe.equipped.get(Looks.LOOKS[viewing["look"]]["slot"], "") == viewing["look"]
-	wear_button.text = "Wearing" if wear_button.disabled else "Wear your new look"
+	var gear := str(viewing.get("gear", ""))
+	var look := str(viewing.get("look", ""))
+	wear_button.visible = not gear.is_empty() or not look.is_empty()
+	wear_button.disabled = sim.equipped_item(GearCatalog.slot(gear)) == gear if not gear.is_empty() else (not look.is_empty() and sim.wardrobe.equipped.get(Looks.LOOKS[look]["slot"], "") == look)
+	wear_button.text = ("Equipped" if wear_button.disabled else "Equip new gear") if not gear.is_empty() else ("Wearing" if wear_button.disabled else "Wear your new look")
 	if not viewing.is_empty():
 		list.content.add_child(Style.label("+%d gold" % viewing["gold"], 32, Style.ACCENT))
+		if not gear.is_empty():
+			var line := HBoxContainer.new()
+			add_icon(line, Art.item_icon(gear))
+			var words := Style.label(gear, 28)
+			words.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+			words.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			line.add_child(words)
+			list.content.add_child(line)
+			var stats: Array[String] = []
+			if GearCatalog.attack_bonus(gear) > 0: stats.append("+%d ATK" % GearCatalog.attack_bonus(gear))
+			if GearCatalog.hp_bonus(gear) > 0: stats.append("+%d HP" % GearCatalog.hp_bonus(gear))
+			stats.append(str(GearCatalog.EFFECTS.get(GearCatalog.effect(gear), {}).get("name", "")))
+			list.content.add_child(Style.label(" · ".join(stats), 24, Style.ACCENT))
 		if not str(viewing["look"]).is_empty():
 			var item: Dictionary = Looks.LOOKS[viewing["look"]]
 			var line := HBoxContainer.new()

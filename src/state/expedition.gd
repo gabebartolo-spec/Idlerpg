@@ -11,16 +11,19 @@ var attack: int = 6
 var max_hp: int = 36
 var hp: int = 36
 var thornward: bool = false
+var hardened: bool = false
+var opportunist: bool = false
 var stew_available: bool = false
 var stew_used: bool = false
 var completed: int = 0
 var claimed_routes: Dictionary = {}
+var route_clears: Dictionary = {}
 var discoveries: Dictionary = {}
 var gold_earned: int = 0
 var log: Array[String] = []
 var recap: Dictionary = {}
 
-func start(hero_attack: int, hero_health: int, protected: bool, prepared: bool) -> void:
+func start(hero_attack: int, hero_health: int, protected: bool, prepared: bool, armoured: bool = false, opening_strike: bool = false) -> void:
 	requested = false
 	active = true
 	route = selected_route
@@ -31,6 +34,8 @@ func start(hero_attack: int, hero_health: int, protected: bool, prepared: bool) 
 	max_hp = hero_health
 	hp = max_hp
 	thornward = protected
+	hardened = armoured
+	opportunist = opening_strike
 	stew_available = prepared
 	stew_used = false
 	gold_earned = 0
@@ -67,9 +72,11 @@ func _resolve_node() -> Dictionary:
 	if id == "guardian" and thornward:
 		damage /= 2
 	if bool(encounter.get("attack_reduction", false)):
-		damage = maxi(int(encounter.get("minimum_damage", 1)), damage - attack)
+		damage = maxi(int(encounter.get("minimum_damage", 1)), damage - attack * (2 if opportunist and bool(encounter.get("telegraphed", false)) else 1))
 	if bool(encounter.get("telegraphed", false)) and thornward:
 		damage /= 2
+	if hardened:
+		damage = int(ceil(damage * 0.75))
 	hp = maxi(0, hp - damage)
 	var healed: int = mini(max_hp - hp, int(encounter.get("heal", 0)))
 	hp += healed
@@ -84,6 +91,7 @@ func _resolve_node() -> Dictionary:
 	elif node == 5:
 		first = not claimed_routes.has(route)
 		claimed_routes[route] = true
+		route_clears[route] = int(route_clears.get(route, 0)) + 1
 		completed += 1
 		var reward: int = Catalog.ROUTES[route]["first_gold"] if first else Catalog.ROUTES[route]["repeat_gold"]
 		final_gold = reward
@@ -106,8 +114,8 @@ func abort() -> void:
 func to_save_dict() -> Dictionary:
 	return {"requested": requested, "selected_route": selected_route, "active": active, "route": route,
 		"run_id": run_id, "node": node, "remainder_usec": remainder_usec, "attack": attack,
-		"max_hp": max_hp, "hp": hp, "thornward": thornward, "stew_available": stew_available,
-		"stew_used": stew_used, "completed": completed, "claimed_routes": claimed_routes.duplicate(),
+		"max_hp": max_hp, "hp": hp, "thornward": thornward, "hardened": hardened, "opportunist": opportunist, "stew_available": stew_available,
+		"stew_used": stew_used, "completed": completed, "claimed_routes": claimed_routes.duplicate(), "route_clears": route_clears.duplicate(),
 		"discoveries": discoveries.duplicate(), "gold_earned": gold_earned, "log": log.duplicate(), "recap": recap.duplicate(true)}
 
 func load_save_dict(data: Dictionary) -> void:
@@ -128,10 +136,19 @@ func load_save_dict(data: Dictionary) -> void:
 	max_hp = maxi(1, int(data.get("max_hp", 36)))
 	hp = clampi(int(data.get("hp", 36)), 0, max_hp)
 	thornward = bool(data.get("thornward", false))
+	hardened = bool(data.get("hardened", false))
+	opportunist = bool(data.get("opportunist", false))
 	stew_available = bool(data.get("stew_available", false))
 	stew_used = bool(data.get("stew_used", false))
 	completed = maxi(0, int(data.get("completed", 0)))
 	claimed_routes = _flags(data.get("claimed_routes", {}), Catalog.ROUTES)
+	route_clears.clear()
+	var saved_clears: Variant = data.get("route_clears", {})
+	for id in claimed_routes:
+		if not data.has("route_clears"):
+			route_clears[id] = 1
+		elif saved_clears is Dictionary and int(saved_clears.get(id, 0)) > 0:
+			route_clears[id] = int(saved_clears[id])
 	discoveries = _flags(data.get("discoveries", {}), Catalog.ENCOUNTERS)
 	gold_earned = maxi(0, int(data.get("gold_earned", 0)))
 	log.clear()

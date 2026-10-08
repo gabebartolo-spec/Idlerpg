@@ -10,10 +10,10 @@ Evaluate anticipation → reveal → meaningful gain → visible recognition →
 
 | Requirement | Evidence needed | Current state |
 |---|---|---|
-| Cohesive polished region with several days of authored pursuits | Real phone playthroughs, content/progression inventory and seven-day free-player progression trials | Lanternwood art/routes implemented; multi-day pursuits still incomplete |
-| Three viable earned builds | Reproducible earned loadouts with distinct roles and clear encounters | Isolated attack/protection/party trials exist; complete regional builds still required |
+| Cohesive polished region with several days of authored pursuits | Real phone playthroughs, content/progression inventory and seven-day free-player progression trials | Three authored 2h/8h/24h gear journeys and 102h mastery horizon added to Lanternwood; fresh-save seven-day progression and device trials remain |
+| Three viable earned builds | Reproducible earned loadouts with distinct roles and clear encounters | Striker/Guardian/Lamplighter gear earned through actual chest flows, all survive three new trails; fresh-save acquisition and broader encounter trials remain |
 | Desirable visible rewards and satisfying reveals | Preview→pursuit→earn→open→wear flow; observed desirability feedback | Two earned looks and saved chest/reveal/wear flow implemented; observed desirability still required |
-| Achievements and concise returns | Actual milestone/reward presentation, persistent ownership and usable next pursuit | Chronicle/goals exist; presentation/content needs further work |
+| Achievements and concise returns | Actual milestone/reward presentation, persistent ownership and usable next pursuit | Regional keepsake collection, three once-only clear masteries and permanent profile titles added; phone/participant evidence remains |
 | Real guild membership | Separate authenticated accounts joining the same persistent server-owned roster with enforced roles/permissions | Shared persistent roster and playable create/join/leave screens implemented; physical phone checks remain |
 | Shared asynchronous raid | Three independent accounts contribute to one persistent server raid; retry/concurrency/reward tests plus client demonstration | Three independent accounts drive actual prepare/open/Wear controls against shared service; phone and participant evidence remain |
 | Trusted progression and duplicate-safe server grants | Server-owned economy, transactional/idempotent grants, client reconciliation and interruption tests | Separate supply economy, raid settlement, transactional chest grants, actual Wear controls and concurrent spending verified; regional progression integration and phone evidence remain |
