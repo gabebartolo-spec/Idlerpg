@@ -85,8 +85,42 @@ func _run() -> void:
 	await _test_chronicle_screens()
 	await _test_chronicle_screen()
 	await _test_new_management()
+	await _test_collection_pursuit()
 	print("UI tests complete: %d failure(s)" % failures)
 	quit(failures)
+
+func _test_collection_pursuit() -> void:
+	var sim: Node = AdventurerSimScript.new()
+	var game: Node = GameStateScript.new()
+	root.add_child(sim)
+	root.add_child(game)
+	var screen: Control = GachaScreenScript.new()
+	root.add_child(screen)
+	screen.setup(sim, game)
+	screen.show_mode("pursuit")
+	screen.open()
+	await _settle()
+	_check(screen.pursuit_detail.text.contains("maximum 300") and screen.pursuit_detail.text.contains("expected"), "a missing-item pursuit publishes its costs before drawing")
+	_on_screen([screen.pursuit_button])
+	_check(screen.pursuit_list.size.y >= 128.0, "pursuit browsing retains room for two touch rows")
+	await _tap(screen.pursuit_button.get_global_rect().get_center())
+	_check(not game.pursuits.get("gear", {}).is_empty(), "pursuit confirmation chooses the previewed item by touch")
+	var chosen: String = game.pursuits["gear"]["target"]
+	game.pursuits["gear"]["progress"] = 12
+	screen.pursuit_selected = "Iron Sword" if chosen != "Iron Sword" else "Leather Hood"
+	screen.refresh()
+	await _settle()
+	_check(screen.pursuit_button.text.contains("resets 12/30"), "switching pursuit warns of the lost progress before confirmation")
+	for item in game.collection_items("gear"):
+		game.collection["gear"][item] = 1
+	game.pursuits.erase("gear")
+	screen.refresh()
+	await _settle()
+	_check(screen.pursuit_button.disabled and screen.pursuit_detail.text.contains("Optional keepsake"), "a complete banner explains its cosmetic pursuit and blocks missing-item selection")
+	_on_screen([screen.pursuit_button])
+	screen.free()
+	sim.free()
+	game.free()
 
 func _test_chronicle_screens() -> void:
 	var sim: Node = AdventurerSimScript.new()

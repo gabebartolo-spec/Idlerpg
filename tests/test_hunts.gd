@@ -181,7 +181,7 @@ func _test_no_token_source() -> void:
 	for item_name in GearCatalogScript.ITEMS:
 		if not GearCatalogScript.source(item_name).is_empty():
 			_check(GearCatalogScript.salvage_tokens(item_name) == 0, "%s, which the world gives back, salvages for no tokens" % item_name)
-	_check(GearCatalogScript.salvage_tokens("Iron Sword") == 1 and GearCatalogScript.salvage_tokens("Crownblade") == 15, "banner gear salvages as before")
+	_check(GearCatalogScript.salvage_tokens("Iron Sword") == 1 and GearCatalogScript.salvage_tokens("Crownblade") == 8, "banner salvage remains bounded below a draw cost")
 
 # The hunts as they happen in the real quest loop.
 func _test_in_play() -> void:
