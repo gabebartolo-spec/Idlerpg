@@ -90,6 +90,8 @@ companions name their wings `wing_l` and `wing_r` and the game flaps them.
 
 ## Zones
 
+**New region authoring contract — same hand, different place.** Before adding a batch, write down the region's unique colours, flora/fauna, architecture motifs, atmosphere and landmark shapes. Retain the game's shared forms, proportions, material finish, texture/detail scale, lighting approach and Godot/mobile budgets from [ART_STYLE_GUIDE.md](ART_STYLE_GUIDE.md). The local palette extends/reuses `tools/art/palette.py` and should be evaluated next to colours already used elsewhere. Do not create an isolated shader, character-proportion language or generator-specific style for one biome.
+
 A zone keeps its enemies, boss, reward and props together in one file, as
 `tools/art/models/briarfen.py` does, with a small prop vocabulary and its own colours added
 to the palette. An enemy's model id must match the simulation's enemy kind (`briarling`,
@@ -123,6 +125,14 @@ ArtCatalogScript.item_icon("Iron Sword")        # Texture2D for UI
 ```
 
 ## Review
+
+**Art review is a human visual gate, not something the existing geometry validator or tests can certify.** Before merging a new region or major asset family:
+
+1. Use the category review sheet and representative real-game captures. Arrange new models **alongside the same approved reference hero, gear, enemy and established-region props**, not only other models from the new region.
+2. Compare at a common size, angle and neutral lighting for silhouette/proportion, bevel language, materials, saturation/contrast and apparent detail density. Review separately in intended biome lighting; local mood may vary without changing the underlying art style.
+3. Inspect at **actual Android portrait display size** and ensure the avatar/loot/combat remains legible. Note art mismatches and revise outliers before expanding the batch.
+4. Keep the approved master style sheet current when changes are explicitly approved; don't silently let a fresh AI-generated batch redefine the game-wide style.
+5. Audit already-authored regions, including Mossgate/Briarfen/Lanternwood, against this same standard before calling them final. This is a **requested future review**, not evidence that it has already passed.
 
 - `art/review/<category>s.png`: every model with its name and triangle count.
 - `godot --path . -s res://tools/art/capture.gd` (not headless) runs the real main scene and
