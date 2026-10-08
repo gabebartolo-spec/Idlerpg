@@ -1,5 +1,7 @@
 # Art pipeline
 
+**Owner highest priority, 9 October 2026:** [R45 Tripo legendary vision pilot](TRIPO_LEGENDARY_PILOT.md) / [issue #47](https://github.com/gabebartolo-spec/Idlerpg/issues/47). Next art deliverable is **Crownblade + Starforged Helm + Titanheart Plate as actual Tripo-derived GLBs equipped in Godot**, with before/after phone-scale screenshots and a short reviewable turntable/in-engine capture. The existing model-build path below is **current**, while imported GLB support is **planned and not yet implemented**. Preserve current pipeline until reviewed; integrate a validated import branch rather than replacing it wholesale.
+
 Every 3D model in the game is written as a short Python script and built by Blender, headless.
 One command turns those scripts into game-ready models, gear icons and review sheets.
 
@@ -30,6 +32,10 @@ Editing `tools/art/build.py` or `tools/art/lowpoly.py` changes every fingerprint
 next build redoes everything. Commit `art/build_state.json` with the outputs it describes.
 `--adopt` records the outputs on disk as current without rebuilding; it exists for setting
 this up on outputs you already trust, not for everyday use.
+
+## Imported Tripo model path (P0 pilot: planned, not yet available)
+
+The existing art builders have extremely tight procedural triangle budgets (e.g. 300/400 for weapon/armour). Don't force generated Tripo gear through those budgets or waive all validation. R45 must supply a parallel repeatable import/preprocess path for the three existing named legendary items, including mapping from source GLBs to stable ArtCatalog IDs, scale/grip/attachment/axis alignment, mesh cleanup/LOD where required, license/source manifest, sensible Android polygon/material/texture budgets, icon generation and preview equality. Developer demo gear should never alter normal saves, rarity probabilities or gacha economy. See [TRIPO_LEGENDARY_PILOT.md](TRIPO_LEGENDARY_PILOT.md). User approval is required before full art rollout and no new service purchases are authorised.
 
 ## What a build does
 
