@@ -2,6 +2,9 @@ extends Node
 
 const IdentityScreenScript = preload("res://src/ui/identity_screen.gd")
 const JournalScreenScript = preload("res://src/ui/journal_screen.gd")
+const FishingScreenScript = preload("res://src/ui/fishing_screen.gd")
+const PracticeScreenScript = preload("res://src/ui/practice_screen.gd")
+const ExpeditionScreenScript = preload("res://src/ui/expedition_screen.gd")
 const GameStateScript = preload("res://src/game.gd")
 const AdventurerSimScript = preload("res://src/sim/adventurer_sim.gd")
 const PersistenceScript = preload("res://src/state/persistence.gd")
@@ -20,7 +23,7 @@ const ChronicleScreenScript = preload("res://src/ui/chronicle_screen.gd")
 const BossScreenScript = preload("res://src/ui/boss_screen.gd")
 const UiStyleScript = preload("res://src/ui/ui_style.gd")
 
-const ACTIVITY_POSES := {"travelling": "walk", "returning": "walk", "fighting": "attack", "recovering": "down"}
+const ACTIVITY_POSES := {"travelling": "walk", "returning": "walk", "expedition": "walk", "fighting": "attack", "recovering": "down"}
 const GEAR_SLOTS := ["weapon", "offhand", "head", "chest", "legs", "hands", "feet", "accessory"]
 const HOVERING_COMPANIONS := ["Torch Sprite", "Clockwork Raven"]
 # How far away an enemy stands, relative to an ordinary one.
@@ -31,6 +34,9 @@ var sim: Node
 
 var world: Node3D
 var hero_visual: Node3D
+var practice_stage: Node3D
+var practice_allies: Array[Node3D] = []
+var practice_foes: Array[Node3D] = []
 var enemy_visual: Node3D
 var companion_visual: Node3D
 var camera: Camera3D
@@ -59,6 +65,9 @@ var talent_panel: Control
 var boss_panel: Control
 var identity_panel: Control
 var journal_panel: Control
+var fishing_panel: Control
+var practice_panel: Control
+var expedition_panel: Control
 var chronicle_panel: Control
 var adventure_panel: Control
 var loadout_panel: Control
@@ -181,6 +190,15 @@ func _build_world() -> void:
 	_build_wolf_den()
 	_build_horizon()
 	_build_briarfen()
+	var pond := MeshInstance3D.new()
+	var water := CylinderMesh.new()
+	water.top_radius = 1.4
+	water.bottom_radius = 1.4
+	water.height = 0.04
+	pond.mesh = water
+	pond.position = preload("res://src/data/fishing_catalog.gd").POSITION + Vector3(-1.5, 0.03, 0.0)
+	pond.material_override = _material(Color(0.15, 0.48, 0.67))
+	add_child(pond)
 
 	var trees := [
 		Vector3(-6.8, 0.0, -2.5),
@@ -200,6 +218,7 @@ func _build_world() -> void:
 
 	hero_visual = _build_hero()
 	world.add_child(hero_visual)
+	_build_practice_stage()
 
 	companion_visual = Node3D.new()
 	companion_visual.name = "Companion"
@@ -291,17 +310,64 @@ func _build_hero() -> Node3D:
 	hero.add_child(talent_proc_visual)
 	return hero
 
+func _build_practice_stage() -> void:
+	practice_stage = Node3D.new()
+	practice_stage.position = preload("res://src/data/practice_catalog.gd").POSITION
+	practice_stage.visible = false
+	world.add_child(practice_stage)
+	var floor_mesh := MeshInstance3D.new()
+	var floor_box := BoxMesh.new()
+	floor_box.size = Vector3(5.0, 0.05, 4.5)
+	floor_mesh.mesh = floor_box
+	floor_mesh.position.y = 0.025
+	floor_mesh.material_override = _material(Color(0.35, 0.38, 0.34))
+	practice_stage.add_child(floor_mesh)
+	for index in 2:
+		var ally: Node3D = CharacterVisualScript.new()
+		ally.setup("hero")
+		ally.show_identity("slate" if index == 0 else "moss", false)
+		ally.position = Vector3(-1.4 if index == 0 else 1.4, 0.0, 0.5)
+		ally.face(Vector3(0, 0, -1))
+		practice_stage.add_child(ally)
+		practice_allies.append(ally)
+		var label := Label3D.new()
+		label.text = "Bran\nNPC protection" if index == 0 else "Iris\nNPC support"
+		label.font_size = 32
+		label.pixel_size = 0.006
+		label.position.y = 2.0
+		label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+		ally.add_child(label)
+	for model_id in ["goblin", "briarling", "thornback"]:
+		var foe: Node3D = CharacterVisualScript.new()
+		foe.setup(model_id)
+		foe.position = Vector3(0, 0, -1.7)
+		foe.set_state("attack")
+		foe.visible = false
+		practice_stage.add_child(foe)
+		practice_foes.append(foe)
+
 func _sync_world(delta: float) -> void:
+	practice_stage.visible = sim.activity == "practice"
+	if practice_stage.visible:
+		for ally in practice_allies:
+			ally.set_state("attack")
+		for index in practice_foes.size():
+			practice_foes[index].visible = index == sim.practice.room
+		hero_visual.face(Vector3(0, 0, -1))
 	var fighting: bool = sim.activity == "fighting" and not sim.enemy_kind.is_empty()
 	var enemy_position: Vector3 = sim.hero_position + Vector3(1.15, 0.0, -0.45) * float(ENEMY_REACH.get(sim.enemy_kind, 1.0))
 
-	if fighting:
+	if sim.activity == "fishing":
+		hero_visual.face(Vector3.LEFT)
+	elif sim.activity == "practice":
+		hero_visual.face(Vector3(0, 0, -1))
+	elif fighting:
 		hero_visual.face(enemy_position - sim.hero_position)
 	else:
 		hero_visual.face(sim.hero_position - hero_visual.position)
 	hero_visual.show_identity(sim.identity.palette, sim.thornback_rank > 0)
 	hero_visual.position = sim.hero_position
-	hero_visual.set_state(str(ACTIVITY_POSES.get(sim.activity, "idle")))
+	hero_visual.set_state("attack" if sim.activity == "practice" else str(ACTIVITY_POSES.get(sim.activity, "idle")))
 	var pulse_scale: float = 1.06 if talent_proc_pulse > 0.0 else 1.0
 	hero_visual.scale = Vector3.ONE * pulse_scale
 	if talent_proc_visual != null:
@@ -469,6 +535,14 @@ func _build_ui() -> void:
 	identity_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	identity_button.pressed.connect(func() -> void: _toggle_sheet(identity_panel))
 	records.add_child(identity_button)
+	var fishing_button := UiStyleScript.button("Fishing")
+	fishing_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	fishing_button.pressed.connect(func() -> void: _toggle_sheet(fishing_panel))
+	records.add_child(fishing_button)
+	var expedition_button := UiStyleScript.button("Expedition")
+	expedition_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	expedition_button.pressed.connect(func() -> void: _toggle_sheet(expedition_panel))
+	records.add_child(expedition_button)
 	var pursuits := HBoxContainer.new()
 	pursuits.add_theme_constant_override("separation", 8)
 	bottom_column.add_child(pursuits)
@@ -488,6 +562,10 @@ func _build_ui() -> void:
 	relic_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	relic_button.pressed.connect(func() -> void: _toggle_sheet(relic_panel))
 	pursuits.add_child(relic_button)
+	var practice_button := UiStyleScript.button("Practice")
+	practice_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	practice_button.pressed.connect(func() -> void: _toggle_sheet(practice_panel))
+	pursuits.add_child(practice_button)
 
 	var actions := HBoxContainer.new()
 	actions.add_theme_constant_override("separation", 8)
@@ -596,6 +674,21 @@ func _build_ui() -> void:
 	journal_panel.visible = false
 	canvas.add_child(journal_panel)
 	journal_panel.setup(sim)
+	fishing_panel = FishingScreenScript.new()
+	fishing_panel.visible = false
+	canvas.add_child(fishing_panel)
+	fishing_panel.setup(sim)
+	fishing_panel.changed.connect(_save_now)
+	practice_panel = PracticeScreenScript.new()
+	practice_panel.visible = false
+	canvas.add_child(practice_panel)
+	practice_panel.setup(sim)
+	practice_panel.changed.connect(_save_now)
+	expedition_panel = ExpeditionScreenScript.new()
+	expedition_panel.visible = false
+	canvas.add_child(expedition_panel)
+	expedition_panel.setup(sim)
+	expedition_panel.changed.connect(_save_now)
 	chronicle_panel = ChronicleScreenScript.new()
 	chronicle_panel.visible = false
 	canvas.add_child(chronicle_panel)
@@ -654,7 +747,7 @@ func _refresh_wallet(_tokens: int) -> void:
 
 # Only one sheet, drawer or report is open at a time.
 func _close_drawers() -> void:
-	for sheet in [equipment_panel, talent_panel, boss_panel, gacha_panel, adventure_panel, loadout_panel, relic_panel, chronicle_panel, journal_panel, identity_panel, dev_panel, return_panel]:
+	for sheet in [equipment_panel, talent_panel, boss_panel, gacha_panel, adventure_panel, loadout_panel, relic_panel, chronicle_panel, journal_panel, identity_panel, fishing_panel, practice_panel, expedition_panel, dev_panel, return_panel]:
 		if sheet != null:
 			sheet.visible = false
 
@@ -708,6 +801,16 @@ func _open_chronicle_route(route: String) -> void:
 func _open_chronicle_destination(route: String, target: String) -> void:
 	_close_drawers()
 	match route:
+		"expedition":
+			expedition_panel.open()
+			expedition_panel.mode = "story" if not sim.expedition.recap.is_empty() else "route"
+			if not target.is_empty() and sim.expedition.Catalog.ROUTES.has(target):
+				sim.expedition.selected_route = target
+			expedition_panel.refresh()
+		"practice":
+			practice_panel.open()
+		"fishing":
+			fishing_panel.open()
 		"journal":
 			journal_panel.open()
 			journal_panel.select(target)
@@ -814,6 +917,12 @@ func _format_return_report(report: Dictionary) -> String:
 
 	if int(report.get("tokens", 0)) > 0:
 		lines.append("+%d earned summon tokens." % int(report["tokens"]))
+	if int(report.get("fish_catches", 0)) > 0:
+		lines.append("%d passive catches at Mossgate Pond." % int(report["fish_catches"]))
+	if int(report.get("practice_clears", 0)) > 0:
+		lines.append("%d practice dungeon clear(s) with NPC allies." % int(report["practice_clears"]))
+	if int(report.get("expeditions", 0)) > 0:
+		lines.append("%d trail expedition(s) completed." % int(report["expeditions"]))
 	if quests > 0:
 		lines.append("%d quest%s completed." % [quests, "" if quests == 1 else "s"])
 	if kills > 0:

@@ -165,13 +165,19 @@ Recommended first sequence: R00 → R01 → R02 → R03 → R04. R06/R10 can fol
 
 **Payoff:** peaceful variety and useful preparation. **Scope:** one fishing spot, three catches, passive activity plus optional short minigame; catches prepare one dungeon consumable. **Start:** new profession catalog, sim activity, bounded minigame UI. **Accept:** passive-only players obtain all functional preparation; active play offers modest optional upside; stopping/reloading cannot duplicate catches. **Validate:** offline parity, interruption and real phone controls. **Exclude:** other professions or energy purchases.
 
+**R15 implementation note (VERIFY):** Mossgate Pond queues after the current outing, supplies three passive catches, and prepares persisted Pond Stew. The optional timed reel is capped at one bonus perch per ten successful casts and cannot replay after reload. Catch-up uses bounded counting; regression and rendered phone-layout checks pass. Dungeon use is implemented in R16; Android controls/player checks remain open. [Rules and validation](FISHING_AND_PRACTICE.md).
+
 ### IRPG-R16 — Practice dungeon / P9
 
 **Payoff:** learn cooperative build roles safely. **Scope:** three rooms, one boss and two explicitly labeled NPC practice allies; preparation and recap show tank/support/damage contributions. **Start:** focused encounter/party module, sim and presentation. **Accept:** one persistent hero retains identity, roles change success, rewards settle once, practice is available without human matchmaking. **Validate:** wipe/retry/reload, role trials and parity. **Exclude:** pretending NPCs are real people; this does not complete multiplayer.
 
+**R16 implementation note (VERIFY):** Three local practice rooms, two labeled NPC allies, frozen role/build selection, actual damage/block/heal recaps, consume-on-use Pond Stew, free retries and a once-only first victory reward. Controlled role/preparation trials, offline/reload and UI tests cover the prototype; multiplayer and phone/player validation remain open. [Rules and role evidence](FISHING_AND_PRACTICE.md).
+
 ### IRPG-R17 — Short route-choice expedition
 
 **Payoff:** occasional adventure surprises with a real decision. **Scope:** one five-node expedition with two preselected routes, six authored encounters and a final reward; auto-resolve while away. **Start:** new expedition catalog/controller and policies. **Accept:** routes have legible risk/reward; selection saves; return tells a coherent sequence; free retries use time/preparation rather than paid rescue. **Validate:** deterministic replay, abort and reward settlement. **Exclude:** infinite procedural campaign or required live choices.
+
+**R17 implementation note (VERIFY):** Two preselected five-node routes cover six authored encounters with automatic offline resolution, frozen entry builds, explicit risk/reward and free stew/Thornward counters. Event-time checkpoint replay, failure/abort and repeat reward tests protect settlement. Last Journey shows the actual ordered route story. Phone/player validation remains open. [Rules and validation](TRAIL_EXPEDITIONS.md).
 
 ### IRPG-R18 — Real guilds and one project / P10
 

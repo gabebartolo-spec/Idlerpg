@@ -2,6 +2,10 @@ class_name AdventurerSim
 extends Node
 
 signal event_emitted(event: Dictionary)
+const FishingScript = preload("res://src/state/fishing.gd")
+const PracticeScript = preload("res://src/state/practice_dungeon.gd")
+const ExpeditionScript = preload("res://src/state/expedition.gd")
+const FishingCatalog = preload("res://src/data/fishing_catalog.gd")
 
 const IdentityScript = preload("res://src/state/adventurer_identity.gd")
 const JournalScript = preload("res://src/state/discovery_journal.gd")
@@ -102,6 +106,9 @@ var equipped: Dictionary = {
 }
 var recent_events: Array[String] = []
 var identity = IdentityScript.new()
+var fishing = FishingScript.new()
+var practice = PracticeScript.new()
+var expedition = ExpeditionScript.new()
 var journal = JournalScript.new()
 var income = IncomeScript.new()
 var chronicle = ChronicleScript.new()
@@ -136,6 +143,12 @@ func advance(delta: float) -> void:
 
 	income.advance(delta)
 	match activity:
+		"expedition":
+			_advance_expedition(delta)
+		"practice":
+			_advance_practice(delta)
+		"fishing":
+			_advance_fishing(delta)
 		"travelling", "returning":
 			_advance_travel(delta)
 		"fighting":
@@ -170,6 +183,9 @@ func simulate_elapsed(seconds: float) -> void:
 # Whatever changes is then stepped through properly. Events are not emitted for repeated
 # cycles; the return report is built from the counters.
 func simulate_offline(seconds: float) -> void:
+	if activity == "fishing":
+		advance(seconds)
+		return
 	var total := _whole_steps(seconds)
 	var steps := total
 
@@ -180,6 +196,10 @@ func simulate_offline(seconds: float) -> void:
 		steps -= 1
 
 	while steps > 0:
+		if activity == "fishing":
+			advance(float(steps) * STEP)
+			steps = 0
+			break
 		var before := to_save_dict()
 		mark = cycle_starts
 		var length := 0
@@ -304,6 +324,9 @@ func to_save_dict() -> Dictionary:
 		"active_companion": active_companion,
 		"companion_bond_xp": companion_bond_xp.duplicate(true),
 		"identity": identity.to_save_dict(),
+		"fishing": fishing.to_save_dict(),
+		"practice": practice.to_save_dict(),
+		"expedition": expedition.to_save_dict(),
 		"journal": journal.to_save_dict(),
 		"income": income.to_save_dict(),
 		"chronicle": chronicle.to_save_dict(),
@@ -437,6 +460,11 @@ func load_save_dict(data: Dictionary) -> void:
 	recent_events.clear()
 
 	identity.load_save_dict(data.get("identity", {}), self)
+	fishing.load_save_dict(data.get("fishing", {}))
+	practice.load_save_dict(data.get("practice", {}))
+	expedition.load_save_dict(data.get("expedition", {}))
+	if activity == "fishing" and not fishing.requested:
+		_begin_quest_cycle()
 	if not data.has("journal"):
 		journal.seed_legacy(self)
 	if not data.has("earned_relics"):
@@ -474,6 +502,12 @@ func set_adventure_policy(id: String) -> bool:
 	return true
 
 func policy_reason() -> String:
+	if activity == "expedition":
+		return "The chosen route resolves automatically. No live decisions or paid rescue are needed."
+	if activity == "practice":
+		return "Bran and Iris are NPC practice allies. Your selected role and build are fixed for this run."
+	if activity == "fishing":
+		return "Passive catches continue while away. Resume adventures whenever you choose."
 	return PolicyScript.reason(outing_policy, outing_hunt, quest_cycles_completed == 0)
 
 func set_tracked_goal(id: String) -> bool:
@@ -498,6 +532,9 @@ func _seed_legacy_chronicle() -> void:
 func report_counters() -> Dictionary:
 	return {
 		"earned_tokens": income.total,
+		"fish_catches": fishing.catches,
+		"practice_clears": practice.clears,
+		"expeditions": expedition.completed,
 		"level": hero_level,
 		"gold": gold,
 		"total_kills": total_kills,
@@ -884,6 +921,12 @@ func take_damage(amount: int, telegraphed: bool = false) -> void:
 
 func current_activity_text() -> String:
 	match activity:
+		"expedition":
+			return "%s · node %d/5 · %d/%d HP" % [expedition.Catalog.ROUTES[expedition.route]["name"], mini(5, expedition.node + 1), expedition.hp, expedition.max_hp]
+		"practice":
+			return "Practice dungeon · room %d/3 · party %d/%d HP" % [mini(practice.room + 1, 3), practice.hp, practice.max_hp]
+		"fishing":
+			return "Fishing at Mossgate Pond · %d catches" % fishing.catches
 		"travelling":
 			return "Running to %s" % destination_name
 		"returning":
@@ -899,7 +942,125 @@ func current_activity_text() -> String:
 		_:
 			return "Waiting in Mossgate"
 
+func set_fishing(enabled: bool) -> void:
+	if enabled:
+		practice.requested = false
+		expedition.requested = false
+	fishing.requested = enabled
+	if not enabled and activity == "fishing":
+		hero_position = TOWN_POSITION
+		_begin_quest_cycle()
+	else:
+		_emit_event("fishing_selected", "Fishing after this outing." if enabled else "Fishing request cancelled.")
+
+func reel_fishing() -> Dictionary:
+	if activity != "fishing":
+		return {"ok": false, "message": "Wait until your adventurer reaches the pond."}
+	var result: Dictionary = fishing.reel()
+	_emit_event("fishing_reel", result["message"])
+	return result
+
+func prepare_stew() -> bool:
+	if not fishing.prepare():
+		return false
+	_emit_event("stew_prepared", "Prepared Pond Stew for a practice dungeon. Heals 12 party health once.")
+	return true
+
+func request_practice(role: String) -> bool:
+	if practice.active or not practice.Catalog.ROLES.has(role):
+		return false
+	practice.selected_role = role
+	practice.requested = true
+	expedition.requested = false
+	fishing.requested = false
+	if activity == "fishing":
+		hero_position = TOWN_POSITION
+		_begin_quest_cycle()
+	else:
+		_emit_event("practice_selected", "Practice dungeon queued after this outing.")
+	return true
+
+func stop_practice() -> void:
+	practice.abort()
+	if activity == "practice":
+		hero_position = TOWN_POSITION
+		_begin_quest_cycle()
+	_emit_event("practice_stopped", "Practice stopped. Unused stew and earned progress kept.")
+
+func _advance_practice(delta: float) -> void:
+	var used_before: bool = practice.stew_used
+	var result: Dictionary = practice.advance(delta)
+	if practice.stew_used and not used_before:
+		fishing.prepared = maxi(0, fishing.prepared - 1)
+	if result.is_empty():
+		return
+	var first: bool = bool(result["won"]) and not practice.first_reward_claimed
+	if first:
+		practice.first_reward_claimed = true
+		gold += 25
+	# Resume before publishing completion; event-triggered saves see a settled state.
+	hero_position = TOWN_POSITION
+	_begin_quest_cycle()
+	_emit_event("practice_completed", ("Practice cleared. +25 gold for your first victory." if first else str(result["reason"])), {"won": result["won"], "first": first, "gold": 25 if first else 0})
+
+func request_expedition(route: String) -> bool:
+	if expedition.active or not expedition.Catalog.ROUTES.has(route):
+		return false
+	expedition.selected_route = route
+	expedition.requested = true
+	practice.requested = false
+	fishing.requested = false
+	if activity == "fishing":
+		hero_position = TOWN_POSITION
+		_begin_quest_cycle()
+	else:
+		_emit_event("expedition_selected", "Expedition queued after this outing.")
+	return true
+
+func stop_expedition() -> void:
+	expedition.abort()
+	if activity == "expedition":
+		hero_position = TOWN_POSITION
+		_begin_quest_cycle()
+	_emit_event("expedition_stopped", "Expedition stopped. Found gold and unused preparation are kept.")
+
+func _advance_expedition(delta: float) -> void:
+	var used_before: bool = expedition.stew_used
+	var result: Dictionary = expedition.advance(delta)
+	if result.is_empty():
+		return
+	if expedition.stew_used and not used_before:
+		fishing.prepared = maxi(0, fishing.prepared - 1)
+	hero_hp = expedition.hp
+	if expedition.active:
+		var points: Array = expedition.Catalog.WAYPOINTS[expedition.route]
+		var from: Vector3 = expedition.Catalog.POSITION if expedition.node == 0 else points[expedition.node - 1]
+		hero_position = from.lerp(points[expedition.node], float(expedition.remainder_usec) / float(expedition.Catalog.NODE_USEC))
+	# All grants and route progress settle before an event can trigger a save.
+	var first := false
+	for encounter in result["events"]:
+		gold += int(encounter["gold"])
+		first = first or bool(encounter["first"])
+	if result["finished"]:
+		hero_position = TOWN_POSITION
+		_begin_quest_cycle()
+	for encounter in result["events"]:
+		_emit_event("expedition_encounter", expedition.Catalog.ENCOUNTERS[encounter["encounter"]]["text"], encounter)
+	if result["finished"]:
+		_emit_event("expedition_completed", "%s · %s" % [expedition.Catalog.ROUTES[expedition.route]["name"], expedition.recap["reason"]], {"route": expedition.route, "first": first, "won": expedition.recap["won"]})
+
+func _advance_fishing(delta: float) -> void:
+	var gained: Dictionary = fishing.advance(delta)
+	for item in gained:
+		_emit_event("fish_caught", "Caught %s at Mossgate Pond." % item, {"fish": item, "amount": gained[item]})
+
 func current_quest_text() -> String:
+	if activity == "expedition":
+		return "Route-choice expedition · %d authored encounters discovered" % expedition.discoveries.size()
+	if activity == "practice":
+		return "Moss Sentinel practice · %s role" % practice.Catalog.ROLES[practice.role]["name"]
+	if activity == "fishing":
+		return "Mossgate Pond · prepare stew for practice adventures"
 	if quest_kind == "briarfen":
 		if quest_stage <= 1:
 			return "Briarfen Trouble · Briarlings %d/4" % briarlings_killed
@@ -944,6 +1105,40 @@ func get_snapshot() -> Dictionary:
 
 func _begin_quest_cycle() -> void:
 	cycle_starts += 1
+	if expedition.requested:
+		activity = "expedition"
+		activity_timer = 0.0
+		enemy_kind = ""
+		enemy_attack_clock = 0.0
+		hero_attack_clock = 0.0
+		hero_hp = effective_max_hp()
+		hero_position = expedition.Catalog.POSITION
+		expedition.start(effective_attack(), effective_max_hp(), has_gear_effect("thornward"), fishing.prepared > 0)
+		_emit_event("expedition_started", "Set out along " + str(expedition.Catalog.ROUTES[expedition.route]["name"]) + ".")
+		return
+	if practice.requested:
+		activity = "practice"
+		activity_timer = 0.0
+		enemy_kind = ""
+		enemy_attack_clock = 0.0
+		hero_attack_clock = 0.0
+		hero_position = practice.Catalog.POSITION
+		practice.start(effective_attack(), effective_max_hp(), fishing.prepared > 0)
+		_emit_event("practice_started", "Entered the practice dungeon with Bran and Iris (NPC allies).")
+		return
+	if fishing.requested:
+		activity = "fishing"
+		activity_timer = 0.0
+		# The outing ended; no combat clocks or live enemy carry into the profession.
+		enemy_kind = ""
+		enemy_hp = 0
+		enemy_max_hp = 0
+		enemy_attack_clock = 0.0
+		hero_attack_clock = 0.0
+		hero_position = FishingCatalog.POSITION
+		hero_hp = effective_max_hp()
+		_emit_event("fishing_started", "Settled beside Mossgate Pond. Passive catches need no input.")
+		return
 	outing_policy = adventure_policy
 	outing_hunt = hunt_target
 	policy_retreat = false
