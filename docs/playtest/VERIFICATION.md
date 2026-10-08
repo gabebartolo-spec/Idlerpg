@@ -7,3 +7,5 @@
 - Previous game/service evidence is documented in PLAYTEST_TARGET.md and the service documentation. No game simulation or server logic changed in this pack slice; their tests were not redundantly rerun.
 
 The pack contains no actual participant responses. Ten players and seven days are study targets.
+
+Owner-only revision: no participant-number selection and every question is optional. In the actual desktop browser, a single clearly labelled TEST ONLY desired-reward note saved with all other answers blank and restored automatically after reload. No participant response is included in the pack. The formal group protocol is deferred reference material.

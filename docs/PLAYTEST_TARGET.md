@@ -2,6 +2,8 @@
 
 Set with the owner on 9 October 2026. The deliverable is an Android-ready build and playtest pack for a seven-day, ten-player study. Ten players/seven days are recruitment/study targets, not completed evidence or a guarantee of enjoyment. This goal remains active until the build and pack meet the full requirements.
 
+Current owner direction: **the owner is the only tester**. Prioritize a playable build and optional quick notes for their own sessions. The ten-player study is a future aspiration, not a present recruitment requirement. Public hosting and a formal study must not delay the owner's solo playtest. Existing three-account local shared-service evidence remains valid; physical phone evidence is still pending the owner's APK export.
+
 ## Product test
 
 Evaluate anticipation → reveal → meaningful gain → visible recognition → next desire. A successful build offers identifiable rewards players want, satisfying openings/completions, tangible personal progress, short usable sessions and shared guild accomplishments. Record desired items, satisfying/disappointing moments, chosen builds and voluntary return intent. Actual player observations are required before claiming enjoyment or retention; automated correctness tests cannot prove either.
@@ -11,7 +13,7 @@ Evaluate anticipation → reveal → meaningful gain → visible recognition →
 | Requirement | Evidence needed | Current state |
 |---|---|---|
 | Cohesive polished region with several days of authored pursuits | Real phone playthroughs, content/progression inventory and seven-day free-player progression trials | Three authored 2h/8h/24h gear journeys and 102h mastery horizon added to Lanternwood; fresh-save seven-day progression and device trials remain |
-| Three viable earned builds | Reproducible earned loadouts with distinct roles and clear encounters | Striker/Guardian/Lamplighter gear earned through actual chest flows, all survive three new trails; fresh-save acquisition and broader encounter trials remain |
+| Three viable earned builds | Reproducible earned loadouts with distinct roles and clear encounters | Fresh-save acquisition proven without draws in two seven-day scripted schedules; saved recipes restore/apply and complete deep journeys; owner phone assessment remains |
 | Desirable visible rewards and satisfying reveals | Preview→pursuit→earn→open→wear flow; observed desirability feedback | Two earned looks and saved chest/reveal/wear flow implemented; observed desirability still required |
 | Achievements and concise returns | Actual milestone/reward presentation, persistent ownership and usable next pursuit | Regional keepsake collection, three once-only clear masteries and permanent profile titles added; phone/participant evidence remains |
 | Real guild membership | Separate authenticated accounts joining the same persistent server-owned roster with enforced roles/permissions | Shared persistent roster and playable create/join/leave screens implemented; physical phone checks remain |

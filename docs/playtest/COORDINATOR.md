@@ -1,5 +1,7 @@
 # Study protocol
 
+**Deferred:** the owner is the only tester now. This is reference material for a possible later group test, not a current task list or prerequisite for playing.
+
 Target: ten players over seven days. Recruitment, participation and retention are not established yet. The main question is whether anticipation, a reveal, a useful gain and visible ownership create a next reward the player wants.
 
 ## Before invitations

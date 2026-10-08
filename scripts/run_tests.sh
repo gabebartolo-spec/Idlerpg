@@ -39,6 +39,7 @@ run_test tests/test_practice.gd
 run_test tests/test_expedition.gd
 run_test tests/test_lanternwood.gd
 run_test tests/test_lantern_builds.gd
+run_test tests/test_playtest_progression.gd
 run_test tests/test_reward_chests.gd
 run_test tests/test_reward_chests.gd --large-text
 run_test tests/test_adventurer_sim.gd
