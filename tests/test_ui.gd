@@ -219,7 +219,7 @@ func _test_life_navigation() -> void:
 	_check(sim.expedition.completed == 1, "queued expedition completes autonomously")
 	expedition.mode_tabs["story"].pressed.emit()
 	var result_text := _visible_words(expedition.list.content)
-	_check(result_text.contains("Adventure complete!") and result_text.contains("+43 gold") and result_text.length() < 120, "results show the actual reward and completion without the story wall")
+	_check(result_text.contains("Adventure complete!") and result_text.contains("8 gold kept") and result_text.contains("35 in chest") and result_text.length() < 120, "results distinguish banked cache gold from secured chest gold without a story wall")
 	var guide: Control = preload("res://src/ui/field_guide_screen.gd").new()
 	root.add_child(guide)
 	guide.setup(sim)

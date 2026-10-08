@@ -4,6 +4,10 @@ extends Control
 var opened: bool = false
 var reduced_motion: bool = false
 var progress: float = 0.0
+var reward_texture: Texture2D:
+	set(value):
+		reward_texture = value
+		queue_redraw()
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -36,6 +40,10 @@ func _draw() -> void:
 	draw_circle(Vector2(12, 5), 4, Color("#613f28"))
 	if progress > 0:
 		draw_circle(Vector2(12, -24), 15 * progress, Color(1,.86,.48,.6 * progress))
+		if reward_texture != null:
+			var extent := lerpf(70.0, 132.0, progress)
+			var lift := lerpf(-70.0, -114.0, progress)
+			draw_texture_rect(reward_texture, Rect2(-extent / 2, lift, extent, extent), false, Color(1, 1, 1, progress))
 	draw_set_transform(Vector2.ZERO)
 
 func draw_ellipse_shadow() -> void:

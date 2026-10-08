@@ -37,7 +37,9 @@ func observe(event: Dictionary) -> void:
 		"relic_obtained":
 			record("relic:" + str(event["relic"]), str(event["message"]), "relics", 75, str(event["relic"]))
 		"goal_completed":
-			record("goal:" + str(event["goal"]), str(event["message"]), str(event["route"]), 85)
+			var id := str(event["goal"])
+			var title: String = preload("res://src/state/adventurer_identity.gd").TITLES.get(id, "")
+			record("goal:" + id, ("Title earned · " + title) if not title.is_empty() else str(event["message"]), "identity" if not title.is_empty() else str(event["route"]), 95 if not title.is_empty() else 85, id)
 		"enemy_defeated":
 			var enemy := str(event.get("enemy", ""))
 			if enemy == "thornback":

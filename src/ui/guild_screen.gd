@@ -295,6 +295,7 @@ func _reward() -> void:
 	_text("+%d supply gold" % int(online.reveal.get("gold", 0)), 32, Style.ACCENT)
 	var look := str(online.reveal.get("look", ""))
 	if Looks.LOOKS.has(look):
+		chest.reward_texture = Art.item_icon(str(Looks.LOOKS[look]["item"]))
 		var line := HBoxContainer.new()
 		add_icon(line, Art.item_icon(str(Looks.LOOKS[look]["item"])))
 		var label := Style.label(str(Looks.LOOKS[look]["name"]), 28)

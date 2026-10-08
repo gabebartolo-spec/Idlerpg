@@ -24,7 +24,7 @@ func setup(sim_node: Node, preferences: RefCounted) -> void:
 	wear_button = Style.button("Wear your new look")
 	wear_button.pressed.connect(func() -> void:
 		var gear := str(viewing.get("gear", ""))
-		var applied: bool = sim.equip_gear(gear) if not gear.is_empty() else sim.wardrobe.wear(str(viewing.get("look", "")))
+		var applied: bool = sim.equip_gear(gear, true) if not gear.is_empty() else sim.wardrobe.wear(str(viewing.get("look", "")))
 		if applied:
 			refresh()
 			changed.emit())
@@ -45,6 +45,7 @@ func _action() -> void:
 		return
 	if not sim.reward_chests.pending.is_empty():
 		viewing = sim.claim_reward_chest(sim.reward_chests.pending[0]["id"])
+		chest.progress = 0.0
 		refresh()
 		changed.emit()
 
@@ -55,9 +56,11 @@ func refresh() -> void:
 	subtitle_label.text = "%d chest%s ready" % [sim.reward_chests.pending.size(), "" if sim.reward_chests.pending.size() == 1 else "s"]
 	var gear := str(viewing.get("gear", ""))
 	var look := str(viewing.get("look", ""))
+	var item: String = gear if not gear.is_empty() else str(Looks.LOOKS.get(look, {}).get("item", ""))
+	chest.reward_texture = Art.item_icon(item) if not item.is_empty() else null
 	wear_button.visible = not gear.is_empty() or not look.is_empty()
 	wear_button.disabled = sim.equipped_item(GearCatalog.slot(gear)) == gear if not gear.is_empty() else (not look.is_empty() and sim.wardrobe.equipped.get(Looks.LOOKS[look]["slot"], "") == look)
-	wear_button.text = ("Equipped" if wear_button.disabled else "Equip new gear") if not gear.is_empty() else ("Wearing" if wear_button.disabled else "Wear your new look")
+	wear_button.text = ("Equipped" if wear_button.disabled else "Equip and show") if not gear.is_empty() else ("Wearing" if wear_button.disabled else "Wear your new look")
 	if not viewing.is_empty():
 		list.content.add_child(Style.label("+%d gold" % viewing["gold"], 32, Style.ACCENT))
 		if not gear.is_empty():
@@ -74,10 +77,10 @@ func refresh() -> void:
 			stats.append(str(GearCatalog.EFFECTS.get(GearCatalog.effect(gear), {}).get("name", "")))
 			list.content.add_child(Style.label(" · ".join(stats), 24, Style.ACCENT))
 		if not str(viewing["look"]).is_empty():
-			var item: Dictionary = Looks.LOOKS[viewing["look"]]
+			var look_item: Dictionary = Looks.LOOKS[viewing["look"]]
 			var line := HBoxContainer.new()
-			add_icon(line, Art.item_icon(item["item"]))
-			var label := Style.label(item["name"], 28)
+			add_icon(line, Art.item_icon(look_item["item"]))
+			var label := Style.label(look_item["name"], 28)
 			label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 			label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 			line.add_child(label)

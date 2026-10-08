@@ -56,12 +56,14 @@ func _run() -> void:
 	screen.action_button.pressed.emit()
 	await process_frame
 	check(screen.chest.opened and screen.chest.progress == 1 and screen.wear_button.visible, "opening reveals usable contents with instant reduced-motion presentation")
+	check(screen.chest.reward_texture != null, "settled appearance is shown emerging from the opened chest")
 	await process_frame
 	check(screen.wear_button.get_global_rect().end.y <= root.get_visible_rect().size.y, "wear action remains reachable after the reveal")
 	screen.wear_button.pressed.emit()
 	check(sim.wardrobe.equipped.get("weapon", "") == "lantern_crook", "earned look can be worn directly from the reveal")
 	screen.action_button.pressed.emit()
 	check(screen.viewing.is_empty() and screen.action_button.text == "Open chest", "next chest requires a separate deliberate opening")
+	check(screen.chest.reward_texture == null, "next unopened chest cannot retain the previous reward illustration")
 	var returned := preload("res://src/ui/return_screen.gd").new()
 	root.add_child(returned)
 	returned.setup()

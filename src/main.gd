@@ -61,6 +61,7 @@ var hero_label: Label
 var activity_label: Label
 var quest_label: Label
 var event_label: Label
+var event_priority: int = 0
 var event_clock: float = 0.0
 var save_notice: bool = false
 
@@ -1137,7 +1138,11 @@ func _compact_event(event: Dictionary) -> String:
 		"expedition_completed":
 			return "Chest ready · Expedition complete" if event.get("won", false) else "Returned early · gold kept"
 		"chest_opened":
-			return "+%d gold · Chest opened" % int(event.get("gold", 0))
+			var gear := str(event.get("gear", ""))
+			return "+ " + gear if not gear.is_empty() else "+%d gold · Chest opened" % int(event.get("gold", 0))
+		"goal_completed":
+			var title: String = preload("res://src/state/adventurer_identity.gd").TITLES.get(str(event.get("goal", "")), "")
+			return "Title earned · " + title if not title.is_empty() else "Achievement · " + str(event.get("title", "Complete"))
 		"practice_completed":
 			return "Practice won!" if event.get("won", false) else "Practice ended · try another role"
 	return ""
@@ -1148,10 +1153,13 @@ func _on_sim_event(event: Dictionary) -> void:
 		trail_audio.play_event(event_type, bool(event.get("won", true)))
 	# Full stories remain in the journal/guide. The normal HUD is a glance.
 	# Important save warnings stay visible until a successful save.
-	if not save_notice and event_type in ["level_up", "gear_obtained", "relic_obtained", "expedition_completed", "practice_completed", "chest_opened"]:
-		event_label.text = _compact_event(event)
-		event_label.visible = true
-		event_clock = 5.0
+	if not save_notice and event_type in ["level_up", "gear_obtained", "relic_obtained", "expedition_completed", "practice_completed", "chest_opened", "goal_completed"]:
+		var priority := 100 if event_type == "goal_completed" else (80 if event_type == "chest_opened" else 50)
+		if event_clock <= 0.0 or priority >= event_priority:
+			event_label.text = _compact_event(event)
+			event_label.visible = true
+			event_clock = 5.0
+			event_priority = priority
 
 	if adventure_panel != null and adventure_panel.visible:
 		adventure_panel.refresh()
