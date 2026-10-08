@@ -2,6 +2,7 @@ extends Node
 
 const IdentityScreenScript = preload("res://src/ui/identity_screen.gd")
 const JournalScreenScript = preload("res://src/ui/journal_screen.gd")
+const FieldGuideScreenScript = preload("res://src/ui/field_guide_screen.gd")
 const FishingScreenScript = preload("res://src/ui/fishing_screen.gd")
 const PracticeScreenScript = preload("res://src/ui/practice_screen.gd")
 const ExpeditionScreenScript = preload("res://src/ui/expedition_screen.gd")
@@ -50,6 +51,8 @@ var hero_label: Label
 var activity_label: Label
 var quest_label: Label
 var event_label: Label
+var event_clock: float = 0.0
+var save_notice: bool = false
 
 var gacha_panel: Control
 var gacha_collection_view: Control
@@ -65,6 +68,7 @@ var talent_panel: Control
 var boss_panel: Control
 var identity_panel: Control
 var journal_panel: Control
+var guide_panel: Control
 var fishing_panel: Control
 var practice_panel: Control
 var expedition_panel: Control
@@ -110,6 +114,9 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	sim.advance(delta)
 	game.collect_income(sim)
+	event_clock = maxf(0.0, event_clock - delta)
+	if event_clock == 0.0 and not save_notice:
+		event_label.visible = false
 	talent_proc_pulse = max(0.0, talent_proc_pulse - delta)
 	_sync_world(delta)
 	_refresh_sim_ui()
@@ -331,8 +338,10 @@ func _build_practice_stage() -> void:
 		practice_stage.add_child(ally)
 		practice_allies.append(ally)
 		var label := Label3D.new()
+		label.font = UiStyleScript.FONT_STRONG
 		label.text = "Bran\nNPC protection" if index == 0 else "Iris\nNPC support"
 		label.font_size = 32
+		label.outline_size = 4
 		label.pixel_size = 0.006
 		label.position.y = 2.0
 		label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
@@ -481,32 +490,38 @@ func _build_ui() -> void:
 	top.offset_bottom = 165.0
 	canvas.add_child(top)
 
+	var hud_card := PanelContainer.new()
+	hud_card.add_theme_stylebox_override("panel", UiStyleScript.box(Color(0.15, 0.17, 0.13, 0.93), 16.0, 14.0))
+	top.add_child(hud_card)
 	var top_column := VBoxContainer.new()
 	top_column.add_theme_constant_override("separation", 4)
-	top.add_child(top_column)
+	hud_card.add_child(top_column)
 
 	hero_label = Label.new()
 	hero_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	hero_label.add_theme_font_size_override("font_size", 22)
+	hero_label.add_theme_font_override("font", UiStyleScript.FONT_STRONG)
+	hero_label.add_theme_font_size_override("font_size", 26)
 	top_column.add_child(hero_label)
 
 	activity_label = Label.new()
 	activity_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	activity_label.add_theme_font_size_override("font_size", 18)
+	activity_label.add_theme_font_size_override("font_size", 24)
 	top_column.add_child(activity_label)
 
 	quest_label = Label.new()
+	quest_label.visible = false
 	top_column.add_child(quest_label)
 
 	event_label = Label.new()
-	event_label.text = "The adventure begins."
+	event_label.text = ""
+	event_label.visible = false
+	event_label.add_theme_font_size_override("font_size", 22)
 	event_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	top_column.add_child(event_label)
 
-	# The HUD sits over a bright sky; outline it so it stays readable.
+	# A quiet solid surface keeps the custom letters readable over any sky.
 	for label in [hero_label, activity_label, quest_label, event_label]:
-		label.add_theme_color_override("font_outline_color", Color(0.08, 0.09, 0.11))
-		label.add_theme_constant_override("outline_size", 6)
+		label.add_theme_color_override("font_color", UiStyleScript.TEXT)
 
 	var bottom := MarginContainer.new()
 	bottom.anchor_right = 1.0
@@ -674,6 +689,11 @@ func _build_ui() -> void:
 	journal_panel.visible = false
 	canvas.add_child(journal_panel)
 	journal_panel.setup(sim)
+	journal_panel.guide_requested.connect(func() -> void: _open_chronicle_destination("guide", ""))
+	guide_panel = FieldGuideScreenScript.new()
+	guide_panel.visible = false
+	canvas.add_child(guide_panel)
+	guide_panel.setup(sim)
 	fishing_panel = FishingScreenScript.new()
 	fishing_panel.visible = false
 	canvas.add_child(fishing_panel)
@@ -747,7 +767,7 @@ func _refresh_wallet(_tokens: int) -> void:
 
 # Only one sheet, drawer or report is open at a time.
 func _close_drawers() -> void:
-	for sheet in [equipment_panel, talent_panel, boss_panel, gacha_panel, adventure_panel, loadout_panel, relic_panel, chronicle_panel, journal_panel, identity_panel, fishing_panel, practice_panel, expedition_panel, dev_panel, return_panel]:
+	for sheet in [equipment_panel, talent_panel, boss_panel, gacha_panel, adventure_panel, loadout_panel, relic_panel, chronicle_panel, journal_panel, guide_panel, identity_panel, fishing_panel, practice_panel, expedition_panel, dev_panel, return_panel]:
 		if sheet != null:
 			sheet.visible = false
 
@@ -787,7 +807,8 @@ func _show_return_report(report: Dictionary) -> void:
 	if return_panel == null:
 		return
 	_close_drawers()
-	return_panel.show_report(report, _format_return_report(report))
+	guide_panel.away_notes = _format_return_report(report)
+	return_panel.show_report(report, _compact_return_report(report))
 	return_label = return_panel.summary
 	if return_talent_button != null:
 		var earned_points: int = int(report.get("talent_points", 0))
@@ -801,6 +822,10 @@ func _open_chronicle_route(route: String) -> void:
 func _open_chronicle_destination(route: String, target: String) -> void:
 	_close_drawers()
 	match route:
+		"guide":
+			if guide_panel.tabs.has(target):
+				guide_panel.chapter = target
+			guide_panel.open()
 		"expedition":
 			expedition_panel.open()
 			expedition_panel.mode = "story" if not sim.expedition.recap.is_empty() else "route"
@@ -875,8 +900,14 @@ func _reset_pity() -> void:
 func _save_now(now_unix: int = -1) -> void:
 	if sim == null or game == null:
 		return
-	if not PersistenceScript.save(sim, game, now_unix) and event_label != null:
+	var saved: bool = PersistenceScript.save(sim, game, now_unix)
+	if not saved and event_label != null:
+		save_notice = true
 		event_label.text = "Could not save. Progress since the last save may be lost."
+		event_label.visible = true
+	elif saved and save_notice:
+		save_notice = false
+		event_label.visible = false
 
 func _dev_simulate_away() -> void:
 	var now_unix := int(Time.get_unix_time_from_system())
@@ -889,6 +920,41 @@ func _dev_simulate_away() -> void:
 func _close_return_report() -> void:
 	if return_panel != null:
 		return_panel.visible = false
+
+func _compact_return_report(report: Dictionary) -> String:
+	if report.get("newer_version", false) or report.get("save_lost", false):
+		return _format_return_report(report)
+	var lines: Array[String] = ["Away · " + _format_duration(int(report.get("elapsed_actual", 0)))]
+	var gains: Array[String] = []
+	for reward in [["gold", "gold"], ["tokens", "tokens"]]:
+		var count := int(report.get(reward[0], 0))
+		if count > 0:
+			gains.append("+%d %s" % [count, reward[1]])
+	if not gains.is_empty():
+		lines.append(" · ".join(gains))
+	var levels := int(report.get("levels", 0))
+	if levels > 0:
+		lines.append("+%d level%s" % [levels, "" if levels == 1 else "s"])
+	var gear: Dictionary = report.get("gear", {})
+	if not gear.is_empty():
+		var count := 0
+		for amount in gear.values():
+			count += int(amount)
+		lines.append("%d gear found" % count)
+	var catches := int(report.get("fish_catches", 0))
+	if catches > 0:
+		lines.append("%d catches" % catches)
+	if report.get("deaths", 0) > 0:
+		lines.append("Defeated · recovered in Mossgate")
+	if report.get("recovered_from_backup", false):
+		lines.append("Previous save restored")
+	if report.get("clock_rollback", false):
+		lines.append("Clock changed · no time away counted")
+	if report.get("save_failed", false):
+		lines.append("Could not save this return")
+	if report.get("capped", false):
+		lines.append("7-day catch-up limit reached")
+	return "\n".join(lines)
 
 func _format_return_report(report: Dictionary) -> String:
 	var lines: Array[String] = []
@@ -994,22 +1060,56 @@ func _show_talent_proc(branch_id: String) -> void:
 func _refresh_sim_ui() -> void:
 	if gacha_panel != null and gacha_panel.visible:
 		gacha_panel.refresh_wallet()
-	hero_label.text = "%s · Lv %d · HP %d/%d · %d gold" % [
-		sim.identity.display_name(),
+	hero_label.text = "%s · Lv %d\n%d/%d HP · %d gold" % [
+		sim.identity.adventurer_name,
 		sim.hero_level,
 		sim.hero_hp,
 		sim.effective_max_hp(),
 		sim.gold
 	]
-	activity_label.text = sim.current_activity_text() + "\n" + sim.policy_reason()
+	activity_label.text = _compact_activity()
 	quest_label.text = sim.current_quest_text()
 	if talent_button != null:
 		var points: int = sim.talent_points_available()
 		talent_button.text = "Talents" if points <= 0 else "Talents · %d" % points
 
+func _compact_activity() -> String:
+	match sim.activity:
+		"expedition":
+			return "Exploring · %d/5 stages" % mini(5, sim.expedition.node + 1)
+		"practice":
+			return "Practice · room %d/3 · %d HP" % [mini(3, sim.practice.room + 1), sim.practice.hp]
+		"fishing":
+			return "Fishing · next catch in %ds" % int(ceil(float(sim.fishing.Catalog.INTERVAL_USEC - sim.fishing.progress_usec) / 1000000.0))
+		"fighting":
+			return sim.current_activity_text()
+		"looting":
+			return "Gathering loot"
+		_:
+			return sim.current_activity_text()
+
+func _compact_event(event: Dictionary) -> String:
+	match str(event.get("type", "")):
+		"level_up":
+			return "Level %d!" % int(event.get("level", sim.hero_level))
+		"gear_obtained":
+			return "+ " + str(event.get("gear", "New gear"))
+		"relic_obtained":
+			return "+ " + str(event.get("relic", "New relic"))
+		"expedition_completed":
+			return "+%d gold · Expedition complete" % int(sim.expedition.recap.get("gold", 0)) if event.get("won", false) else "Returned early · gold kept"
+		"practice_completed":
+			return "Practice won!" if event.get("won", false) else "Practice ended · try another role"
+	return ""
+
 func _on_sim_event(event: Dictionary) -> void:
-	event_label.text = str(event.get("message", ""))
 	var event_type := str(event.get("type", ""))
+	# Full stories remain in the journal/guide. The normal HUD is a glance.
+	# Important save warnings stay visible until a successful save.
+	if not save_notice and event_type in ["level_up", "gear_obtained", "relic_obtained", "expedition_completed", "practice_completed"]:
+		event_label.text = _compact_event(event)
+		event_label.visible = true
+		event_clock = 5.0
 
 	if adventure_panel != null and adventure_panel.visible:
 		adventure_panel.refresh()

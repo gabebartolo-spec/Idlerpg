@@ -217,6 +217,14 @@ Recommended first sequence: R00 → R01 → R02 → R03 → R04. R06/R10 can fol
 
 ### IRPG-R27 — Mobile delight and performance
 
+Implementation note (8 October 2026): the original Mossgate regular/semibold
+font, shorter play copy, compact return/results screens, solid readable HUD
+surface and optional journal Field guide are implemented. Original source,
+229-glyph coverage, reproducible builds and portrait renders are documented in
+`docs/TYPOGRAPHY_AND_COPY.md`; 28 local suites pass. Audio, reduced motion,
+device budgets and Android evidence remain open; this is a presentation slice,
+not completion of R27.
+
 **Payoff:** pleasant watching and usable management. **Scope:** small audio/animation feedback pass, independent sound controls, reduced motion, readable text, accessible contrasts and measured Android performance. **Start:** world/UI/audio modules. **Accept:** disabled effects do not change outcomes; target device frame/loading/memory budgets recorded; long return responsive; touch targets tested. **Validate:** sustained device play, suspend/resume and low-power scenario. **Exclude:** adding systems to mask weak presentation.
 
 ### IRPG-R28 — Online architecture and accounts

@@ -6,8 +6,10 @@ extends RefCounted
 # Smallest comfortable touch target. The canvas is 720 px wide, so on a phone 80 px is
 # about 8 mm.
 const TOUCH := 80.0
+const FONT = preload("res://assets/fonts/Mossgate-Regular.ttf")
+const FONT_STRONG = preload("res://assets/fonts/Mossgate-Semibold.ttf")
 
-const SURFACE := Color(0.17, 0.15, 0.13, 0.97)
+const SURFACE := Color(0.17, 0.15, 0.13, 1.0)
 const RAISED := Color(0.24, 0.21, 0.18)
 const SELECTED := Color(0.33, 0.28, 0.21)
 const LINE := Color(0.36, 0.32, 0.27)
@@ -44,6 +46,7 @@ static func row_box(chosen: bool) -> StyleBoxFlat:
 static func label(text: String, size: int, colour: Color = TEXT) -> Label:
 	var result := Label.new()
 	result.text = text
+	result.add_theme_font_override("font", FONT_STRONG if size >= 28 else FONT)
 	result.add_theme_font_size_override("font_size", size)
 	result.add_theme_color_override("font_color", colour)
 	return result
@@ -51,6 +54,7 @@ static func label(text: String, size: int, colour: Color = TEXT) -> Label:
 static func button(text: String, primary: bool = false) -> Button:
 	var result := Button.new()
 	result.text = text
+	result.add_theme_font_override("font", FONT_STRONG)
 	result.custom_minimum_size = Vector2(0.0, TOUCH)
 	result.add_theme_font_size_override("font_size", 22)
 	var base := ACCENT if primary else RAISED
