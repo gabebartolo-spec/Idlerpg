@@ -98,6 +98,11 @@ Each line is something the director said or chose.
 - PvP areas unlock as the player levels. Faction PvP is always optional for players who only
   want to level and grind.
 
+### Art style
+
+- The game stays painterly low-poly. The director considered voxel because it is "slightly more
+  novel", then chose to stay: "Sounds like too much work I'll stick to low poly".
+
 ### Left out on purpose
 
 - No trading. No player can pass their items to another player to boost them; the director's
@@ -109,6 +114,8 @@ Each line is something the director said or chose.
 - **Automation sold for real money.** The director's first answer. Dropped by the director after
   it was tested against "do not force purchases, trivialize free play" in the current bible and
   against the low-commitment vision: a free player would never get the idle game.
+- **Voxel art style.** Considered for novelty. Dropped by the director as too much work; the
+  existing low-poly models and the Tripo legendary pilot stay valid.
 
 ## Conflicts with the current bible
 
@@ -123,7 +130,6 @@ them in the new bible, not through this file.
 | Many characters per account | "The first version is about attachment to one main adventurer" (4.1) |
 | Crafting materials with several uses | "elaborate crafting trees" listed under non-goals (2) |
 | Battle passes in the long tail | "battle passes/live ops before retention exists" listed under non-goals (2) |
-| Voxel style under consideration | "voxels may inform individual props but are not the default visual language" (visual decision, 9 October) |
 
 ## Open questions for the director
 
@@ -131,12 +137,9 @@ them in the new bible, not through this file.
    bought?
 2. What happens to the prototype's Wayfarer class now that there are six named classes?
 3. Confirm the account-wide versus per-character split, and whether alts help each other.
-4. Art style: stay with painterly low-poly, or move to voxel? The director is "interested in but
-   not married to" voxel because it is "slightly more novel". All existing models, including the
-   three Tripo legendary pieces, are low-poly.
-5. Names, looks and lore for the red, blue and yellow factions.
-6. How many of the six classes ship first.
-7. Not yet discussed: the world's tone and lore, guilds in detail, the shop's contents, chat room
+4. Names, looks and lore for the red, blue and yellow factions.
+5. How many of the six classes ship first.
+6. Not yet discussed: the world's tone and lore, guilds in detail, the shop's contents, chat room
    rules and moderation, and how much watching the adventurer in the 3D world matters.
 
 ## For the decision log
@@ -155,3 +158,4 @@ The project has no decision log yet. Ready to paste when one exists:
 - 2026-10-10 · Director · Companions are pets from gacha and events.
 - 2026-10-10 · Director · Three factions (red, blue, yellow), perpetual territory war, weekly reset with leaderboard rewards, optional PvP, functionally identical starting zones.
 - 2026-10-10 · Director · No trading or item transfers between players.
+- 2026-10-10 · Director · Art style stays painterly low-poly; voxel considered and dropped as too much work.
