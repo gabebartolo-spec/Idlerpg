@@ -1,0 +1,1629 @@
+{
+	"policies": {
+		"gear_only": [
+			{
+				"dev_infinite_tokens": false,
+				"points": {
+					"1 h": {
+						"attack": 57,
+						"attack_from_gear": 12,
+						"boss_rank": 36,
+						"deaths": 21,
+						"draws": 29,
+						"gold": 5240,
+						"health": 260,
+						"health_from_gear": 29,
+						"level": 38,
+						"owned": {
+							"Common": 9,
+							"Epic": 2,
+							"Legendary": 0,
+							"Rare": 4
+						},
+						"quests": 160,
+						"talents_spent": 12,
+						"tokens_left": 4,
+						"worn": {
+							"Common": 4,
+							"Epic": 1,
+							"Legendary": 0,
+							"Rare": 2
+						}
+					},
+					"15 min": {
+						"attack": 39,
+						"attack_from_gear": 12,
+						"boss_rank": 24,
+						"deaths": 2,
+						"draws": 28,
+						"gold": 1820,
+						"health": 170,
+						"health_from_gear": 29,
+						"level": 20,
+						"owned": {
+							"Common": 9,
+							"Epic": 2,
+							"Legendary": 0,
+							"Rare": 4
+						},
+						"quests": 31,
+						"talents_spent": 12,
+						"tokens_left": 8,
+						"worn": {
+							"Common": 4,
+							"Epic": 1,
+							"Legendary": 0,
+							"Rare": 2
+						}
+					},
+					"24 h": {
+						"attack": 212,
+						"attack_from_gear": 17,
+						"boss_rank": 146,
+						"deaths": 172,
+						"draws": 43,
+						"gold": 116815,
+						"health": 1031,
+						"health_from_gear": 50,
+						"level": 188,
+						"owned": {
+							"Common": 9,
+							"Epic": 4,
+							"Legendary": 0,
+							"Rare": 5
+						},
+						"quests": 4557,
+						"talents_spent": 12,
+						"tokens_left": 3,
+						"worn": {
+							"Common": 2,
+							"Epic": 3,
+							"Legendary": 0,
+							"Rare": 3
+						}
+					},
+					"30 min": {
+						"attack": 46,
+						"attack_from_gear": 12,
+						"boss_rank": 29,
+						"deaths": 10,
+						"draws": 28,
+						"gold": 2935,
+						"health": 205,
+						"health_from_gear": 29,
+						"level": 27,
+						"owned": {
+							"Common": 9,
+							"Epic": 2,
+							"Legendary": 0,
+							"Rare": 4
+						},
+						"quests": 72,
+						"talents_spent": 12,
+						"tokens_left": 9,
+						"worn": {
+							"Common": 4,
+							"Epic": 1,
+							"Legendary": 0,
+							"Rare": 2
+						}
+					},
+					"5 min": {
+						"attack": 29,
+						"attack_from_gear": 12,
+						"boss_rank": 8,
+						"deaths": 0,
+						"draws": 28,
+						"gold": 620,
+						"health": 120,
+						"health_from_gear": 29,
+						"level": 10,
+						"owned": {
+							"Common": 9,
+							"Epic": 1,
+							"Legendary": 0,
+							"Rare": 3
+						},
+						"quests": 9,
+						"talents_spent": 9,
+						"tokens_left": 7,
+						"worn": {
+							"Common": 4,
+							"Epic": 1,
+							"Legendary": 0,
+							"Rare": 2
+						}
+					},
+					"7 days": {
+						"attack": 534,
+						"attack_from_gear": 28,
+						"boss_rank": 370,
+						"deaths": 487,
+						"draws": 135,
+						"gold": 827050,
+						"health": 2602,
+						"health_from_gear": 66,
+						"level": 499,
+						"owned": {
+							"Common": 9,
+							"Epic": 7,
+							"Legendary": 2,
+							"Rare": 9
+						},
+						"quests": 32832,
+						"talents_spent": 12,
+						"tokens_left": 6,
+						"worn": {
+							"Common": 1,
+							"Epic": 4,
+							"Legendary": 2,
+							"Rare": 1
+						}
+					}
+				},
+				"seed": 20261010
+			},
+			{
+				"dev_infinite_tokens": false,
+				"points": {
+					"1 h": {
+						"attack": 61,
+						"attack_from_gear": 15,
+						"boss_rank": 38,
+						"deaths": 21,
+						"draws": 29,
+						"gold": 5320,
+						"health": 278,
+						"health_from_gear": 42,
+						"level": 39,
+						"owned": {
+							"Common": 9,
+							"Epic": 3,
+							"Legendary": 0,
+							"Rare": 5
+						},
+						"quests": 162,
+						"talents_spent": 12,
+						"tokens_left": 8,
+						"worn": {
+							"Common": 3,
+							"Epic": 2,
+							"Legendary": 0,
+							"Rare": 3
+						}
+					},
+					"15 min": {
+						"attack": 42,
+						"attack_from_gear": 15,
+						"boss_rank": 24,
+						"deaths": 3,
+						"draws": 29,
+						"gold": 1860,
+						"health": 183,
+						"health_from_gear": 42,
+						"level": 20,
+						"owned": {
+							"Common": 9,
+							"Epic": 3,
+							"Legendary": 0,
+							"Rare": 5
+						},
+						"quests": 32,
+						"talents_spent": 12,
+						"tokens_left": 4,
+						"worn": {
+							"Common": 3,
+							"Epic": 2,
+							"Legendary": 0,
+							"Rare": 3
+						}
+					},
+					"24 h": {
+						"attack": 209,
+						"attack_from_gear": 15,
+						"boss_rank": 136,
+						"deaths": 170,
+						"draws": 44,
+						"gold": 117115,
+						"health": 1018,
+						"health_from_gear": 42,
+						"level": 187,
+						"owned": {
+							"Common": 9,
+							"Epic": 3,
+							"Legendary": 0,
+							"Rare": 7
+						},
+						"quests": 4575,
+						"talents_spent": 12,
+						"tokens_left": 5,
+						"worn": {
+							"Common": 3,
+							"Epic": 2,
+							"Legendary": 0,
+							"Rare": 3
+						}
+					},
+					"30 min": {
+						"attack": 50,
+						"attack_from_gear": 15,
+						"boss_rank": 30,
+						"deaths": 10,
+						"draws": 29,
+						"gold": 2985,
+						"health": 223,
+						"health_from_gear": 42,
+						"level": 28,
+						"owned": {
+							"Common": 9,
+							"Epic": 3,
+							"Legendary": 0,
+							"Rare": 5
+						},
+						"quests": 74,
+						"talents_spent": 12,
+						"tokens_left": 5,
+						"worn": {
+							"Common": 3,
+							"Epic": 2,
+							"Legendary": 0,
+							"Rare": 3
+						}
+					},
+					"5 min": {
+						"attack": 32,
+						"attack_from_gear": 15,
+						"boss_rank": 9,
+						"deaths": 0,
+						"draws": 29,
+						"gold": 660,
+						"health": 133,
+						"health_from_gear": 42,
+						"level": 10,
+						"owned": {
+							"Common": 9,
+							"Epic": 2,
+							"Legendary": 0,
+							"Rare": 4
+						},
+						"quests": 10,
+						"talents_spent": 9,
+						"tokens_left": 3,
+						"worn": {
+							"Common": 3,
+							"Epic": 2,
+							"Legendary": 0,
+							"Rare": 3
+						}
+					},
+					"7 days": {
+						"attack": 529,
+						"attack_from_gear": 26,
+						"boss_rank": 348,
+						"deaths": 482,
+						"draws": 136,
+						"gold": 827670,
+						"health": 2576,
+						"health_from_gear": 55,
+						"level": 496,
+						"owned": {
+							"Common": 9,
+							"Epic": 7,
+							"Legendary": 1,
+							"Rare": 9
+						},
+						"quests": 32870,
+						"talents_spent": 12,
+						"tokens_left": 3,
+						"worn": {
+							"Common": 2,
+							"Epic": 4,
+							"Legendary": 1,
+							"Rare": 1
+						}
+					}
+				},
+				"seed": 20261011
+			},
+			{
+				"dev_infinite_tokens": false,
+				"points": {
+					"1 h": {
+						"attack": 63,
+						"attack_from_gear": 17,
+						"boss_rank": 39,
+						"deaths": 21,
+						"draws": 28,
+						"gold": 5335,
+						"health": 286,
+						"health_from_gear": 50,
+						"level": 39,
+						"owned": {
+							"Common": 8,
+							"Epic": 5,
+							"Legendary": 0,
+							"Rare": 6
+						},
+						"quests": 162,
+						"talents_spent": 12,
+						"tokens_left": 4,
+						"worn": {
+							"Common": 3,
+							"Epic": 4,
+							"Legendary": 0,
+							"Rare": 1
+						}
+					},
+					"15 min": {
+						"attack": 45,
+						"attack_from_gear": 17,
+						"boss_rank": 26,
+						"deaths": 3,
+						"draws": 27,
+						"gold": 1890,
+						"health": 196,
+						"health_from_gear": 50,
+						"level": 21,
+						"owned": {
+							"Common": 8,
+							"Epic": 5,
+							"Legendary": 0,
+							"Rare": 6
+						},
+						"quests": 32,
+						"talents_spent": 12,
+						"tokens_left": 8,
+						"worn": {
+							"Common": 3,
+							"Epic": 4,
+							"Legendary": 0,
+							"Rare": 1
+						}
+					},
+					"24 h": {
+						"attack": 217,
+						"attack_from_gear": 22,
+						"boss_rank": 142,
+						"deaths": 171,
+						"draws": 42,
+						"gold": 117205,
+						"health": 1031,
+						"health_from_gear": 50,
+						"level": 188,
+						"owned": {
+							"Common": 9,
+							"Epic": 6,
+							"Legendary": 0,
+							"Rare": 6
+						},
+						"quests": 4575,
+						"talents_spent": 12,
+						"tokens_left": 8,
+						"worn": {
+							"Common": 2,
+							"Epic": 5,
+							"Legendary": 0,
+							"Rare": 1
+						}
+					},
+					"30 min": {
+						"attack": 52,
+						"attack_from_gear": 17,
+						"boss_rank": 31,
+						"deaths": 10,
+						"draws": 27,
+						"gold": 3015,
+						"health": 231,
+						"health_from_gear": 50,
+						"level": 28,
+						"owned": {
+							"Common": 8,
+							"Epic": 5,
+							"Legendary": 0,
+							"Rare": 6
+						},
+						"quests": 74,
+						"talents_spent": 12,
+						"tokens_left": 9,
+						"worn": {
+							"Common": 3,
+							"Epic": 4,
+							"Legendary": 0,
+							"Rare": 1
+						}
+					},
+					"5 min": {
+						"attack": 34,
+						"attack_from_gear": 17,
+						"boss_rank": 9,
+						"deaths": 0,
+						"draws": 27,
+						"gold": 660,
+						"health": 141,
+						"health_from_gear": 50,
+						"level": 10,
+						"owned": {
+							"Common": 8,
+							"Epic": 4,
+							"Legendary": 0,
+							"Rare": 5
+						},
+						"quests": 10,
+						"talents_spent": 9,
+						"tokens_left": 7,
+						"worn": {
+							"Common": 3,
+							"Epic": 4,
+							"Legendary": 0,
+							"Rare": 1
+						}
+					},
+					"7 days": {
+						"attack": 529,
+						"attack_from_gear": 26,
+						"boss_rank": 348,
+						"deaths": 481,
+						"draws": 136,
+						"gold": 827795,
+						"health": 2585,
+						"health_from_gear": 64,
+						"level": 496,
+						"owned": {
+							"Common": 9,
+							"Epic": 8,
+							"Legendary": 1,
+							"Rare": 9
+						},
+						"quests": 32875,
+						"talents_spent": 12,
+						"tokens_left": 8,
+						"worn": {
+							"Common": 1,
+							"Epic": 6,
+							"Legendary": 1,
+							"Rare": 0
+						}
+					}
+				},
+				"seed": 20261012
+			},
+			{
+				"dev_infinite_tokens": false,
+				"points": {
+					"1 h": {
+						"attack": 62,
+						"attack_from_gear": 16,
+						"boss_rank": 39,
+						"deaths": 19,
+						"draws": 28,
+						"gold": 5310,
+						"health": 276,
+						"health_from_gear": 40,
+						"level": 39,
+						"owned": {
+							"Common": 9,
+							"Epic": 2,
+							"Legendary": 0,
+							"Rare": 7
+						},
+						"quests": 161,
+						"talents_spent": 12,
+						"tokens_left": 9,
+						"worn": {
+							"Common": 2,
+							"Epic": 1,
+							"Legendary": 0,
+							"Rare": 5
+						}
+					},
+					"15 min": {
+						"attack": 44,
+						"attack_from_gear": 16,
+						"boss_rank": 27,
+						"deaths": 1,
+						"draws": 28,
+						"gold": 1905,
+						"health": 186,
+						"health_from_gear": 40,
+						"level": 21,
+						"owned": {
+							"Common": 9,
+							"Epic": 2,
+							"Legendary": 0,
+							"Rare": 7
+						},
+						"quests": 32,
+						"talents_spent": 12,
+						"tokens_left": 5,
+						"worn": {
+							"Common": 2,
+							"Epic": 1,
+							"Legendary": 0,
+							"Rare": 5
+						}
+					},
+					"24 h": {
+						"attack": 212,
+						"attack_from_gear": 17,
+						"boss_rank": 145,
+						"deaths": 169,
+						"draws": 43,
+						"gold": 116950,
+						"health": 1025,
+						"health_from_gear": 44,
+						"level": 188,
+						"owned": {
+							"Common": 9,
+							"Epic": 3,
+							"Legendary": 0,
+							"Rare": 9
+						},
+						"quests": 4563,
+						"talents_spent": 12,
+						"tokens_left": 5,
+						"worn": {
+							"Common": 2,
+							"Epic": 2,
+							"Legendary": 0,
+							"Rare": 4
+						}
+					},
+					"30 min": {
+						"attack": 51,
+						"attack_from_gear": 16,
+						"boss_rank": 32,
+						"deaths": 8,
+						"draws": 28,
+						"gold": 3005,
+						"health": 221,
+						"health_from_gear": 40,
+						"level": 28,
+						"owned": {
+							"Common": 9,
+							"Epic": 2,
+							"Legendary": 0,
+							"Rare": 7
+						},
+						"quests": 73,
+						"talents_spent": 12,
+						"tokens_left": 6,
+						"worn": {
+							"Common": 2,
+							"Epic": 1,
+							"Legendary": 0,
+							"Rare": 5
+						}
+					},
+					"5 min": {
+						"attack": 33,
+						"attack_from_gear": 16,
+						"boss_rank": 9,
+						"deaths": 0,
+						"draws": 28,
+						"gold": 660,
+						"health": 131,
+						"health_from_gear": 40,
+						"level": 10,
+						"owned": {
+							"Common": 9,
+							"Epic": 1,
+							"Legendary": 0,
+							"Rare": 6
+						},
+						"quests": 10,
+						"talents_spent": 9,
+						"tokens_left": 4,
+						"worn": {
+							"Common": 2,
+							"Epic": 1,
+							"Legendary": 0,
+							"Rare": 5
+						}
+					},
+					"7 days": {
+						"attack": 527,
+						"attack_from_gear": 21,
+						"boss_rank": 369,
+						"deaths": 481,
+						"draws": 135,
+						"gold": 827210,
+						"health": 2593,
+						"health_from_gear": 57,
+						"level": 499,
+						"owned": {
+							"Common": 9,
+							"Epic": 6,
+							"Legendary": 1,
+							"Rare": 9
+						},
+						"quests": 32839,
+						"talents_spent": 12,
+						"tokens_left": 6,
+						"worn": {
+							"Common": 2,
+							"Epic": 3,
+							"Legendary": 1,
+							"Rare": 2
+						}
+					}
+				},
+				"seed": 20261013
+			},
+			{
+				"dev_infinite_tokens": false,
+				"points": {
+					"1 h": {
+						"attack": 65,
+						"attack_from_gear": 18,
+						"boss_rank": 41,
+						"deaths": 18,
+						"draws": 28,
+						"gold": 5340,
+						"health": 279,
+						"health_from_gear": 38,
+						"level": 40,
+						"owned": {
+							"Common": 9,
+							"Epic": 4,
+							"Legendary": 0,
+							"Rare": 7
+						},
+						"quests": 161,
+						"talents_spent": 12,
+						"tokens_left": 7,
+						"worn": {
+							"Common": 2,
+							"Epic": 3,
+							"Legendary": 0,
+							"Rare": 2
+						}
+					},
+					"15 min": {
+						"attack": 47,
+						"attack_from_gear": 18,
+						"boss_rank": 29,
+						"deaths": 1,
+						"draws": 28,
+						"gold": 1910,
+						"health": 189,
+						"health_from_gear": 38,
+						"level": 22,
+						"owned": {
+							"Common": 9,
+							"Epic": 4,
+							"Legendary": 0,
+							"Rare": 7
+						},
+						"quests": 31,
+						"talents_spent": 12,
+						"tokens_left": 3,
+						"worn": {
+							"Common": 2,
+							"Epic": 3,
+							"Legendary": 0,
+							"Rare": 2
+						}
+					},
+					"24 h": {
+						"attack": 213,
+						"attack_from_gear": 18,
+						"boss_rank": 144,
+						"deaths": 167,
+						"draws": 43,
+						"gold": 117010,
+						"health": 1019,
+						"health_from_gear": 38,
+						"level": 188,
+						"owned": {
+							"Common": 9,
+							"Epic": 4,
+							"Legendary": 0,
+							"Rare": 8
+						},
+						"quests": 4566,
+						"talents_spent": 12,
+						"tokens_left": 6,
+						"worn": {
+							"Common": 2,
+							"Epic": 3,
+							"Legendary": 0,
+							"Rare": 2
+						}
+					},
+					"30 min": {
+						"attack": 54,
+						"attack_from_gear": 18,
+						"boss_rank": 34,
+						"deaths": 7,
+						"draws": 28,
+						"gold": 3035,
+						"health": 224,
+						"health_from_gear": 38,
+						"level": 29,
+						"owned": {
+							"Common": 9,
+							"Epic": 4,
+							"Legendary": 0,
+							"Rare": 7
+						},
+						"quests": 73,
+						"talents_spent": 12,
+						"tokens_left": 4,
+						"worn": {
+							"Common": 2,
+							"Epic": 3,
+							"Legendary": 0,
+							"Rare": 2
+						}
+					},
+					"5 min": {
+						"attack": 35,
+						"attack_from_gear": 18,
+						"boss_rank": 10,
+						"deaths": 0,
+						"draws": 28,
+						"gold": 660,
+						"health": 129,
+						"health_from_gear": 38,
+						"level": 10,
+						"owned": {
+							"Common": 9,
+							"Epic": 3,
+							"Legendary": 0,
+							"Rare": 6
+						},
+						"quests": 10,
+						"talents_spent": 9,
+						"tokens_left": 2,
+						"worn": {
+							"Common": 2,
+							"Epic": 3,
+							"Legendary": 0,
+							"Rare": 2
+						}
+					},
+					"7 days": {
+						"attack": 530,
+						"attack_from_gear": 27,
+						"boss_rank": 348,
+						"deaths": 479,
+						"draws": 135,
+						"gold": 827420,
+						"health": 2583,
+						"health_from_gear": 62,
+						"level": 496,
+						"owned": {
+							"Common": 9,
+							"Epic": 6,
+							"Legendary": 2,
+							"Rare": 9
+						},
+						"quests": 32860,
+						"talents_spent": 12,
+						"tokens_left": 6,
+						"worn": {
+							"Common": 1,
+							"Epic": 3,
+							"Legendary": 2,
+							"Rare": 2
+						}
+					}
+				},
+				"seed": 20261014
+			}
+		],
+		"mixed": [
+			{
+				"dev_infinite_tokens": false,
+				"points": {
+					"1 h": {
+						"attack": 55,
+						"attack_from_gear": 10,
+						"boss_rank": 35,
+						"deaths": 21,
+						"draws": 27,
+						"gold": 5910,
+						"health": 255,
+						"health_from_gear": 24,
+						"level": 38,
+						"owned": {
+							"Common": 8,
+							"Epic": 2,
+							"Legendary": 0,
+							"Rare": 3
+						},
+						"quests": 160,
+						"talents_spent": 12,
+						"tokens_left": 5,
+						"worn": {
+							"Common": 4,
+							"Epic": 1,
+							"Legendary": 0,
+							"Rare": 1
+						}
+					},
+					"15 min": {
+						"attack": 36,
+						"attack_from_gear": 10,
+						"boss_rank": 22,
+						"deaths": 3,
+						"draws": 26,
+						"gold": 1948,
+						"health": 160,
+						"health_from_gear": 24,
+						"level": 19,
+						"owned": {
+							"Common": 8,
+							"Epic": 2,
+							"Legendary": 0,
+							"Rare": 3
+						},
+						"quests": 31,
+						"talents_spent": 12,
+						"tokens_left": 9,
+						"worn": {
+							"Common": 4,
+							"Epic": 1,
+							"Legendary": 0,
+							"Rare": 1
+						}
+					},
+					"24 h": {
+						"attack": 210,
+						"attack_from_gear": 12,
+						"boss_rank": 145,
+						"deaths": 189,
+						"draws": 40,
+						"gold": 122329,
+						"health": 1024,
+						"health_from_gear": 28,
+						"level": 191,
+						"owned": {
+							"Common": 9,
+							"Epic": 2,
+							"Legendary": 0,
+							"Rare": 4
+						},
+						"quests": 4721,
+						"talents_spent": 12,
+						"tokens_left": 3,
+						"worn": {
+							"Common": 4,
+							"Epic": 1,
+							"Legendary": 0,
+							"Rare": 2
+						}
+					},
+					"30 min": {
+						"attack": 44,
+						"attack_from_gear": 10,
+						"boss_rank": 27,
+						"deaths": 11,
+						"draws": 27,
+						"gold": 3222,
+						"health": 200,
+						"health_from_gear": 24,
+						"level": 27,
+						"owned": {
+							"Common": 8,
+							"Epic": 2,
+							"Legendary": 0,
+							"Rare": 3
+						},
+						"quests": 72,
+						"talents_spent": 12,
+						"tokens_left": 2,
+						"worn": {
+							"Common": 4,
+							"Epic": 1,
+							"Legendary": 0,
+							"Rare": 1
+						}
+					},
+					"5 min": {
+						"attack": 27,
+						"attack_from_gear": 10,
+						"boss_rank": 8,
+						"deaths": 0,
+						"draws": 26,
+						"gold": 658,
+						"health": 115,
+						"health_from_gear": 24,
+						"level": 10,
+						"owned": {
+							"Common": 8,
+							"Epic": 1,
+							"Legendary": 0,
+							"Rare": 2
+						},
+						"quests": 9,
+						"talents_spent": 9,
+						"tokens_left": 8,
+						"worn": {
+							"Common": 4,
+							"Epic": 1,
+							"Legendary": 0,
+							"Rare": 1
+						}
+					},
+					"7 days": {
+						"attack": 532,
+						"attack_from_gear": 21,
+						"boss_rank": 371,
+						"deaths": 545,
+						"draws": 123,
+						"gold": 871991,
+						"health": 2617,
+						"health_from_gear": 56,
+						"level": 504,
+						"owned": {
+							"Common": 9,
+							"Epic": 5,
+							"Legendary": 1,
+							"Rare": 7
+						},
+						"quests": 33263,
+						"talents_spent": 12,
+						"tokens_left": 5,
+						"worn": {
+							"Common": 1,
+							"Epic": 3,
+							"Legendary": 1,
+							"Rare": 3
+						}
+					}
+				},
+				"seed": 20261010
+			},
+			{
+				"dev_infinite_tokens": false,
+				"points": {
+					"1 h": {
+						"attack": 56,
+						"attack_from_gear": 11,
+						"boss_rank": 35,
+						"deaths": 23,
+						"draws": 27,
+						"gold": 5939,
+						"health": 257,
+						"health_from_gear": 26,
+						"level": 38,
+						"owned": {
+							"Common": 7,
+							"Epic": 2,
+							"Legendary": 0,
+							"Rare": 4
+						},
+						"quests": 161,
+						"talents_spent": 12,
+						"tokens_left": 7,
+						"worn": {
+							"Common": 3,
+							"Epic": 1,
+							"Legendary": 0,
+							"Rare": 2
+						}
+					},
+					"15 min": {
+						"attack": 37,
+						"attack_from_gear": 11,
+						"boss_rank": 21,
+						"deaths": 4,
+						"draws": 27,
+						"gold": 1960,
+						"health": 162,
+						"health_from_gear": 26,
+						"level": 19,
+						"owned": {
+							"Common": 7,
+							"Epic": 2,
+							"Legendary": 0,
+							"Rare": 4
+						},
+						"quests": 32,
+						"talents_spent": 12,
+						"tokens_left": 3,
+						"worn": {
+							"Common": 3,
+							"Epic": 1,
+							"Legendary": 0,
+							"Rare": 2
+						}
+					},
+					"24 h": {
+						"attack": 212,
+						"attack_from_gear": 15,
+						"boss_rank": 138,
+						"deaths": 190,
+						"draws": 40,
+						"gold": 122409,
+						"health": 1028,
+						"health_from_gear": 37,
+						"level": 190,
+						"owned": {
+							"Common": 7,
+							"Epic": 3,
+							"Legendary": 0,
+							"Rare": 7
+						},
+						"quests": 4738,
+						"talents_spent": 12,
+						"tokens_left": 1,
+						"worn": {
+							"Common": 2,
+							"Epic": 2,
+							"Legendary": 0,
+							"Rare": 3
+						}
+					},
+					"30 min": {
+						"attack": 45,
+						"attack_from_gear": 11,
+						"boss_rank": 27,
+						"deaths": 11,
+						"draws": 27,
+						"gold": 3280,
+						"health": 202,
+						"health_from_gear": 26,
+						"level": 27,
+						"owned": {
+							"Common": 7,
+							"Epic": 2,
+							"Legendary": 0,
+							"Rare": 4
+						},
+						"quests": 74,
+						"talents_spent": 12,
+						"tokens_left": 4,
+						"worn": {
+							"Common": 3,
+							"Epic": 1,
+							"Legendary": 0,
+							"Rare": 2
+						}
+					},
+					"5 min": {
+						"attack": 28,
+						"attack_from_gear": 11,
+						"boss_rank": 8,
+						"deaths": 0,
+						"draws": 27,
+						"gold": 658,
+						"health": 117,
+						"health_from_gear": 26,
+						"level": 10,
+						"owned": {
+							"Common": 7,
+							"Epic": 1,
+							"Legendary": 0,
+							"Rare": 3
+						},
+						"quests": 9,
+						"talents_spent": 9,
+						"tokens_left": 2,
+						"worn": {
+							"Common": 3,
+							"Epic": 1,
+							"Legendary": 0,
+							"Rare": 2
+						}
+					},
+					"7 days": {
+						"attack": 526,
+						"attack_from_gear": 19,
+						"boss_rank": 345,
+						"deaths": 537,
+						"draws": 123,
+						"gold": 852947,
+						"health": 2587,
+						"health_from_gear": 51,
+						"level": 499,
+						"owned": {
+							"Common": 9,
+							"Epic": 5,
+							"Legendary": 0,
+							"Rare": 8
+						},
+						"quests": 33395,
+						"talents_spent": 12,
+						"tokens_left": 9,
+						"worn": {
+							"Common": 2,
+							"Epic": 4,
+							"Legendary": 0,
+							"Rare": 2
+						}
+					}
+				},
+				"seed": 20261011
+			},
+			{
+				"dev_infinite_tokens": false,
+				"points": {
+					"1 h": {
+						"attack": 56,
+						"attack_from_gear": 11,
+						"boss_rank": 36,
+						"deaths": 22,
+						"draws": 27,
+						"gold": 5898,
+						"health": 262,
+						"health_from_gear": 31,
+						"level": 38,
+						"owned": {
+							"Common": 8,
+							"Epic": 2,
+							"Legendary": 0,
+							"Rare": 4
+						},
+						"quests": 159,
+						"talents_spent": 12,
+						"tokens_left": 2,
+						"worn": {
+							"Common": 4,
+							"Epic": 1,
+							"Legendary": 0,
+							"Rare": 2
+						}
+					},
+					"15 min": {
+						"attack": 37,
+						"attack_from_gear": 11,
+						"boss_rank": 23,
+						"deaths": 3,
+						"draws": 26,
+						"gold": 1965,
+						"health": 167,
+						"health_from_gear": 31,
+						"level": 19,
+						"owned": {
+							"Common": 7,
+							"Epic": 2,
+							"Legendary": 0,
+							"Rare": 4
+						},
+						"quests": 31,
+						"talents_spent": 12,
+						"tokens_left": 8,
+						"worn": {
+							"Common": 4,
+							"Epic": 1,
+							"Legendary": 0,
+							"Rare": 2
+						}
+					},
+					"24 h": {
+						"attack": 211,
+						"attack_from_gear": 16,
+						"boss_rank": 143,
+						"deaths": 184,
+						"draws": 39,
+						"gold": 127397,
+						"health": 1012,
+						"health_from_gear": 31,
+						"level": 188,
+						"owned": {
+							"Common": 9,
+							"Epic": 3,
+							"Legendary": 0,
+							"Rare": 4
+						},
+						"quests": 4599,
+						"talents_spent": 12,
+						"tokens_left": 9,
+						"worn": {
+							"Common": 3,
+							"Epic": 2,
+							"Legendary": 0,
+							"Rare": 2
+						}
+					},
+					"30 min": {
+						"attack": 45,
+						"attack_from_gear": 11,
+						"boss_rank": 28,
+						"deaths": 10,
+						"draws": 26,
+						"gold": 3239,
+						"health": 207,
+						"health_from_gear": 31,
+						"level": 27,
+						"owned": {
+							"Common": 7,
+							"Epic": 2,
+							"Legendary": 0,
+							"Rare": 4
+						},
+						"quests": 72,
+						"talents_spent": 12,
+						"tokens_left": 9,
+						"worn": {
+							"Common": 4,
+							"Epic": 1,
+							"Legendary": 0,
+							"Rare": 2
+						}
+					},
+					"5 min": {
+						"attack": 28,
+						"attack_from_gear": 11,
+						"boss_rank": 8,
+						"deaths": 0,
+						"draws": 26,
+						"gold": 658,
+						"health": 122,
+						"health_from_gear": 31,
+						"level": 10,
+						"owned": {
+							"Common": 7,
+							"Epic": 1,
+							"Legendary": 0,
+							"Rare": 3
+						},
+						"quests": 9,
+						"talents_spent": 9,
+						"tokens_left": 7,
+						"worn": {
+							"Common": 4,
+							"Epic": 1,
+							"Legendary": 0,
+							"Rare": 2
+						}
+					},
+					"7 days": {
+						"attack": 539,
+						"attack_from_gear": 18,
+						"boss_rank": 373,
+						"deaths": 535,
+						"draws": 123,
+						"gold": 871632,
+						"health": 2624,
+						"health_from_gear": 48,
+						"level": 507,
+						"owned": {
+							"Common": 9,
+							"Epic": 5,
+							"Legendary": 0,
+							"Rare": 7
+						},
+						"quests": 33520,
+						"talents_spent": 12,
+						"tokens_left": 5,
+						"worn": {
+							"Common": 2,
+							"Epic": 3,
+							"Legendary": 0,
+							"Rare": 3
+						}
+					}
+				},
+				"seed": 20261012
+			},
+			{
+				"dev_infinite_tokens": false,
+				"points": {
+					"1 h": {
+						"attack": 59,
+						"attack_from_gear": 14,
+						"boss_rank": 37,
+						"deaths": 20,
+						"draws": 27,
+						"gold": 5973,
+						"health": 265,
+						"health_from_gear": 34,
+						"level": 38,
+						"owned": {
+							"Common": 7,
+							"Epic": 2,
+							"Legendary": 0,
+							"Rare": 5
+						},
+						"quests": 161,
+						"talents_spent": 12,
+						"tokens_left": 7,
+						"worn": {
+							"Common": 2,
+							"Epic": 1,
+							"Legendary": 0,
+							"Rare": 4
+						}
+					},
+					"15 min": {
+						"attack": 41,
+						"attack_from_gear": 14,
+						"boss_rank": 25,
+						"deaths": 2,
+						"draws": 27,
+						"gold": 2028,
+						"health": 175,
+						"health_from_gear": 34,
+						"level": 20,
+						"owned": {
+							"Common": 7,
+							"Epic": 2,
+							"Legendary": 0,
+							"Rare": 5
+						},
+						"quests": 32,
+						"talents_spent": 12,
+						"tokens_left": 3,
+						"worn": {
+							"Common": 2,
+							"Epic": 1,
+							"Legendary": 0,
+							"Rare": 4
+						}
+					},
+					"24 h": {
+						"attack": 211,
+						"attack_from_gear": 16,
+						"boss_rank": 143,
+						"deaths": 187,
+						"draws": 40,
+						"gold": 117836,
+						"health": 1027,
+						"health_from_gear": 35,
+						"level": 188,
+						"owned": {
+							"Common": 7,
+							"Epic": 2,
+							"Legendary": 0,
+							"Rare": 8
+						},
+						"quests": 4552,
+						"talents_spent": 12,
+						"tokens_left": 1,
+						"worn": {
+							"Common": 1,
+							"Epic": 1,
+							"Legendary": 0,
+							"Rare": 5
+						}
+					},
+					"30 min": {
+						"attack": 49,
+						"attack_from_gear": 14,
+						"boss_rank": 31,
+						"deaths": 9,
+						"draws": 27,
+						"gold": 3290,
+						"health": 215,
+						"health_from_gear": 34,
+						"level": 28,
+						"owned": {
+							"Common": 7,
+							"Epic": 2,
+							"Legendary": 0,
+							"Rare": 5
+						},
+						"quests": 72,
+						"talents_spent": 12,
+						"tokens_left": 4,
+						"worn": {
+							"Common": 2,
+							"Epic": 1,
+							"Legendary": 0,
+							"Rare": 4
+						}
+					},
+					"5 min": {
+						"attack": 31,
+						"attack_from_gear": 14,
+						"boss_rank": 9,
+						"deaths": 0,
+						"draws": 27,
+						"gold": 703,
+						"health": 125,
+						"health_from_gear": 34,
+						"level": 10,
+						"owned": {
+							"Common": 7,
+							"Epic": 1,
+							"Legendary": 0,
+							"Rare": 4
+						},
+						"quests": 10,
+						"talents_spent": 9,
+						"tokens_left": 2,
+						"worn": {
+							"Common": 2,
+							"Epic": 1,
+							"Legendary": 0,
+							"Rare": 4
+						}
+					},
+					"7 days": {
+						"attack": 528,
+						"attack_from_gear": 16,
+						"boss_rank": 370,
+						"deaths": 536,
+						"draws": 124,
+						"gold": 870625,
+						"health": 2601,
+						"health_from_gear": 40,
+						"level": 504,
+						"owned": {
+							"Common": 9,
+							"Epic": 2,
+							"Legendary": 0,
+							"Rare": 9
+						},
+						"quests": 33254,
+						"talents_spent": 12,
+						"tokens_left": 7,
+						"worn": {
+							"Common": 2,
+							"Epic": 1,
+							"Legendary": 0,
+							"Rare": 5
+						}
+					}
+				},
+				"seed": 20261013
+			},
+			{
+				"dev_infinite_tokens": false,
+				"points": {
+					"1 h": {
+						"attack": 65,
+						"attack_from_gear": 18,
+						"boss_rank": 41,
+						"deaths": 18,
+						"draws": 27,
+						"gold": 6041,
+						"health": 279,
+						"health_from_gear": 38,
+						"level": 40,
+						"owned": {
+							"Common": 5,
+							"Epic": 4,
+							"Legendary": 0,
+							"Rare": 5
+						},
+						"quests": 161,
+						"talents_spent": 12,
+						"tokens_left": 8,
+						"worn": {
+							"Common": 2,
+							"Epic": 3,
+							"Legendary": 0,
+							"Rare": 2
+						}
+					},
+					"15 min": {
+						"attack": 47,
+						"attack_from_gear": 18,
+						"boss_rank": 29,
+						"deaths": 1,
+						"draws": 27,
+						"gold": 2067,
+						"health": 189,
+						"health_from_gear": 38,
+						"level": 22,
+						"owned": {
+							"Common": 5,
+							"Epic": 4,
+							"Legendary": 0,
+							"Rare": 5
+						},
+						"quests": 31,
+						"talents_spent": 12,
+						"tokens_left": 4,
+						"worn": {
+							"Common": 2,
+							"Epic": 3,
+							"Legendary": 0,
+							"Rare": 2
+						}
+					},
+					"24 h": {
+						"attack": 218,
+						"attack_from_gear": 18,
+						"boss_rank": 147,
+						"deaths": 186,
+						"draws": 41,
+						"gold": 118999,
+						"health": 1039,
+						"health_from_gear": 38,
+						"level": 192,
+						"owned": {
+							"Common": 6,
+							"Epic": 4,
+							"Legendary": 0,
+							"Rare": 6
+						},
+						"quests": 4601,
+						"talents_spent": 12,
+						"tokens_left": 3,
+						"worn": {
+							"Common": 2,
+							"Epic": 3,
+							"Legendary": 0,
+							"Rare": 2
+						}
+					},
+					"30 min": {
+						"attack": 54,
+						"attack_from_gear": 18,
+						"boss_rank": 34,
+						"deaths": 7,
+						"draws": 27,
+						"gold": 3370,
+						"health": 224,
+						"health_from_gear": 38,
+						"level": 29,
+						"owned": {
+							"Common": 5,
+							"Epic": 4,
+							"Legendary": 0,
+							"Rare": 5
+						},
+						"quests": 73,
+						"talents_spent": 12,
+						"tokens_left": 5,
+						"worn": {
+							"Common": 2,
+							"Epic": 3,
+							"Legendary": 0,
+							"Rare": 2
+						}
+					},
+					"5 min": {
+						"attack": 35,
+						"attack_from_gear": 18,
+						"boss_rank": 10,
+						"deaths": 0,
+						"draws": 27,
+						"gold": 703,
+						"health": 129,
+						"health_from_gear": 38,
+						"level": 10,
+						"owned": {
+							"Common": 5,
+							"Epic": 3,
+							"Legendary": 0,
+							"Rare": 4
+						},
+						"quests": 10,
+						"talents_spent": 9,
+						"tokens_left": 3,
+						"worn": {
+							"Common": 2,
+							"Epic": 3,
+							"Legendary": 0,
+							"Rare": 2
+						}
+					},
+					"7 days": {
+						"attack": 534,
+						"attack_from_gear": 24,
+						"boss_rank": 351,
+						"deaths": 532,
+						"draws": 124,
+						"gold": 858375,
+						"health": 2595,
+						"health_from_gear": 44,
+						"level": 502,
+						"owned": {
+							"Common": 9,
+							"Epic": 6,
+							"Legendary": 1,
+							"Rare": 8
+						},
+						"quests": 33339,
+						"talents_spent": 12,
+						"tokens_left": 5,
+						"worn": {
+							"Common": 2,
+							"Epic": 3,
+							"Legendary": 1,
+							"Rare": 1
+						}
+					}
+				},
+				"seed": 20261014
+			}
+		]
+	},
+	"talents_in_game": 12
+}
