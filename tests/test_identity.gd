@@ -18,7 +18,7 @@ func _run() -> void:
 	sim.identity.rename("A".repeat(100))
 	check(sim.identity.adventurer_name.length() == 24, "long names are bounded for portrait display")
 	sim.identity.rename(" ")
-	check(sim.identity.adventurer_name == "Wayfarer", "blank names retain a usable default")
+	check(sim.identity.adventurer_name == "Adventurer", "blank names retain a usable default")
 	check(not sim.identity.choose_title("thornbreaker", sim), "earned prestige cannot be selected before its accomplishment")
 	sim.quest_cycles_completed = 1
 	check(sim.identity.choose_title("scout", sim), "completing the opening errand unlocks Scout")
@@ -34,7 +34,7 @@ func _run() -> void:
 	check(sim.effective_attack() == restored.effective_attack() and sim.effective_max_hp() == restored.effective_max_hp(), "identity leaves combat stats unchanged")
 	saved.erase("identity")
 	restored.load_save_dict(saved)
-	check(restored.identity.adventurer_name == "Wayfarer" and restored.thornback_rank == 1, "older saves retain progression and gain a neutral default identity")
+	check(restored.identity.adventurer_name == "Adventurer" and restored.thornback_rank == 1, "older saves retain progression and gain a neutral default identity")
 	var watch := Sim.new()
 	var offline := Sim.new()
 	root.add_child(watch)

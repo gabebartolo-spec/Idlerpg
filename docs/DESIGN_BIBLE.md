@@ -1221,7 +1221,7 @@ Acceptance:
 
 ## IRPG-P4 — Talents and build identity
 
-**Status:** `VERIFY` — PR #6 implements the first Wayfarer build system: 12 talents across Slayer, Warden and Trailblazer, one point per level after level 1, prerequisite chains, free prototype respec, persistent automatic effects and a portrait-friendly branch drawer. Android readability/build-feel validation remains.  
+**Status:** `VERIFY` — PR #6 implements the first build system (originally named Wayfarer; the name was retired on 10 October 2026): 12 talents across Slayer, Warden and Trailblazer, one point per level after level 1, prerequisite chains, free prototype respec, persistent automatic effects and a portrait-friendly branch drawer. Android readability/build-feel validation remains.  
 **Goal:** let the player meaningfully coach automatic combat.
 
 Build:
