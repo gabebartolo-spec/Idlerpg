@@ -132,6 +132,14 @@ ArtCatalogScript.item_icon("Iron Sword")        # Texture2D for UI
 
 ## Review
 
+The imported gear pilot has a separate reproducible path: install dependencies
+with `npm ci --ignore-scripts --prefix tools/art/glb_decode`, then run
+`scripts/import_legendary_art.sh`. Preserved meshopt originals are decoded,
+fitted and reduced in Blender; runtime assets and the generated manifest stay
+outside procedural builder cleanup. See `art/imported/README.md` for measured
+budgets, provenance and the session-only review switch. The first three Tripo
+assets remain Epic-level samples, not approved Legendary replacements.
+
 **Art review is a human visual gate, not something the existing geometry validator or tests can certify.** Before merging a new region or major asset family:
 
 1. Use the category review sheet and representative real-game captures. Arrange new models **alongside the same approved reference hero, gear, enemy and established-region props**, not only other models from the new region.

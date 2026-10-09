@@ -1,0 +1,17 @@
+import { NodeIO } from '@gltf-transform/core';
+import { ALL_EXTENSIONS } from '@gltf-transform/extensions';
+import { MeshoptDecoder } from 'meshoptimizer';
+import { createHash } from 'node:crypto';
+import { readFile, writeFile } from 'node:fs/promises';
+await MeshoptDecoder.ready;
+const [source, target] = process.argv.slice(2);
+if (!source || !target || source===target) throw Error('Provide distinct source and output GLB paths');
+const io = new NodeIO().registerExtensions(ALL_EXTENSIONS).registerDependencies({'meshopt.decoder':MeshoptDecoder});
+const document = await io.read(source);
+const compressed = document.getRoot().listExtensionsUsed().find(x=>x.extensionName==='EXT_meshopt_compression');
+if (!compressed) throw Error('Expected the observed meshopt source');
+compressed.dispose();
+await io.write(target,document);
+const record={source_sha256:createHash('sha256').update(await readFile(source)).digest('hex'),decoded_sha256:createHash('sha256').update(await readFile(target)).digest('hex'),operation:'Lossless decode of EXT_meshopt_compression for Blender import; original source preserved',meshes:document.getRoot().listMeshes().length,materials:document.getRoot().listMaterials().length};
+await writeFile(target+'.decode.json',JSON.stringify(record,null,2)+'\n');
+console.log(JSON.stringify(record));

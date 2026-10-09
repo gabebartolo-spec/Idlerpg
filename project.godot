@@ -28,6 +28,11 @@ pointing/emulate_touch_from_mouse=true
 
 theme/custom="res://src/ui/game_theme.tres"
 
+[editor]
+
+; Avoid the Godot 4.7 font-import race on fresh projects. Runtime threading is unaffected.
+import/use_multiple_threads=false
+
 [rendering]
 
 renderer/rendering_method="mobile"

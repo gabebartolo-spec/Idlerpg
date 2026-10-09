@@ -20,3 +20,10 @@ build/
 
 # Art build thumbnail cache
 art/.cache/
+
+# Imported art source decodes are reproducible from preserved compressed originals.
+art/imported/sources/*.glb
+!art/imported/sources/*_studio_meshopt.glb
+art/imported/sources/*.decode.json
+art/imported/cleaned/*.blend1
+tools/art/glb_decode/node_modules/

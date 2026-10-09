@@ -1,0 +1,47 @@
+{
+  "triangles": 4900,
+  "materials": 1,
+  "surfaces": 1,
+  "textures": [
+    [
+      1024,
+      1024
+    ],
+    [
+      1024,
+      1024
+    ],
+    [
+      1024,
+      1024
+    ]
+  ],
+  "size_blender_m": [
+    0.7500625848770142,
+    0.54680335521698,
+    0.6023831367492676
+  ],
+  "source_sha256": "c4ac4b3fe1ffe8d8132bbee81edbd94abb74918386f833734bcc9a8c231dab33",
+  "provenance": {
+    "provider": "Tripo",
+    "task_id": "25febece-b655-4ad5-8a55-6f8e48c5a846",
+    "license_review": "approved",
+    "model_version": "H3.1",
+    "method": "Tripo Studio image-to-model",
+    "consumed_credits": 65,
+    "generation_date": "2026-10-09",
+    "texture": true,
+    "texture_8k": false,
+    "generate_in_parts": false,
+    "privacy": true,
+    "studio_url": "https://studio.tripo3d.ai/workspace/generate/25febece-b655-4ad5-8a55-6f8e48c5a846",
+    "source_terms_url": "https://www.tripo3d.ai/terms",
+    "terms_review_date": "2026-10-09",
+    "account_plan_at_generation": "Max",
+    "source_representation": "Observed Studio viewport GLB, losslessly decoded from EXT_meshopt_compression; compressed original preserved",
+    "original_compressed_sha256": "e758a2cd2a1aaeea9a204812aeea336e3145fe59bb7ca5a4a2d3050a563ac5fa",
+    "decoded_sha256": "c4ac4b3fe1ffe8d8132bbee81edbd94abb74918386f833734bcc9a8c231dab33",
+    "art_direction_review": "Owner considers initial design Epic-level, not approved as Legendary"
+  },
+  "visual_fit_review": "pending"
+}

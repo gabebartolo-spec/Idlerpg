@@ -18,6 +18,27 @@ func _check(condition: bool, message: String) -> void:
 		push_error(message)
 
 func _run() -> void:
+	_check(not ArtCatalogScript.imported_pilot_enabled, "legendary import pilot is off in normal sessions")
+	var procedural: Dictionary = preload("res://src/data/art_manifest.gd").MODELS
+	for model_id in ["crownblade", "starforged_helm", "titanheart_plate"]:
+		_check(ArtCatalogScript.model_info(model_id) == procedural[model_id], "%s retains its procedural default" % model_id)
+	ArtCatalogScript.imported_pilot_enabled = true
+	for item_name in ["Crownblade", "Starforged Helm", "Titanheart Plate"]:
+		var model_id := ArtCatalogScript.item_model(item_name)
+		var instance := ArtCatalogScript.instantiate(model_id)
+		_check(instance != null and ArtCatalogScript.item_icon(item_name) != null, "%s pilot or fallback loads with matching icon" % item_name)
+		var imported: Dictionary = preload("res://src/data/imported_art_manifest.gd").MODELS
+		if imported.has(model_id):
+			_check(ArtCatalogScript.model_info(model_id)["path"] == imported[model_id]["path"], "%s selects the actual imported GLB during review" % item_name)
+			var textured: bool = false
+			if instance != null:
+				for mesh in instance.find_children("*", "MeshInstance3D", true, false):
+					var material = mesh.get_active_material(0)
+					if material is StandardMaterial3D and material.albedo_texture != null:
+						textured = true
+			_check(textured, "%s preserves its imported colour texture" % item_name)
+		if instance != null: instance.free()
+	ArtCatalogScript.imported_pilot_enabled = false
 	var missing_models: Array[String] = []
 	for model_id in ArtCatalogScript.model_ids():
 		var instance := ArtCatalogScript.instantiate(model_id)
