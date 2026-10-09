@@ -1,8 +1,6 @@
 class_name TalentCatalog
 extends RefCounted
 
-const CLASS_NAME := "Wayfarer"
-
 const BRANCHES := {
 	"slayer": {
 		"label": "Slayer",

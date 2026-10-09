@@ -1,7 +1,7 @@
 extends RefCounted
 const PALETTES := {"amber": Color(0.82, 0.49, 0.16), "moss": Color(0.22, 0.49, 0.31), "slate": Color(0.25, 0.40, 0.67)}
 const TITLES := {"scout": "Greenway Scout", "thornbreaker": "Thornbreaker", "moth_master": "Glasswing Guardian", "moon_master": "Moonwell Keeper", "lamp_master": "Keeper of the Lamps"}
-var adventurer_name: String = "Wayfarer"
+var adventurer_name: String = "Adventurer"
 var palette: String = "amber"
 var title: String = ""
 
@@ -11,7 +11,7 @@ func rename(value: String) -> void:
 		if value.unicode_at(i) >= 32 and value.unicode_at(i) != 127:
 			clean += value.substr(i, 1)
 	clean = " ".join(clean.strip_edges().split(" ", false)).left(24)
-	adventurer_name = clean if not clean.is_empty() else "Wayfarer"
+	adventurer_name = clean if not clean.is_empty() else "Adventurer"
 
 func set_palette(id: String) -> bool:
 	if not PALETTES.has(id):
@@ -43,7 +43,7 @@ func to_save_dict() -> Dictionary:
 	return {"name": adventurer_name, "palette": palette, "title": title}
 
 func load_save_dict(data: Dictionary, sim: Node) -> void:
-	rename(str(data.get("name", "Wayfarer")))
+	rename(str(data.get("name", "Adventurer")))
 	palette = "amber"
 	set_palette(str(data.get("palette", "amber")))
 	title = ""

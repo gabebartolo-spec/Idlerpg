@@ -51,7 +51,7 @@ func unlock(talent_id: String) -> bool:
 	return true
 
 func _build() -> void:
-	var column := build_sheet("%s talents" % TalentCatalogScript.CLASS_NAME)
+	var column := build_sheet("Talents")
 
 	var entries: Array = []
 	for branch_id in TalentCatalogScript.branch_ids():

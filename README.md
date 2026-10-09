@@ -55,7 +55,7 @@ The first quest is intentionally tiny: leave Mossgate, defeat three goblins, tra
 - persistence across saves/offline progress.
 
 ### Talent/build slice
-- first class: **Wayfarer**;
+- one prototype talent tree (no class name; the six planned classes are not built yet);
 - three branches: Slayer, Warden and Trailblazer;
 - 12 meaningful automatic talents;
 - one point per level after level 1;

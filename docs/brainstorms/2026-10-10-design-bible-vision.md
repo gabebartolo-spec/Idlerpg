@@ -66,6 +66,8 @@ Each line is something the director said or chose.
 
 - Class decides skills and abilities.
 - Six classes: Mage, Berserker, Rogue, Cleric, Archer, Shieldwarden.
+- The prototype's Wayfarer class is retired: "Get rid of wayfarer". Its name is removed from the
+  game; its 12 talents stay in place, unlabelled, until the six classes replace them.
 - Players may make as many characters as they want, within reason, but play one at a time.
 - What characters share across an account follows "whatever is normal and fair" for the genre.
   Working default, for the director to confirm: purchases and collections are account-wide;
@@ -126,7 +128,7 @@ them in the new bible, not through this file.
 |---|---|
 | Manual power buttons and potions early on | "There is no movement joystick, attack button, dodge button, spell rotation or tap-to-win combat" (1.2) |
 | Spending buys an edge in PvP | "Normalized ranked PvP excludes paid power; a separate progression arena must disclose power differences" (1.5) |
-| Six classes | "Start with one class until the loop is proven" (4.3); the prototype's one class is the Wayfarer |
+| Six classes | "Start with one class until the loop is proven" (4.3); the prototype's one class was the Wayfarer, now retired |
 | Many characters per account | "The first version is about attachment to one main adventurer" (4.1) |
 | Crafting materials with several uses | "elaborate crafting trees" listed under non-goals (2) |
 | Battle passes in the long tail | "battle passes/live ops before retention exists" listed under non-goals (2) |
@@ -135,11 +137,10 @@ them in the new bible, not through this file.
 
 1. What does a prestige reset, and what does the player gain from it, beyond keeping anything
    bought?
-2. What happens to the prototype's Wayfarer class now that there are six named classes?
-3. Confirm the account-wide versus per-character split, and whether alts help each other.
-4. Names, looks and lore for the red, blue and yellow factions.
-5. How many of the six classes ship first.
-6. Not yet discussed: the world's tone and lore, guilds in detail, the shop's contents, chat room
+2. Confirm the account-wide versus per-character split, and whether alts help each other.
+3. Names, looks and lore for the red, blue and yellow factions.
+4. How many of the six classes ship first.
+5. Not yet discussed: the world's tone and lore, guilds in detail, the shop's contents, chat room
    rules and moderation, and how much watching the adventurer in the 3D world matters.
 
 ## For the decision log
@@ -159,3 +160,4 @@ The project has no decision log yet. Ready to paste when one exists:
 - 2026-10-10 · Director · Three factions (red, blue, yellow), perpetual territory war, weekly reset with leaderboard rewards, optional PvP, functionally identical starting zones.
 - 2026-10-10 · Director · No trading or item transfers between players.
 - 2026-10-10 · Director · Art style stays painterly low-poly; voxel considered and dropped as too much work.
+- 2026-10-10 · Director · The Wayfarer class is retired; its name is removed and its talents stay until the six classes replace them.
