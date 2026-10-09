@@ -1,0 +1,83 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1050" viewBox="0 0 1600 1050">
+<defs>
+ <linearGradient id="bg" x2="0" y2="1"><stop stop-color="#202125"/><stop offset="1" stop-color="#101216"/></linearGradient>
+ <linearGradient id="glass" x2="1" y2=".8"><stop stop-color="#343640"/><stop offset=".46" stop-color="#171920"/><stop offset=".75" stop-color="#38343b"/><stop offset="1" stop-color="#111319"/></linearGradient>
+ <linearGradient id="shell" x2=".8" y2="1"><stop stop-color="#ead9b4"/><stop offset=".44" stop-color="#b69d77"/><stop offset="1" stop-color="#625948"/></linearGradient>
+ <linearGradient id="bark" x2=".9" y2="1"><stop stop-color="#b4784e"/><stop offset=".38" stop-color="#593a30"/><stop offset="1" stop-color="#29252a"/></linearGradient>
+ <linearGradient id="cloth" x2="1" y2="1"><stop stop-color="#7d343a"/><stop offset=".55" stop-color="#48232e"/><stop offset="1" stop-color="#281e26"/></linearGradient>
+ <filter id="shadow" x="-.3" y="-.3" width="1.6" height="1.7"><feGaussianBlur stdDeviation="11"/></filter>
+</defs>
+<rect width="1600" height="1050" fill="url(#bg)"/>
+<text x="70" y="74" fill="#eee4d0" font-family="Georgia,serif" font-size="34" letter-spacing="1">THREE NEW LEGENDARY SILHOUETTES</text>
+<text x="72" y="111" fill="#a9a7a0" font-family="Arial,sans-serif" font-size="17" letter-spacing="2">MATERIAL AND SHAPE FIRST · NO POLISHED STEEL · NO GOLD TRIM · NO GEM CENTRES</text>
+<g fill="#232429" stroke="#47464b" stroke-width="1.5">
+ <rect x="64" y="145" width="470" height="740" rx="18"/><rect x="565" y="145" width="470" height="740" rx="18"/><rect x="1066" y="145" width="470" height="740" rx="18"/>
+</g>
+<!-- sword: one long, broad, flowing volcanic-glass sweep. -->
+<g transform="rotate(9 300 490)">
+ <path d="M258 575 C235 514 146 391 175 295 C201 211 264 165 365 178 C345 255 326 333 313 413 C302 478 302 533 310 584 Z" fill="#08090c" opacity=".65" filter="url(#shadow)"/>
+ <path d="M245 560 C226 490 135 370 161 273 C183 190 247 148 346 162 C332 244 305 330 292 408 C281 476 287 522 302 569 C282 562 263 558 245 560Z" fill="url(#glass)" stroke="#55545e" stroke-width="4"/>
+ <path d="M167 273 C218 250 273 219 346 162 C300 233 266 291 227 367 C203 410 188 453 181 479 C170 398 140 339 167 273Z" fill="#494751" opacity=".65"/>
+ <path d="M168 274 C208 256 229 245 256 226 C238 276 226 312 210 356" fill="none" stroke="#9a9692" stroke-width="3" opacity=".42"/>
+ <path d="M222 402 C243 377 251 355 261 330 C264 374 251 414 255 438 C269 420 277 398 285 374 C280 427 278 470 293 527" fill="none" stroke="#d84c39" stroke-width="6" stroke-linecap="round"/>
+ <path d="M227 445 C242 425 249 414 251 402" fill="none" stroke="#ff9a54" stroke-width="2.5"/>
+ <!-- rough wrapped grip; a forked stone pommel instead of a jewel -->
+ <path d="M224 546 Q270 532 306 557 L339 641 Q285 661 237 641Z" fill="#796458" stroke="#b5a28a" stroke-width="3"/>
+ <path d="M228 560 Q273 579 315 564 M234 578 Q278 597 322 582 M240 598 Q285 616 329 601 M247 617 Q292 635 335 619" fill="none" stroke="#d1bd9e" stroke-width="6"/>
+ <path d="M233 645 L242 687 L277 666 L301 691 L345 637 Q290 653 233 645Z" fill="#39363a" stroke="#777070" stroke-width="3"/>
+ <path d="M239 653 L261 674 M308 663 L333 640" stroke="#9a8a7c" stroke-width="3"/>
+</g>
+<!-- shell helm: a deep open hood, broad gill fan, visibly woven rawhide seams -->
+<g>
+ <ellipse cx="802" cy="655" rx="151" ry="19" fill="#0d0e11" opacity=".75"/>
+ <path d="M674 515 C640 424 654 315 718 237 C767 177 850 170 922 220 C962 247 985 294 972 344 L947 394 Q926 360 910 331 Q907 395 887 433 L854 406 Q843 466 810 498 Q745 477 674 515Z" fill="url(#shell)" stroke="#dfcba4" stroke-width="4"/>
+ <!-- overlapping shell plates, not a metal brow -->
+ <path d="M675 419 Q746 356 910 286 Q862 357 844 425 Q780 411 675 478Z" fill="#c4ae88" stroke="#715f49" stroke-width="4"/>
+ <path d="M704 363 Q769 298 934 256 Q884 312 853 373 Q782 355 704 420Z" fill="#e0cda7" stroke="#877557" stroke-width="4"/>
+ <path d="M752 306 Q813 235 915 221 Q879 262 850 327 Q800 313 752 363Z" fill="#b6a17c" stroke="#79694e" stroke-width="3"/>
+ <path d="M676 476 Q724 430 776 426 L798 482 Q750 484 690 517Z" fill="#39352f"/>
+ <!-- open face void and a carved, pale nose bridge -->
+ <path d="M750 410 Q805 370 871 386 Q871 458 824 489 Q786 476 750 450Z" fill="#111216" stroke="#4b4238" stroke-width="4"/>
+ <path d="M805 396 L817 445 L797 467 L785 450Z" fill="#9d8665"/>
+ <path d="M764 466 Q786 457 800 464 M840 456 Q858 444 865 425" stroke="#d8c69f" stroke-width="4" fill="none"/>
+ <!-- uneven fiber ties -->
+ <path d="M685 436 Q740 399 777 378 M697 459 Q750 423 784 403 M708 483 Q746 458 776 440" fill="none" stroke="#a8563c" stroke-width="8" stroke-linecap="round"/>
+ <circle cx="740" cy="415" r="4" fill="#e2c699"/><circle cx="751" cy="439" r="4" fill="#e2c699"/>
+</g>
+<!-- torso: layered bark and claret quilt, natural plates rather than a steel cuirass -->
+<g>
+ <ellipse cx="1301" cy="660" rx="155" ry="20" fill="#0d0e11" opacity=".75"/>
+ <path d="M1183 319 Q1220 283 1269 296 L1300 328 Q1351 278 1417 315 L1470 371 L1440 431 L1427 581 Q1367 628 1293 607 Q1204 622 1148 576 L1172 430 L1127 379Z" fill="url(#cloth)" stroke="#a35449" stroke-width="4"/>
+ <!-- off-centre bark mantle makes the outline unmistakable -->
+ <path d="M1203 313 Q1240 279 1300 322 Q1338 357 1354 433 Q1325 454 1281 446 Q1271 385 1230 360 L1160 415 L1126 374Z" fill="url(#bark)" stroke="#c18a61" stroke-width="5"/>
+ <path d="M1334 334 Q1376 295 1414 324 L1470 371 L1438 427 L1392 401 Q1379 368 1334 334Z" fill="#574036" stroke="#95694e" stroke-width="4"/>
+ <!-- individually layered shingle-like bark ribs -->
+ <path d="M1185 422 Q1225 389 1280 413 L1268 452 Q1228 439 1180 474Z" fill="#9d6748" stroke="#d09a6a" stroke-width="3"/>
+ <path d="M1179 465 Q1228 432 1271 454 L1258 493 Q1217 478 1175 514Z" fill="#79523e" stroke="#bd8559" stroke-width="3"/>
+ <path d="M1173 510 Q1215 484 1261 495 L1250 533 Q1206 523 1170 553Z" fill="#a37250" stroke="#d0a176" stroke-width="3"/>
+ <!-- cross-laced cord, stitched directly through the wood -->
+ <path d="M1191 436 L1256 475 M1181 480 L1246 517 M1175 526 L1239 559" stroke="#d5bf98" stroke-width="5"/>
+ <path d="M1256 470 L1202 482 M1247 516 L1193 531 M1239 555 L1186 565" stroke="#603d33" stroke-width="5"/>
+ <!-- plain cloth hem and frayed ties -->
+ <path d="M1165 574 Q1238 592 1302 579 Q1373 597 1431 562" fill="none" stroke="#c07759" stroke-width="6"/>
+ <path d="M1350 603 L1356 668 M1372 598 L1396 650 M1212 599 L1197 653" stroke="#a55348" stroke-width="6" stroke-linecap="round"/>
+</g>
+<g font-family="Arial,sans-serif">
+ <text x="90" y="746" fill="#efded0" font-size="26" letter-spacing="2">CINDERWAKE</text>
+ <text x="90" y="782" fill="#bd7360" font-size="15" letter-spacing="2">OBSIDIAN / EMBER / WORN BONE</text>
+ <text x="90" y="824" fill="#c2bdba" font-size="17">Broad crescent cut. A vein of living heat.</text>
+ <text x="90" y="851" fill="#c2bdba" font-size="17">No bright metal. No mounted jewel.</text>
+ <text x="590" y="746" fill="#efded0" font-size="26" letter-spacing="2">SHELLWARD</text>
+ <text x="590" y="782" fill="#d0c09d" font-size="15" letter-spacing="2">PALE SHELL / RAW FIBER / DEEP SHADOW</text>
+ <text x="590" y="824" fill="#c2bdba" font-size="17">A low, flared hood with an open face.</text>
+ <text x="590" y="851" fill="#c2bdba" font-size="17">Layered plates, bound through with cord.</text>
+ <text x="1092" y="746" fill="#efded0" font-size="26" letter-spacing="2">ROOTBOUND</text>
+ <text x="1092" y="782" fill="#cf9270" font-size="15" letter-spacing="2">RUSSET CLOTH / BARK / BONE THREAD</text>
+ <text x="1092" y="824" fill="#c2bdba" font-size="17">A one-sided mantle over woven cloth.</text>
+ <text x="1092" y="851" fill="#c2bdba" font-size="17">Shingle plates laced into the fabric.</text>
+</g>
+<path d="M90 900H1510" stroke="#545259" stroke-width="1"/>
+<text x="90" y="937" fill="#a9a7a0" font-family="Arial,sans-serif" font-size="15" letter-spacing="1.4">EARLY SHAPE STUDIES · MATERIALS + SILHOUETTES ONLY · NOT FINAL MODELS</text>
+<text x="90" y="965" fill="#817f7a" font-family="Arial,sans-serif" font-size="14">The first blue-metal and gold-trim concept sheet has been withdrawn.</text>
+<text x="1510" y="965" text-anchor="end" fill="#817f7a" font-family="Arial,sans-serif" font-size="14">Working names only; original catalogue IDs stay.</text>
+</svg>

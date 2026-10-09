@@ -7,7 +7,7 @@
 **Secondary references:** RuneScape for efficient/readable geometry; Kingdoms of Amalur for expressive, sculpted shapes  
 **Rule:** borrow visual principles, never copy identifiable assets, characters, armour sets, locations, logos, UI, or compositions.
 
-**Current P0 #1 visual task:** use the owner's existing Tripo access to prototype the **Crownblade, Starforged Helm and Titanheart Plate**, clean/import them through Blender into the running game, and show the owner real portrait captures. The [Tripo legendary pilot brief](TRIPO_LEGENDARY_PILOT.md) is the active visual-art priority. Three first-pass Tripo sources have been generated and retrieved; cleanup and hero-fit review are in progress. Owner feedback: the first designs read as **Epic, not Legendary**. A stronger second concept direction awaits review. Keep the shared 'same hand' style and defer all-catalogue generation until the owner has judged three real assets. See [process evidence](TRIPO_PROCESS_LEARNINGS.md).
+**Current P0 #1 visual task:** use the owner's existing Tripo access to prototype the **Crownblade, Starforged Helm and Titanheart Plate**, clean/import them through Blender into the running game, and show the owner real portrait captures. The [Tripo legendary pilot brief](TRIPO_LEGENDARY_PILOT.md) is the active visual-art priority. Three first-pass Tripo sources have been generated and retrieved; cleanup and hero-fit review are in progress. Owner feedback: the first designs read as **Epic, not Legendary**. The owner rejected the crown/eclipse/heart-furnace follow-up direction as too close to the Epic aesthetic. Fresh material and silhouette studies are recorded in [LEGENDARY_DIRECTION_FRESH.md](LEGENDARY_DIRECTION_FRESH.md). Keep the shared 'same hand' style and defer all-catalogue generation until the owner has judged three real assets. See [process evidence](TRIPO_PROCESS_LEARNINGS.md).
 
 ---
 
@@ -488,3 +488,4 @@ An asset is approved only if it passes all six:
 Before signing off a **new region**, perform a side-by-side review of its hero/enemy encounter, major prop and backdrop next to at least one established region at neutral matching lighting, then the intended local mood. Record whether it passes the same-hand test and any rework needed. If either portrait readability or art cohesion fails, do not mark the region's art polished.
 
 When in doubt, simplify.
+

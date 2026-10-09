@@ -149,10 +149,12 @@ differed from the hero weapon convention. A 90-degree Blender Z rotation correct
 the blade plane before setting the grip pivot. This proves why a successful
 import/triangle budget cannot substitute for inspecting the actual render.
 
-A second original three-item concept sheet, `legendary_design_pass_2.png`, explores
-a cleft crown-shaped blade, a broken eclipse helmet arc and a ribbed titan-heart
-cuirass. It is a proposed direction awaiting owner feedback, not a generated
-Tripo model or approved replacement.
+The owner rejected the initial follow-up concepts as poor and too close to the
+Epic aesthetic. The blue metal/gold trim/amber-gem direction is retired. Fresh
+shape studies in `art/imported/references/fresh_legendary_direction.svg` change
+the material families and silhouettes: ember-seamed obsidian, a woven shell hood
+and bark laced over russet cloth. They are concept studies only, not Tripo models
+or approved replacements. See `docs/LEGENDARY_DIRECTION_FRESH.md`.
 
 ## Export: high resolution is source quality, not a runtime budget
 
@@ -266,7 +268,7 @@ separate art-loading/material check. Existing item rarity labels stay unchanged
 in the isolated fixture, but the owner has not approved these models as
 Legendary replacements. The normal game keeps the imported pilot off.
 
-The stronger second-pass direction is recorded in LEGENDARY_SECOND_PASS.md.
+The rejected second-pass board and brief were removed. The new direction and review rationale are recorded in LEGENDARY_DIRECTION_FRESH.md.
 No additional paid generation has been submitted pending art-direction review.
 
 ## Fresh-import failure discovered by CI
@@ -290,3 +292,4 @@ The sequential-import workaround passed the fresh local Android resource audit:
 launch 50 assertions, art 41, reward chests 19 and progression 148 (258 total).
 Source exclusion and resource-pack execution passed. This proves export/resource
 loading on desktop, not APK installation or physical Android performance.
+

@@ -6,8 +6,7 @@ no purchase or repeat generation was needed. Task IDs, settings, source hashes
 and dated rights review are in pilot.json.
 
 The owner considers this first pass **Epic-level, not approved Legendary art**.
-references/legendary_design_pass_2.png is a stronger proposed concept sheet,
-not a game screenshot or generated mesh. Original references are preserved.
+The original blue-metal/gold-trim follow-up concepts were rejected and removed. See `references/fresh_legendary_direction.svg` for the new shape and material studies; they are concepts, not generated meshes. Original source art is preserved.
 
 ## Rebuild
 
@@ -48,3 +47,5 @@ Official Tripo DCC bridges and additional Blender/Godot MCP control bridges
 were installed and tested in the isolated workspace. Local control does not
 prove Studio transfer. See docs/TRIPO_PROCESS_LEARNINGS.md for the full process,
 Windows fixes, verification and art-direction lessons.
+
+
