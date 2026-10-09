@@ -7,7 +7,7 @@
 **Secondary references:** RuneScape for efficient/readable geometry; Kingdoms of Amalur for expressive, sculpted shapes  
 **Rule:** borrow visual principles, never copy identifiable assets, characters, armour sets, locations, logos, UI, or compositions.
 
-**Current P0 #1 visual task:** use the owner's existing Tripo access to prototype the **Crownblade, Starforged Helm and Titanheart Plate**, clean/import them through Blender into the running game, and show the owner real portrait captures. The committed [Tripo legendary pilot brief](TRIPO_LEGENDARY_PILOT.md) is the active visual-art priority. The assets have **not yet** been generated or approved. Keep the shared 'same hand' style and defer all-catalogue generation until the owner has judged three real assets.
+**Current P0 #1 visual task:** use the owner's existing Tripo access to prototype the **Crownblade, Starforged Helm and Titanheart Plate**, clean/import them through Blender into the running game, and show the owner real portrait captures. The [Tripo legendary pilot brief](TRIPO_LEGENDARY_PILOT.md) is the active visual-art priority. Three first-pass Tripo sources have been generated and retrieved; cleanup and hero-fit review are in progress. Owner feedback: the first designs read as **Epic, not Legendary**. A stronger second concept direction awaits review. Keep the shared 'same hand' style and defer all-catalogue generation until the owner has judged three real assets. See [process evidence](TRIPO_PROCESS_LEARNINGS.md).
 
 ---
 

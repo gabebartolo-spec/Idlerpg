@@ -4,10 +4,13 @@ extends RefCounted
 # Lookups over the generated art manifest (src/data/art_manifest.gd).
 
 const ArtManifestScript = preload("res://src/data/art_manifest.gd")
+const ImportedArt = preload("res://src/data/imported_art_manifest.gd")
 const Appearance = preload("res://src/data/appearance_catalog.gd")
 const MATTE_NAME := "pal_matte"
 
 static var _matte: StandardMaterial3D
+# Session-only developer review switch. Never saved, never enabled by inventory/RNG.
+static var imported_pilot_enabled: bool = false
 
 static func has_model(model_id: String) -> bool:
 	return ArtManifestScript.MODELS.has(model_id)
@@ -16,6 +19,10 @@ static func model_ids() -> Array:
 	return ArtManifestScript.MODELS.keys()
 
 static func model_info(model_id: String) -> Dictionary:
+	if imported_pilot_enabled and ImportedArt.MODELS.has(model_id):
+		var imported: Dictionary = ImportedArt.MODELS[model_id]
+		if ResourceLoader.exists(str(imported.get("path", ""))):
+			return imported
 	return ArtManifestScript.MODELS.get(model_id, {})
 
 static func instantiate(model_id: String) -> Node3D:
@@ -62,6 +69,13 @@ static func companion_icon(companion_name: String) -> Texture2D:
 	return _icon(str(ArtManifestScript.COMPANIONS.get(companion_name, {}).get("icon", "")))
 
 static func item_icon(item_name: String) -> Texture2D:
+	if imported_pilot_enabled and ImportedArt.ITEMS.has(item_name):
+		var imported: Dictionary = ImportedArt.ITEMS[item_name]
+		var model_id := str(imported.get("model", ""))
+		if model_info(model_id).get("path", "") == ImportedArt.MODELS.get(model_id, {}).get("path", ""):
+			var icon := _icon(str(imported.get("icon", "")))
+			if icon != null:
+				return icon
 	return _icon(str(ArtManifestScript.ITEMS.get(item_name, {}).get("icon", "")))
 
 static func _icon(path: String) -> Texture2D:
