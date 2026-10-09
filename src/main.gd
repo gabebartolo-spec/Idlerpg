@@ -20,6 +20,7 @@ const ArtCatalogScript = preload("res://src/data/art_catalog.gd")
 const CharacterVisualScript = preload("res://src/view/character_visual.gd")
 const TrailAudioScript = preload("res://src/view/trail_audio.gd")
 const LanternHollowScript = preload("res://src/view/lantern_hollow.gd")
+const CameraRigScript = preload("res://src/view/camera_rig.gd")
 const RewardScreenScript = preload("res://src/ui/reward_screen.gd")
 const GearScreenScript = preload("res://src/ui/gear_screen.gd")
 const TalentScreenScript = preload("res://src/ui/talent_screen.gd")
@@ -37,6 +38,9 @@ const GEAR_SLOTS := ["weapon", "offhand", "head", "chest", "legs", "hands", "fee
 const HOVERING_COMPANIONS := ["Torch Sprite", "Clockwork Raven"]
 # How far away an enemy stands, relative to an ordinary one.
 const ENEMY_REACH := {"thornback": 1.8}
+# Where the follow camera sits relative to the adventurer before the player turns or zooms it.
+const CAMERA_OFFSET := Vector3(7.0, 6.0, 8.0)
+const CAMERA_OFFSET_WOODLAND := Vector3(5.6, 4.8, 6.4)
 
 var game: Node
 var sim: Node
@@ -51,6 +55,12 @@ var practice_foes: Array[Node3D] = []
 var enemy_visual: Node3D
 var companion_visual: Node3D
 var camera: Camera3D
+# The player's orbit and zoom, and the two smoothed parts of the camera that follow the hero.
+var camera_rig: RefCounted
+var camera_anchor: Vector3 = Vector3.ZERO
+var camera_base: Vector3 = CAMERA_OFFSET
+# Always-visible HUD controls: swipes that begin on them are not camera gestures.
+var hud_blockers: Array[Control] = []
 var weapon_visual: Node3D
 var talent_proc_visual: MeshInstance3D
 var rendered_enemy_kind: String = ""
@@ -149,8 +159,30 @@ func _process(delta: float) -> void:
 func _notification(what: int) -> void:
 	if sim == null or game == null:
 		return
+	if what == NOTIFICATION_APPLICATION_PAUSED or what == NOTIFICATION_APPLICATION_FOCUS_OUT or what == NOTIFICATION_WM_CLOSE_REQUEST:
+		if camera_rig != null:
+			camera_rig.cancel()
 	if what == NOTIFICATION_APPLICATION_PAUSED or what == NOTIFICATION_WM_CLOSE_REQUEST:
 		_save_now()
+
+# Swipe to orbit and pinch to zoom the watch camera (docs/WATCH_CAMERA.md).
+func _input(event: InputEvent) -> void:
+	if camera_rig == null:
+		return
+	# A sheet, report or drawer owns every touch while it is open.
+	if _any_drawer_open():
+		camera_rig.cancel()
+		return
+	camera_rig.handle_event(event)
+
+# Only open world starts a camera gesture: not the HUD card, the action buttons or a sheet.
+func _world_gesture_allowed(at: Vector2) -> bool:
+	if _any_drawer_open():
+		return false
+	for blocker in hud_blockers:
+		if blocker != null and blocker.is_visible_in_tree() and blocker.get_global_rect().has_point(at):
+			return false
+	return true
 
 func _build_world() -> void:
 	world = Node3D.new()
@@ -196,7 +228,11 @@ func _build_world() -> void:
 
 	camera = Camera3D.new()
 	camera.current = true
-	camera.position = sim.hero_position + Vector3(7.0, 6.0, 8.0)
+	camera_rig = CameraRigScript.new()
+	camera_rig.start_allowed = _world_gesture_allowed
+	camera_anchor = sim.hero_position
+	camera_base = CAMERA_OFFSET
+	camera.position = camera_anchor + camera_base
 	world.add_child(camera)
 	camera.look_at(sim.hero_position + Vector3(0.0, 0.8, 0.0), Vector3.UP)
 
@@ -286,7 +322,8 @@ func _build_wolf_den() -> void:
 	_add_prop("rock_small", den + Vector3(-2.3, 0.0, -2.6), 20.0)
 
 func _build_horizon() -> void:
-	# Backdrop only, on the side the fixed camera looks towards.
+	# Backdrop. The first group sits on the side the camera looks towards by default; the
+	# second closes the ring, so turning the camera never shows an empty horizon.
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 7
 	var view := Vector2(-7.0, -8.0).normalized()
@@ -295,6 +332,15 @@ func _build_horizon() -> void:
 		_add_prop("hill_round" if index % 2 == 0 else "hill_ridge", Vector3(spot.x, 0.0, spot.y), rng.randf_range(0.0, 360.0), rng.randf_range(0.7, 1.5))
 	for index in 45:
 		var spot := view.rotated(rng.randf_range(-1.4, 1.4)) * rng.randf_range(16.0, 50.0)
+		_add_prop("tree_oak" if index % 3 == 0 else "tree_pine", Vector3(spot.x, 0.0, spot.y), rng.randf_range(0.0, 360.0), rng.randf_range(0.9, 1.6))
+	# The far side of the ring. Trees keep beyond the Lanternwood trails (about 33 from the
+	# start) so they never stand on the route or its scenery.
+	var rear := -view
+	for index in 14:
+		var spot := rear.rotated(rng.randf_range(-1.9, 1.9)) * rng.randf_range(55.0, 120.0)
+		_add_prop("hill_round" if index % 2 == 0 else "hill_ridge", Vector3(spot.x, 0.0, spot.y), rng.randf_range(0.0, 360.0), rng.randf_range(0.7, 1.5))
+	for index in 24:
+		var spot := rear.rotated(rng.randf_range(-1.8, 1.8)) * rng.randf_range(44.0, 75.0)
 		_add_prop("tree_oak" if index % 3 == 0 else "tree_pine", Vector3(spot.x, 0.0, spot.y), rng.randf_range(0.0, 360.0), rng.randf_range(0.9, 1.6))
 
 func _build_briarfen() -> void:
@@ -434,8 +480,12 @@ func _sync_world(delta: float) -> void:
 		rendered_enemy_kind = ""
 
 	var woodland: bool = sim.activity == "expedition" and sim.expedition.route in ["hollow", "rise"]
-	var desired_camera: Vector3 = hero_visual.position + (Vector3(5.6, 4.8, 6.4) if woodland else Vector3(7.0, 6.0, 8.0))
-	camera.position = camera.position.lerp(desired_camera, min(1.0, delta * 2.0))
+	# The camera trails the hero and eases between its two default offsets as before. The
+	# player's turn and zoom are applied on top at once, so a swipe never lags or drifts.
+	var ease_in: float = min(1.0, delta * 2.0)
+	camera_anchor = camera_anchor.lerp(hero_visual.position, ease_in)
+	camera_base = camera_base.lerp(CAMERA_OFFSET_WOODLAND if woodland else CAMERA_OFFSET, ease_in)
+	camera.position = camera_anchor + camera_rig.offset(camera_base)
 	camera.look_at(hero_visual.position + Vector3(0.0, 0.7, 0.0), Vector3.UP)
 
 func _sync_companion_visual(delta: float) -> void:
@@ -527,6 +577,7 @@ func _build_ui() -> void:
 	top.offset_top = 18.0
 	top.offset_bottom = 165.0
 	canvas.add_child(top)
+	hud_blockers.append(top)
 
 	var hud_card := PanelContainer.new()
 	hud_card.add_theme_stylebox_override("panel", UiStyleScript.box(Color(0.15, 0.17, 0.13, 0.93), 16.0, 14.0))
@@ -580,6 +631,7 @@ func _build_ui() -> void:
 	var actions := HBoxContainer.new()
 	actions.add_theme_constant_override("separation", 8)
 	bottom_column.add_child(actions)
+	hud_blockers.append(actions)
 
 	var equipment_button := UiStyleScript.button("Gear")
 	equipment_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -783,9 +835,18 @@ func _refresh_wallet(_tokens: int) -> void:
 	if gacha_panel != null:
 		gacha_panel.refresh_wallet()
 
+func _drawers() -> Array:
+	return [equipment_panel, talent_panel, boss_panel, gacha_panel, wardrobe_panel, adventure_panel, loadout_panel, relic_panel, chronicle_panel, journal_panel, guide_panel, options_panel, menu_panel, guild_panel, identity_panel, fishing_panel, practice_panel, expedition_panel, reward_panel, dev_panel, return_panel]
+
+func _any_drawer_open() -> bool:
+	for sheet in _drawers():
+		if sheet != null and sheet.visible:
+			return true
+	return false
+
 # Only one sheet, drawer or report is open at a time.
 func _close_drawers() -> void:
-	for sheet in [equipment_panel, talent_panel, boss_panel, gacha_panel, wardrobe_panel, adventure_panel, loadout_panel, relic_panel, chronicle_panel, journal_panel, guide_panel, options_panel, menu_panel, guild_panel, identity_panel, fishing_panel, practice_panel, expedition_panel, reward_panel, dev_panel, return_panel]:
+	for sheet in _drawers():
 		if sheet != null:
 			sheet.visible = false
 

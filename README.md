@@ -17,7 +17,7 @@ The authoritative simulation owns what happens. The 3D world visualises it. Ther
 - one repeating quest chain;
 - death and recovery;
 - compact current-activity / quest UI;
-- following watch camera.
+- following watch camera that the player can turn with a sideways swipe and zoom with a pinch (`docs/WATCH_CAMERA.md`).
 
 The first quest is intentionally tiny: leave Mossgate, defeat three goblins, travel to the wolves, defeat two, return to town, collect the reward, rest, then head out again.
 
@@ -163,6 +163,7 @@ Current targeted tests cover:
 - Slayer/Warden/Trailblazer simulation effects;
 - companion activation, passives, bond progression and persistence;
 - Briarfen progression, Briarlings, Old Thornback, boss reward and save/load;
+- watch camera orbit and zoom gestures, including HUD and sheet touch protection;
 - real main-scene launch smoke coverage including collection, talents and visible companion activation;
 - every art model loads, and every gear item and companion has a model and icon;
 - management UI under synthetic touches: lists scroll both ways, swipes never press, gear actions stay on screen;
