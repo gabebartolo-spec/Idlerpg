@@ -268,3 +268,25 @@ Legendary replacements. The normal game keeps the imported pilot off.
 
 The stronger second-pass direction is recorded in LEGENDARY_SECOND_PASS.md.
 No additional paid generation has been submitted pending art-direction review.
+
+## Fresh-import failure discovered by CI
+
+The Linux game suite and seven import guards passed, but the clean Android
+resource audit crashed at the first custom-font import with signal 11. This
+matches the shape of Godot's reported multi-font import race; without a native
+backtrace, the precise internal cause remains an inference. Upstream tracks it
+in https://github.com/godotengine/godot/issues/111039 and the ClassDB race fix in
+https://github.com/godotengine/godot/pull/123546. The documented project setting
+editor/import/use_multiple_threads is now false, serializing editor imports
+while preserving runtime threading and the original font. Verify with a fresh
+cache and the real export/resource checks; do not bypass or accept a failed CI
+run. Setting reference: https://docs.godotengine.org/en/4.4/classes/class_projectsettings.html#class-projectsettings-property-editor-import-use-multiple-threads
+
+Pure validation CI invokes python tools/art/test_import_spec.py directly.
+Broad discovery under tools/art also imports procedural models that require
+Blender's bmesh module. Keep pure guards separate from Blender execution.
+
+The sequential-import workaround passed the fresh local Android resource audit:
+launch 50 assertions, art 41, reward chests 19 and progression 148 (258 total).
+Source exclusion and resource-pack execution passed. This proves export/resource
+loading on desktop, not APK installation or physical Android performance.
